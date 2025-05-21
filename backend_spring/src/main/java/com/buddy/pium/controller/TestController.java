@@ -13,6 +13,6 @@ public class TestController {
 
     @GetMapping
     public ResponseEntity<Map<String, String>> test() {
-        return ResponseEntity.ok(Map.of("message", "Hello from Spring Boot!"));
+        return ResponseEntity.ok(Map.of("message", "Hello123 from Spring Boot!"));
     }
 }
