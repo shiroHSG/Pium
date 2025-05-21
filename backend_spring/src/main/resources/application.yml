@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/pium
     username : root
-    password: hsgty588123s
+    password: 1234
 
   jpa:
     hibernate:
