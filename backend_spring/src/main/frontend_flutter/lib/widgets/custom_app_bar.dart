@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CustomAppBar({Key? key}) : super(key: key);
+  final VoidCallback onMenuPressed;
+
+  const CustomAppBar({
+    Key? key,
+    required this.onMenuPressed,
+  }) : super(key: key);
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -27,9 +32,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         IconButton(
           icon: const Icon(Icons.menu, color: Colors.white), // 메뉴 아이콘
-          onPressed: () {
-            // 메뉴 아이콘 클릭 시 동작
-          },
+          onPressed: onMenuPressed,
         ),
       ],
     );
