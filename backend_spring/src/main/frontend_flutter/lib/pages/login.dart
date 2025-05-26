@@ -19,9 +19,6 @@ class _LoginState extends State<Login> {
   void _login() {
     print('아이디: ${_idController.text}');
     print('비밀번호: ${_passwordController.text}');
-
-    // 어떤 아이디/비밀번호를 입력하든 메인 페이지로 이동 (MyHomePage)
-    // Navigator.pushReplacement를 사용하여 뒤로가기 버튼으로 로그인 페이지로 돌아오지 않도록 함
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const MyHomePage()),
@@ -38,9 +35,6 @@ class _LoginState extends State<Login> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: AppTheme.textPurple),
           onPressed: () {
-            // 현재 로그인 페이지가 앱의 시작 페이지라면, pop이 작동하지 않을 수 있습니다.
-            // 필요에 따라 앱 종료 로직 (예: SystemNavigator.pop())을 고려할 수 있습니다.
-            // 하지만 로그인 페이지가 스택의 최하단이 아닌 경우에만 pop이 유효합니다.
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
             }
@@ -172,7 +166,7 @@ class _LoginState extends State<Login> {
             obscureText: isPassword,
             decoration: InputDecoration(
               filled: true,
-              fillColor: Colors.transparent,
+              fillColor: Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide.none,

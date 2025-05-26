@@ -21,10 +21,9 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _birthDateController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
-  String? _selectedGender; // 성별 선택을 위한 변수
+  String? _selectedGender;
 
   void _signup() {
-    // 회원가입 로직 구현
     print('이메일: ${_emailController.text}');
     print('비밀번호: ${_passwordController.text}');
     print('닉네임: ${_nicknameController.text}');
@@ -34,7 +33,6 @@ class _SignupPageState extends State<SignupPage> {
     print('성별: $_selectedGender');
     print('주소: ${_addressController.text}');
 
-    // 비밀번호 확인 로직
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('비밀번호가 일치하지 않습니다.')),
@@ -53,18 +51,17 @@ class _SignupPageState extends State<SignupPage> {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: const ColorScheme.light(
-              primary: AppTheme.primaryPurple, // 달력 헤더 배경색
-              onPrimary: Colors.white, // 달력 헤더 텍스트 색상
-              onSurface: AppTheme.textPurple, // 달력 숫자/요일 색상
+              primary: AppTheme.primaryPurple,
+              onPrimary: Colors.white,
+              onSurface: AppTheme.textPurple,
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: AppTheme.primaryPurple, // '확인', '취소' 버튼 색상
+                foregroundColor: AppTheme.primaryPurple,
               ),
             ),
-            // 이곳을 수정합니다.
             textTheme: Theme.of(context).textTheme.apply(
-              fontFamily: 'Jua', // 모든 텍스트 스타일에 fontFamily 적용
+              fontFamily: 'Jua',
             ),
           ),
           child: child!,
@@ -81,14 +78,14 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.lightPink, // 배경색을 AppTheme.lightPink로 설정
+      backgroundColor: AppTheme.lightPink,
       appBar: AppBar(
-        backgroundColor: Colors.transparent, // AppBar 배경 투명하게
-        elevation: 0, // AppBar 그림자 제거
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppTheme.textPurple), // 뒤로가기 버튼
+          icon: const Icon(Icons.arrow_back_ios, color: AppTheme.textPurple),
           onPressed: () {
-            Navigator.pop(context); // 이전 화면으로 돌아가기
+            Navigator.pop(context);
           },
         ),
         centerTitle: true,
@@ -99,30 +96,29 @@ class _SignupPageState extends State<SignupPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 15), // 로고 위 여백 줄임
-              // 피움 로고
+              const SizedBox(height: 15),
               Image.asset(
                 'assets/logo1.png',
                 width: 100,
               ),
-              const SizedBox(height: 15), // 로고 아래 여백 줄임
+              const SizedBox(height: 15),
               _buildSignupInputField('이메일', _emailController, TextInputType.emailAddress, false),
               const SizedBox(height: 15),
               _buildSignupInputField('비밀번호', _passwordController, TextInputType.text, true),
               const SizedBox(height: 15),
               _buildSignupInputField('비밀번호 확인', _confirmPasswordController, TextInputType.text, true),
               const SizedBox(height: 15),
-              _buildNicknameInputField('닉네임', _nicknameController), // 중복 확인 버튼 포함
+              _buildNicknameInputField('닉네임', _nicknameController),
               const SizedBox(height: 15),
               _buildSignupInputField('이름', _nameController, TextInputType.text, false),
               const SizedBox(height: 15),
               _buildSignupInputField('전화번호', _phoneController, TextInputType.phone, false),
               const SizedBox(height: 15),
-              _buildBirthDateInputField('생년월일', _birthDateController), // 생년월일 필드에는 달력 아이콘 포함
+              _buildBirthDateInputField('생년월일', _birthDateController),
               const SizedBox(height: 15),
               _buildGenderSelectionField('성별'),
               const SizedBox(height: 15),
-              _buildAddressInputField('주소', _addressController), // 주소 필드에는 '주소 검색' 버튼 포함
+              _buildAddressInputField('주소', _addressController),
               const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: _signup,
@@ -168,8 +164,8 @@ class _SignupPageState extends State<SignupPage> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: AppTheme.lightPink, // 배경색
-            borderRadius: BorderRadius.circular(10), // 모서리 둥글게
+            color: AppTheme.lightPink,
+            borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
@@ -185,7 +181,7 @@ class _SignupPageState extends State<SignupPage> {
             obscureText: isPassword,
             decoration: InputDecoration(
               filled: true,
-              fillColor: Colors.transparent,
+              fillColor: Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide.none,
@@ -234,7 +230,7 @@ class _SignupPageState extends State<SignupPage> {
                   controller: controller,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.transparent,
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
@@ -302,17 +298,17 @@ class _SignupPageState extends State<SignupPage> {
           ),
           child: TextField(
             controller: controller,
-            readOnly: true, // 직접 입력 방지
-            onTap: () => _selectDate(context), // 탭 시 달력 표시
+            readOnly: true,
+            onTap: () => _selectDate(context),
             decoration: InputDecoration(
               filled: true,
-              fillColor: Colors.transparent,
+              fillColor: Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide.none,
               ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-              suffixIcon: const Icon(Icons.calendar_today, color: AppTheme.textPurple), // 달력 아이콘
+              suffixIcon: const Icon(Icons.calendar_today, color: AppTheme.textPurple),
             ),
             style: const TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua'),
           ),
@@ -447,14 +443,14 @@ class _SignupPageState extends State<SignupPage> {
                   readOnly: true, // 주소는 직접 입력 방지
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.transparent,
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
                     ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
                   ),
-                  style: const TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua'),
+                  style: const TextStyle(color: Colors.white, fontFamily: 'Jua'),
                 ),
               ),
             ),
