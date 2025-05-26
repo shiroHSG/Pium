@@ -31,8 +31,10 @@ class _TestApiPageState extends State<TestApiPage> {
 
     try {
       final response = await http.get(uri);
+
       if (response.statusCode == 200) {
-        final jsonBody = json.decode(response.body);
+        final decodedBody = utf8.decode(response.bodyBytes);
+        final jsonBody = json.decode(decodedBody);
         setState(() {
           _message = jsonBody['message'] ?? '응답 없음';
         });

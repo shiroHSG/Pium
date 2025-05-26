@@ -18,9 +18,7 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
+# VSCode settings (optional)
 #.vscode/
 
 # Flutter/Dart/Pub related
@@ -31,15 +29,55 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
+build/
 
-# Symbolication related
+# Android build artifacts
+android/app/debug
+android/app/profile
+android/app/release
+android/.gradle/
+android/local.properties
+
+# iOS 관련
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/App.framework
+ios/Flutter/engine/
+ios/Pods/
+ios/Runner.xcworkspace/
+ios/build/
+ios/.symlinks/
+ios/.flutter-plugins
+ios/.flutter-plugins-dependencies
+
+# macOS 관련
+macos/Flutter/ephemeral/
+macos/Flutter/generated.xcconfig
+macos/Pods/
+macos/build/
+macos/.symlinks/
+
+# Web 관련
+web/.dart_tool/
+web/build/
+
+# Windows 관련
+windows/ephemeral/
+windows/build/
+
+# Linux 관련
+linux/ephemeral/
+linux/build/
+
+# Symbolication
 app.*.symbols
 
-# Obfuscation related
+# Obfuscation
 app.*.map.json
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# Firebase
+firebase_app_id_file.json
+
+# Env file
+.env

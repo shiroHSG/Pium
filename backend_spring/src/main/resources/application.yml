@@ -1,12 +1,18 @@
 server:
   port: 8080
-  servlet:
 
 spring:
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+  profiles:
+    active: local
+
   datasource:
     url: jdbc:mysql://localhost:3306/pium
-    username : root
-    password: hsgty588123s
 
   jpa:
     hibernate:
