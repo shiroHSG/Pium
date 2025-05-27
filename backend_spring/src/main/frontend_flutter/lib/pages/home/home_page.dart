@@ -1,4 +1,3 @@
-// lib/pages/home/home_page.dart
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/pages/baby_record/baby_record_page.dart';
 import 'package:frontend_flutter/pages/search/people_search_page.dart';
@@ -8,6 +7,8 @@ import 'package:frontend_flutter/widgets/custom_bottom_bar.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/widgets/custom_drawer.dart';
 import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
+import 'package:frontend_flutter/models/schedule.dart';
+import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart'; // AddSchedulePopup 임포트
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
@@ -19,13 +20,38 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   bool _isLoggedIn = false;
-
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  List<Schedule> _schedules = []; // 일정을 저장할 리스트
 
   @override
   void initState() {
     super.initState();
     _checkLoginStatus();
+    // 초기 더미 일정 추가 (선택 사항)
+    _schedules.add(
+      Schedule(
+        title: '태하 예방접종',
+        date: DateTime.now(),
+        time: '14:00',
+        color: AppTheme.primaryPurple,
+      ),
+    );
+    _schedules.add(
+      Schedule(
+        title: '태하아빠 회의',
+        date: DateTime.now(),
+        time: '15:00',
+        color: Colors.orange,
+      ),
+    );
+    _schedules.add(
+      Schedule(
+        title: '가족 외식',
+        date: DateTime.now(),
+        time: '20:00',
+        color: Colors.lightGreen,
+      ),
+    );
   }
 
   void _checkLoginStatus() {
@@ -49,6 +75,29 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Future<void> _showAddSchedulePopup() async {
+    final newSchedule = await showDialog<Schedule>(
+      context: context,
+      builder: (BuildContext context) {
+        return AddSchedulePopup(initialDate: DateTime.now());
+      },
+    );
+
+    if (newSchedule != null) {
+      setState(() {
+        _schedules.add(newSchedule);
+        // 날짜와 시간순으로 정렬
+        _schedules.sort((a, b) {
+          int dateComparison = a.date.compareTo(b.date);
+          if (dateComparison != 0) {
+            return dateComparison;
+          }
+          return a.time.compareTo(b.time);
+        });
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,6 +117,13 @@ class _MyHomePageState extends State<MyHomePage> {
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
       ),
+      floatingActionButton: _selectedIndex == 0 // 홈 페이지일 때만 버튼 표시
+          ? FloatingActionButton(
+        onPressed: _showAddSchedulePopup,
+        backgroundColor: AppTheme.primaryPurple,
+        child: const Icon(Icons.add, color: Colors.white),
+      )
+          : null,
     );
   }
 
@@ -76,6 +132,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
     switch (index) {
       case 0:
+      // 오늘 날짜의 일정 필터링
+        final today = DateTime.now();
+        final todaySchedules = _schedules
+            .where((schedule) =>
+        schedule.date.year == today.year &&
+            schedule.date.month == today.month &&
+            schedule.date.day == today.day)
+            .toList();
+
         return SingleChildScrollView(
           child: Column(
             children: [
@@ -172,7 +237,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '19일',
+                              '${today.day}일',
                               style: TextStyle(
                                 color: AppTheme.textPurple,
                                 fontSize: 18,
@@ -180,18 +245,33 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                             ),
                             const SizedBox(height: 10),
-                            const Text(
-                              '• 태하 예방접종 - 14:00',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            const Text(
-                              '• 태하아빠 - 회의 15:00',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            const Text(
-                              '• 가족 외식 - 20:00',
-                              style: TextStyle(fontSize: 14),
-                            ),
+                            if (todaySchedules.isEmpty)
+                              const Text(
+                                '오늘 일정이 없습니다.',
+                                style: TextStyle(fontSize: 14, color: Colors.grey),
+                              ),
+                            ...todaySchedules.map((schedule) => Padding(
+                              padding: const EdgeInsets.only(bottom: 4.0),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: schedule.color,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      '${schedule.title} - ${schedule.time}',
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )),
                           ],
                         ),
                       ),
@@ -260,7 +340,7 @@ class _MyHomePageState extends State<MyHomePage> {
         return const PeopleSearchPage();
       case 4:
         return const MyPage();
-      case 5: // Assuming this index corresponds to the SharingPage
+      case 5:
         return const SharingPage();
       default:
         return const Center(child: Text('알 수 없는 페이지'));
