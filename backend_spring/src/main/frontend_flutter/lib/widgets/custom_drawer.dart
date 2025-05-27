@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../pages/login.dart';
+import '../pages/sharing_page/sharing_page.dart';
 
 class CustomDrawer extends StatelessWidget {
   final ValueChanged<int> onItemSelected;
@@ -39,7 +40,7 @@ class CustomDrawer extends StatelessWidget {
                 ),
               ),
             ),
-            if (isLoggedIn) ...[ // 로그인 되어 있을 때만 표시할 메뉴
+            if (isLoggedIn) ...[
               ListTile(
                 leading: const Icon(Icons.home),
                 title: const Text('홈'),
@@ -68,6 +69,10 @@ class CustomDrawer extends StatelessWidget {
                 title: const Text('나눔 품앗이'),
                 onTap: () {
                   Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SharingPage()),
+                  );
                 },
               ),
               ListTile(
@@ -159,7 +164,6 @@ class CustomDrawer extends StatelessWidget {
                                       Navigator.of(dialogContext).pop();
                                       onLoginStatusChanged(false);
 
-                                      // 로그인 페이지로 이동 (홈 페이지 스택 제거)
                                       Navigator.pushAndRemoveUntil(
                                         context,
                                         MaterialPageRoute(builder: (context) => const Login()),
@@ -206,7 +210,7 @@ class CustomDrawer extends StatelessWidget {
                   );
                 },
               ),
-            ] else ...[ // 로그아웃 되어 있을 때만 표시할 메뉴
+            ] else ...[
               ListTile(
                 leading: const Icon(Icons.login),
                 title: const Text('로그인'),
