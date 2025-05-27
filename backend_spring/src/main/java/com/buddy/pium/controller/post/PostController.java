@@ -3,6 +3,8 @@ package com.buddy.pium.controller.post;
 import com.buddy.pium.dto.post.*;
 import com.buddy.pium.service.post.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +20,10 @@ public class PostController {
 
     @PostMapping
     // public ResponseEntity<Void> create(@RequestBody PostRequest dto, Authentication auth) {
-        // Long memberId = (Long) auth.getPrincipal();  이걸로 다시 바꿀것
-        // postService.create(dto, memberId); 밑에는 사용자가 없어서 임의로 한것
-        // return ResponseEntity.ok().build();
+    //     Long memberId = (Long) auth.getPrincipal(); // 추후 로그인 연동 시 사용
+    //     postService.create(dto, memberId);
+    //     return ResponseEntity.ok().build();
+    // }
     public ResponseEntity<Void> create(@RequestBody PostRequest dto) {
         Long mockMemberId = 1L;
         postService.create(dto, mockMemberId);
@@ -52,5 +55,18 @@ public class PostController {
         Long memberId = (Long) auth.getPrincipal();
         postService.delete(id, memberId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<PostResponse>> search(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String sort,
+            Pageable pageable
+    ) {
+        if ("likes".equals(sort)) {
+            return ResponseEntity.ok(postService.searchByLikes(pageable));
+        }
+        return ResponseEntity.ok(postService.search(type, keyword, pageable));
     }
 }

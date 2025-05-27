@@ -9,3 +9,4 @@ public class PostUpdateRequest {
     private String content;
     private String postImg;
 }
+// 글 수정

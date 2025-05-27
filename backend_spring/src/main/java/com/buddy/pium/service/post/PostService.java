@@ -6,6 +6,8 @@ import com.buddy.pium.entity.post.Post;
 import com.buddy.pium.repository.member.MemberRepository;
 import com.buddy.pium.repository.post.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -72,6 +74,28 @@ public class PostService {
         postRepository.delete(post);
     }
 
+    public Page<PostResponse> search(String type, String keyword, Pageable pageable) {
+        Page<Post> posts;
+
+        if (type == null || keyword == null || keyword.isBlank()) {
+            posts = postRepository.findAll(pageable);
+        } else {
+            switch (type) {
+                case "title" -> posts = postRepository.findByTitleContaining(keyword, pageable);
+                case "content" -> posts = postRepository.findByContentContaining(keyword, pageable);
+                case "writer" -> posts = postRepository.findByWriterNickname(keyword, pageable);
+                default -> throw new IllegalArgumentException("유효하지 않은 검색 타입입니다.");
+            }
+        }
+
+        return posts.map(this::toResponse);
+    }
+
+    public Page<PostResponse> searchByLikes(Pageable pageable) {
+        return postRepository.findAllByOrderByLikeCountDesc(pageable)
+                .map(this::toResponse);
+    }
+
     private PostResponse toResponse(Post post) {
         return new PostResponse(
                 post.getId(),
@@ -80,7 +104,7 @@ public class PostService {
                 post.getCategory(),
                 post.getPostImg(),
                 post.getMember().getNickname(),
-                post.getViewCount(),
+                post.getViewCount() != null ? post.getViewCount() : 0,
                 post.getCreatedAt()
         );
     }

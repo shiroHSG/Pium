@@ -4,10 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class PostRequest {
-    private String category;
-    private String title;
+public class PostCommentRequest {
     private String content;
-    private String postImg;
 }
-// 글 작성
