@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:frontend_flutter/pages/login.dart';
+import 'package:frontend_flutter/pages/auth/login.dart';
 import 'package:frontend_flutter/pages/my_page/profile_edit_page.dart';
 
 import 'childProfile_page.dart';

@@ -1,9 +1,7 @@
-// lib/pages/login.dart
-
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:frontend_flutter/pages/signup_page.dart';
-import 'package:frontend_flutter/main.dart';
+import 'package:frontend_flutter/pages/auth/signup_page.dart';
+import 'package:frontend_flutter/pages/home/home_page.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -49,7 +47,7 @@ class _LoginState extends State<Login> {
             children: [
               const SizedBox(height: 60),
               Image.asset(
-                'assets/logo1.png', // 로고 이미지 경로
+                'assets/logo1.png',
                 width: 150,
               ),
               const SizedBox(height: 50),
@@ -58,7 +56,7 @@ class _LoginState extends State<Login> {
               _buildInputField('비밀번호', _passwordController, true),
               const SizedBox(height: 30),
               ElevatedButton(
-                onPressed: _login, // _login 함수 호출
+                onPressed: _login,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryPurple,
                   minimumSize: const Size(double.infinity, 50),
