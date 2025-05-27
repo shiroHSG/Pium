@@ -59,10 +59,10 @@ class _SharingPageState extends State<SharingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppTheme.primaryPurple, // AppTheme 사용
+        backgroundColor: AppTheme.primaryPurple,
         title: const Text(
           '나눔 페이지',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), // bold 추가
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         actions: [
@@ -71,7 +71,7 @@ class _SharingPageState extends State<SharingPage> {
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white), // 기존 list 아이콘을 menu로 변경 (이미지 반영)
+            icon: const Icon(Icons.menu, color: Colors.white),
             onPressed: () {},
           ),
         ],
@@ -90,7 +90,7 @@ class _SharingPageState extends State<SharingPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryPurple, // AppTheme.primaryPurple 대신 primaryPink로 변경 (이미지 일관성)
+                    color: AppTheme.primaryPurple,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -119,8 +119,8 @@ class _SharingPageState extends State<SharingPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  clipBehavior: Clip.antiAlias, // InkWell의 splash 효과가 Card 모서리를 넘어가지 않게
-                  child: InkWell( // InkWell로 감싸서 탭 이벤트 추가
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
                     onTap: () {
                       Navigator.push(
                         context,
@@ -180,7 +180,7 @@ class _SharingPageState extends State<SharingPage> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.favorite_border, color: AppTheme.primaryPurple), // AppTheme 사용
+                            icon: const Icon(Icons.favorite_border, color: AppTheme.primaryPurple),
                             onPressed: () {},
                           ),
                         ],
@@ -200,7 +200,7 @@ class _SharingPageState extends State<SharingPage> {
                   child: ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryPurple, // AppTheme 사용
+                      backgroundColor: AppTheme.primaryPurple,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -215,7 +215,7 @@ class _SharingPageState extends State<SharingPage> {
                   child: ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryPurple, // AppTheme 사용
+                      backgroundColor: AppTheme.primaryPurple, 
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
