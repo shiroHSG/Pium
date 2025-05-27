@@ -18,7 +18,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
         backgroundColor: AppTheme.primaryPurple,
         foregroundColor: Colors.white,
         title: const Text(
-          '커뮤니티 글 작성 페이지',
+          '커뮤니티 글 쓰기',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
