@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
+import 'package:frontend_flutter/services/post_api_services.dart';
 
 class CreatePostPage extends StatefulWidget {
   const CreatePostPage({Key? key}) : super(key: key);
@@ -9,7 +10,54 @@ class CreatePostPage extends StatefulWidget {
 }
 
 class _CreatePostPageState extends State<CreatePostPage> {
+  final _titleController = TextEditingController();
+  final _contentController = TextEditingController();
   String? _selectedCategory;
+  final _writerController = TextEditingController(text: '테스트유저');
+
+  final List<String> _categories = ['자유', '팁', '질문', '모임'];
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.dispose();
+    _writerController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _createPost() async {
+    final title = _titleController.text;
+    final content = _contentController.text;
+    final category = _selectedCategory;
+    final writer = _writerController.text;
+
+    if (title.isEmpty || content.isEmpty || category == null || writer.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('제목, 내용, 카테고리를 모두 입력해주세요.')),
+      );
+      return;
+    }
+
+    try {
+      await PostApiService.createPost(
+        title: title,
+        content: content,
+        category: category,
+        writer: writer,
+        postImg: null,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('게시글이 성공적으로 작성되었습니다!')),
+      );
+      Navigator.pop(context, true);
+    } catch (e) {
+      print('게시글 작성 실패: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('게시글 작성에 실패했습니다: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +113,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
               ),
               const SizedBox(height: 16),
               TextField(
+                controller: _titleController,
                 decoration: InputDecoration(
                   hintText: '제목',
                   border: OutlineInputBorder(
@@ -79,13 +128,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
               ),
               const SizedBox(height: 16),
               Container(
-                height: 250, // 글쓰기 영역 높이 조정
+                height: 250,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.grey.shade300),
                   color: Colors.white,
                 ),
-                child: const TextField(
+                child: TextField(
+                  controller: _contentController,
                   maxLines: null,
                   expands: true,
                   textAlignVertical: TextAlignVertical.top,
@@ -97,14 +147,24 @@ class _CreatePostPageState extends State<CreatePostPage> {
                   style: TextStyle(color: AppTheme.textPurple),
                 ),
               ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _writerController,
+                decoration: InputDecoration(
+                  labelText: '작성자',
+                  hintText: '작성자 이름을 입력해주세요.',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                enabled: false,
+              ),
               const SizedBox(height: 24),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton.icon(
                     onPressed: () {
-                      // 사진 첨부 기능 구현
                       print('사진 첨부');
                     },
                     style: ElevatedButton.styleFrom(
@@ -120,10 +180,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton(
-                    onPressed: () {
-                      // 완료 버튼 기능 구현 (글 작성 완료 후 페이지 닫기 등)
-                      Navigator.pop(context);
-                    },
+                    onPressed: _createPost,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryPurple,
                       foregroundColor: Colors.white,

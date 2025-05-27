@@ -8,7 +8,7 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/widgets/custom_drawer.dart';
 import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
 import 'package:frontend_flutter/models/schedule.dart';
-import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart'; // AddSchedulePopup 임포트
+import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
@@ -21,37 +21,12 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   bool _isLoggedIn = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  List<Schedule> _schedules = []; // 일정을 저장할 리스트
+  List<Schedule> _schedules = [];
 
   @override
   void initState() {
     super.initState();
     _checkLoginStatus();
-    // 초기 더미 일정 추가 (선택 사항)
-    _schedules.add(
-      Schedule(
-        title: '태하 예방접종',
-        date: DateTime.now(),
-        time: '14:00',
-        color: AppTheme.primaryPurple,
-      ),
-    );
-    _schedules.add(
-      Schedule(
-        title: '태하아빠 회의',
-        date: DateTime.now(),
-        time: '15:00',
-        color: Colors.orange,
-      ),
-    );
-    _schedules.add(
-      Schedule(
-        title: '가족 외식',
-        date: DateTime.now(),
-        time: '20:00',
-        color: Colors.lightGreen,
-      ),
-    );
   }
 
   void _checkLoginStatus() {
@@ -117,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
       ),
-      floatingActionButton: _selectedIndex == 0 // 홈 페이지일 때만 버튼 표시
+      floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
         onPressed: _showAddSchedulePopup,
         backgroundColor: AppTheme.primaryPurple,

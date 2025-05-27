@@ -45,7 +45,6 @@ class _CalendarPageState extends State<CalendarPage> {
         _selectedDay = selectedDay;
         _focusedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
       });
-      print('Selected day: $_selectedDay');
     }
   }
 
@@ -69,8 +68,6 @@ class _CalendarPageState extends State<CalendarPage> {
     setState(() {
       _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1);
       _selectedDay = null;
-      print('PREV month pressed. New _focusedDay: $_focusedDay');
-      print('Month Text: ${DateFormat('yyyy년 MMMM', 'ko_KR').format(_focusedDay)}');
     });
   }
 
@@ -78,8 +75,6 @@ class _CalendarPageState extends State<CalendarPage> {
     setState(() {
       _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1);
       _selectedDay = null;
-      print('NEXT month pressed. New _focusedDay: $_focusedDay');
-      print('Month Text: ${DateFormat('yyyy년 MMMM', 'ko_KR').format(_focusedDay)}');
     });
   }
 
@@ -302,7 +297,6 @@ class _CalendarPageState extends State<CalendarPage> {
                 alignment: Alignment.bottomRight,
                 child: ElevatedButton(
                   onPressed: () async {
-                    // _selectedDay가 null일 경우를 대비하여 현재 날짜를 기본값으로 사용
                     final initialDateForPopup = _selectedDay ?? DateTime.now();
 
                     final newSchedule = await showDialog<Schedule>(
@@ -328,7 +322,6 @@ class _CalendarPageState extends State<CalendarPage> {
                           _selectedDay = dateKey;
                         }
                       });
-                      print('새 일정 추가됨: ${newSchedule.title} on ${newSchedule.date}');
                     }
                   },
                   style: ElevatedButton.styleFrom(
