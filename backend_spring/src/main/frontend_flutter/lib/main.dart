@@ -1,4 +1,3 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/pages/baby_record/baby_record_page.dart';
 import 'package:frontend_flutter/pages/search/people_search_page.dart';

@@ -4,14 +4,14 @@ import '../pages/login.dart';
 
 class CustomDrawer extends StatelessWidget {
   final ValueChanged<int> onItemSelected;
-  final ValueChanged<bool> onLoginStatusChanged; // 로그인 상태 변경 콜백 추가
-  final bool isLoggedIn; // 로그인 상태를 나타내는 변수 추가
+  final ValueChanged<bool> onLoginStatusChanged;
+  final bool isLoggedIn;
 
   const CustomDrawer({
     Key? key,
     required this.onItemSelected,
-    required this.onLoginStatusChanged, // 새로 추가된 필수 인자
-    required this.isLoggedIn, // 새로 추가된 필수 인자
+    required this.onLoginStatusChanged,
+    required this.isLoggedIn,
   }) : super(key: key);
 
   @override
@@ -39,7 +39,6 @@ class CustomDrawer extends StatelessWidget {
                 ),
               ),
             ),
-            // 로그인 상태에 따른 조건부 렌더링
             if (isLoggedIn) ...[ // 로그인 되어 있을 때만 표시할 메뉴
               ListTile(
                 leading: const Icon(Icons.home),
@@ -127,7 +126,7 @@ class CustomDrawer extends StatelessWidget {
                 leading: const Icon(Icons.logout),
                 title: const Text('로그아웃'),
                 onTap: () {
-                  Navigator.pop(context); // Drawer 닫기
+                  Navigator.pop(context);
 
                   showDialog(
                     context: context,
@@ -157,9 +156,8 @@ class CustomDrawer extends StatelessWidget {
                                 children: [
                                   ElevatedButton(
                                     onPressed: () {
-                                      Navigator.of(dialogContext).pop(); // 팝업 닫기
-                                      onLoginStatusChanged(false); // 로그인 상태를 false로 변경
-                                      // TODO: 실제 로그아웃 처리 (예: SharedPreferences 초기화)
+                                      Navigator.of(dialogContext).pop();
+                                      onLoginStatusChanged(false);
 
                                       // 로그인 페이지로 이동 (홈 페이지 스택 제거)
                                       Navigator.pushAndRemoveUntil(
@@ -183,7 +181,7 @@ class CustomDrawer extends StatelessWidget {
                                   ),
                                   ElevatedButton(
                                     onPressed: () {
-                                      Navigator.of(dialogContext).pop(); // 팝업 닫기
+                                      Navigator.of(dialogContext).pop();
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFFde95ba),
@@ -213,8 +211,7 @@ class CustomDrawer extends StatelessWidget {
                 leading: const Icon(Icons.login),
                 title: const Text('로그인'),
                 onTap: () {
-                  Navigator.pop(context); // Drawer 닫기
-                  // 로그인 페이지로 이동
+                  Navigator.pop(context);
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => const Login()),
@@ -222,8 +219,6 @@ class CustomDrawer extends StatelessWidget {
                   );
                 },
               ),
-              // 여기에 로그아웃 상태에서 보여줄 다른 메뉴들을 추가할 수 있습니다.
-              // 예: 회원가입 등
             ],
           ],
         ),

@@ -1,6 +1,6 @@
 // lib/pages/search/people_search_page.dart
 import 'package:flutter/material.dart';
-import 'package:frontend_flutter/theme/app_theme.dart'; // AppTheme 사용을 위해 임포트
+import 'package:frontend_flutter/theme/app_theme.dart';
 
 class PeopleSearchPage extends StatefulWidget {
   const PeopleSearchPage({Key? key}) : super(key: key);
@@ -59,18 +59,18 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
                     hintStyle: TextStyle(color: Colors.grey[600]),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.0),
-                      borderSide: BorderSide.none, // 기본 테두리 제거
+                      borderSide: BorderSide.none,
                     ),
-                    enabledBorder: OutlineInputBorder( // 활성화 시 테두리
+                    enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.0),
                       borderSide: const BorderSide(color: AppTheme.lightPink, width: 2.0),
                     ),
-                    focusedBorder: OutlineInputBorder( // 포커스 시 테두리
+                    focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.0),
                       borderSide: const BorderSide(color: AppTheme.primaryPurple, width: 2.0),
                     ),
                     filled: true,
-                    fillColor: Colors.grey[100], // 배경색
+                    fillColor: Colors.grey[50],
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                 ),
@@ -78,7 +78,7 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
               const SizedBox(width: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: AppTheme.lightPink, // 검색 버튼 배경색
+                  color: AppTheme.lightPink,
                   borderRadius: BorderRadius.circular(10.0),
                 ),
                 child: IconButton(
@@ -109,7 +109,7 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
                         color: Colors.grey.withOpacity(0.2),
                         spreadRadius: 2,
                         blurRadius: 5,
-                        offset: const Offset(0, 3), // changes position of shadow
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
@@ -141,7 +141,7 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
                             Text(
                               user['nickname']!,
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: AppTheme.textPurple,
                               ),
@@ -149,7 +149,7 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
                             Text(
                               user['location']!,
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 11,
                                 color: Colors.grey[600],
                               ),
                             ),
@@ -169,7 +169,7 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
                             borderRadius: BorderRadius.circular(10.0),
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          minimumSize: Size.zero, // 버튼 최소 크기 제거
+                          minimumSize: Size.zero,
                         ),
                         child: const Text('메이트 맺기', style: TextStyle(fontSize: 12)),
                       ),
@@ -186,7 +186,7 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
                             borderRadius: BorderRadius.circular(10.0),
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          minimumSize: Size.zero, // 버튼 최소 크기 제거
+                          minimumSize: Size.zero,
                         ),
                         child: const Text('메세지 보내기', style: TextStyle(fontSize: 12)),
                       ),
