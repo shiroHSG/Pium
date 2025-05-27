@@ -8,7 +8,7 @@ class ProfileEditPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppTheme.lightPink,
+        backgroundColor: AppTheme.primaryPurple,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPurple),
@@ -19,7 +19,7 @@ class ProfileEditPage extends StatelessWidget {
         title: const Text(
           '프로필 수정',
           style: TextStyle(
-            color: AppTheme.textPurple,
+            color: Colors.white,
           ),
         ),
         centerTitle: true,

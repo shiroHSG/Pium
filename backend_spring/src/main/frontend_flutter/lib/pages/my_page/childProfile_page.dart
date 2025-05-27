@@ -113,9 +113,9 @@ class _ChildProfilePageState extends State<ChildProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('아이 프로필', style: TextStyle(color: AppTheme.textPurple)),
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: AppTheme.primaryPurple),
+        title: const Text('아이 프로필', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppTheme.primaryPurple,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         child: Column(
