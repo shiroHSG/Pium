@@ -1,4 +1,3 @@
-// lib/pages/search/people_search_page.dart
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 
@@ -34,7 +33,6 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
       'nickname': 'Nickname',
       'location': '서울특별시 강동구',
     },
-    // 필요에 따라 더 많은 사용자 추가
   ];
 
   @override

@@ -19,7 +19,6 @@ class MyPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout, color: AppTheme.textPurple),
             onPressed: () {
-              // Show logout confirmation dialog
               showDialog(
                 context: context,
                 builder: (BuildContext dialogContext) {
@@ -48,9 +47,7 @@ class MyPage extends StatelessWidget {
                             children: [
                               ElevatedButton(
                                 onPressed: () {
-                                  Navigator.of(dialogContext).pop(); // Close the dialog
-                                  // Perform logout actions
-                                  // For example, navigate to the Login page and remove all previous routes
+                                  Navigator.of(dialogContext).pop();
                                   Navigator.pushAndRemoveUntil(
                                     context,
                                     MaterialPageRoute(builder: (context) => const Login()),

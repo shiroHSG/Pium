@@ -78,22 +78,6 @@ class _ChildProfileEditPageState extends State<ChildProfileEditPage> {
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: AppTheme.textPurple),
-            onPressed: () {
-              print('알림 아이콘 클릭됨');
-              // TODO: 알림 페이지로 이동 또는 알림 기능 구현
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.menu, color: AppTheme.textPurple),
-            onPressed: () {
-              print('목록 아이콘 클릭됨');
-              // TODO: 목록 페이지로 이동 또는 관련 기능 구현
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
