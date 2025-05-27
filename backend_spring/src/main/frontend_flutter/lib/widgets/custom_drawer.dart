@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../pages/auth/login.dart';
 import '../pages/sharing_page/sharing_page.dart';
 import '../pages/calendar_page/calendar_page.dart';
+import '../pages/community/community_page.dart';
 
 class CustomDrawer extends StatelessWidget {
   final ValueChanged<int> onItemSelected;
@@ -81,7 +82,7 @@ class CustomDrawer extends StatelessWidget {
                 title: const Text('채팅목록'),
                 onTap: () {
                   Navigator.pop(context);
-                  onItemSelected(2); // CustomBottomBar의 '채팅' 인덱스와 일치
+                  onItemSelected(2);
                 },
               ),
               ListTile(
@@ -89,6 +90,10 @@ class CustomDrawer extends StatelessWidget {
                 title: const Text('커뮤니티'),
                 onTap: () {
                   Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CommunityPage()),
+                  );
                 },
               ),
               ListTile(
@@ -96,15 +101,10 @@ class CustomDrawer extends StatelessWidget {
                 title: const Text('캘린더'),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.push( // 캘린더 페이지로 이동
+                  Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const CalendarPage()),
                   );
-                  // 캘린더가 CustomBottomBar의 특정 인덱스와 연결된다면
-                  // onItemSelected(해당인덱스); 도 호출할 수 있습니다.
-                  // 현재 CustomBottomBar에 캘린더 아이템이 없으므로,
-                  // 여기서는 페이지 이동만 하고 onItemSelected는 호출하지 않겠습니다.
-                  // 만약 CustomBottomBar의 '채팅' (인덱스 2)을 캘린더로 바꾸었다면 onItemSelected(2)를 사용할 수 있습니다.
                 },
               ),
               ListTile(
@@ -112,7 +112,7 @@ class CustomDrawer extends StatelessWidget {
                 title: const Text('내정보'),
                 onTap: () {
                   Navigator.pop(context);
-                  onItemSelected(4); // CustomBottomBar의 '마이페이지' 인덱스와 일치
+                  onItemSelected(4);
                 },
               ),
               ListTile(
