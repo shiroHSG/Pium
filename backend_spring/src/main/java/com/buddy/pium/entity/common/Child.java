@@ -1,4 +1,4 @@
-package com.buddy.pium.entity.member;
+package com.buddy.pium.entity.common;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,7 +15,7 @@ public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long memberId;
+    private Long id;
 
     @Column(nullable = false, unique = true, length = 50)
     private String email;

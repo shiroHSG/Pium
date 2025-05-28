@@ -1,9 +1,11 @@
 package com.buddy.pium.service;
 
+import com.buddy.pium.dto.MemberDto;
 import com.buddy.pium.entity.member.Member;
 import com.buddy.pium.repository.MemberRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -13,6 +15,10 @@ public class MemberService {
 
     public MemberService(MemberRepository memberRepository) {
         this.memberRepository = memberRepository;
+    }
+
+    public List<Member> getAllMembers() {
+        return memberRepository.findAll();
     }
 
     public Optional<Member> getMemberById(Long id) {
@@ -26,4 +32,5 @@ public class MemberService {
     public Member saveMember(Member member) {
         return memberRepository.save(member);
     }
+
 }
