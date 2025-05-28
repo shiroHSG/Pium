@@ -78,7 +78,7 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: Jua # 이 폰트 패밀리 이름은 코드에서 TextStyle(fontFamily: 'Jua')로 사용할 이름입니다.
+    - family: Jua
       fonts:
           - asset: assets/fonts/Jua-Regular.ttf
   #       - asset: fonts/Schyler-Italic.ttf

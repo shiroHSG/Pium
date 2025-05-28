@@ -18,10 +18,58 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: '피움 앱',
       theme: AppTheme.lightTheme,
-      home: const Login(),
+      home: const SplashScreen(),
       routes: {
         '/home': (context) => const MyHomePage(),
+        '/login': (context) => const Login(),
       },
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({Key? key}) : super(key: key);
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.pushReplacementNamed(context, '/login');
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFFDD9E5),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Image.asset('assets/logo1.png', height: 300),
+            const SizedBox(height: 16),
+            const SizedBox(height: 16),
+            const Text(
+              '부모의 마음이 피어나고, 가족이 함께 자라며,\n삶이 따뜻하게 이어지는 공간을 상상합니다.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+                fontFamily: 'Jua',
+              ),
+            ),
+            const SizedBox(height: 32),
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFC85A91)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
