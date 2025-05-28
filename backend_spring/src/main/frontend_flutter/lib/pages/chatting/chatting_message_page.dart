@@ -16,19 +16,40 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     ChatMessage(text: '안녕하세요!', isMe: false, time: DateTime.now().subtract(const Duration(minutes: 5)), readCount: 1),
     ChatMessage(text: '네, 안녕하세요.', isMe: true, time: DateTime.now().subtract(const Duration(minutes: 3)), readCount: 0),
     ChatMessage(text: '오늘 날씨가 좋네요.', isMe: false, time: DateTime.now().subtract(const Duration(minutes: 1)), readCount: 1),
-    // 더미 데이터
-  ];
+    // 더미 데이터 (최신 메시지가 아래에 있도록 순서 조정)
+  ].reversed.toList();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // 초기 스크롤 위치를 맨 아래로 설정
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
+  }
 
   void _sendMessage() {
     if (_messageController.text.trim().isNotEmpty) {
       setState(() {
-        _messages.add(ChatMessage(
-          text: _messageController.text.trim(),
-          isMe: true,
-          time: DateTime.now(),
-          readCount: 0,
-        ));
+        _messages.insert(
+          0,
+          ChatMessage(
+            text: _messageController.text.trim(),
+            isMe: true,
+            time: DateTime.now(),
+            readCount: 1,
+          ),
+        );
         _messageController.clear();
+      });
+      // 메시지가 추가된 후 스크롤을 가장 아래로 이동
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
       });
       // 실제 앱에서는 여기서 서버로 메시지를 전송하는 로직을 구현해야 합니다.
     }
@@ -55,21 +76,15 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
             ),
             const SizedBox(width: 8),
             const Text(
-              '채팅 상대방',
-              style: TextStyle(color: AppTheme.textPurple, fontWeight: FontWeight.bold),
+              '상대방 아이디',
+              style: TextStyle(color: AppTheme.textPurple, fontWeight: FontWeight.bold, fontSize: 18),
             ),
           ],
         ),
         iconTheme: const IconThemeData(color: AppTheme.textPurple),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {
-              // 알림 관련 기능 구현
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.list_alt),
+            icon: const Icon(Icons.more_vert, color: AppTheme.textPurple,),
             onPressed: () {
               // 더보기 기능 구현
             },
@@ -79,14 +94,21 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              reverse: true,
-              padding: const EdgeInsets.all(8.0),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return _buildChatMessage(message);
-              },
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(8.0),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final message = _messages[index];
+                      return _buildChatMessage(message);
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
           _buildTextComposer(),
@@ -99,7 +121,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           if (!message.isMe)
@@ -116,24 +138,31 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                 ],
               ),
             ),
-          Flexible(
+          Expanded(
             child: Column(
               crossAxisAlignment: message.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 Container(
                   padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
-                    color: message.isMe ? AppTheme.primaryPurple.withOpacity(0.8) : Colors.grey[200],
+                    color: message.isMe ? AppTheme.lightPink.withOpacity(0.8) : AppTheme.primaryPurple,
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: Text(
                     message.text,
-                    style: TextStyle(color: message.isMe ? Colors.white : Colors.black),
+                    style: TextStyle(color: message.isMe ? AppTheme.textPurple : Colors.white),
                   ),
                 ),
                 Row(
                   mainAxisAlignment: message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
                   children: [
+                    if (message.isMe && message.readCount > 0)
+                      Text(
+                        '${message.readCount}',
+                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                      ),
+                    if (message.isMe && message.readCount > 0)
+                      const SizedBox(width: 4),
                     Text(
                       DateFormat('a h:mm').format(message.time),
                       style: const TextStyle(fontSize: 10, color: Colors.grey),
@@ -144,21 +173,12 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                         '${message.readCount}',
                         style: const TextStyle(fontSize: 10, color: Colors.grey),
                       ),
-                    if (message.isMe && message.readCount > 0)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 4.0),
-                        child: Text(
-                          '${message.readCount}',
-                          style: const TextStyle(fontSize: 10, color: Colors.grey),
-                        ),
-                      ),
                   ],
                 ),
               ],
             ),
           ),
-          if (message.isMe)
-            const SizedBox(width: 8),
+          SizedBox(width: 8),
         ],
       ),
     );
@@ -174,7 +194,10 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.add_photo_alternate, color: AppTheme.textPurple),
+            icon: Padding(
+              padding: const EdgeInsets.only(right: 6.0,bottom: 6.0),
+              child: const Icon(Icons.add_photo_alternate, color: AppTheme.textPurple),
+            ),
             onPressed: () {
               // 이미지 첨부 기능 구현
             },
@@ -191,7 +214,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.send, color: AppTheme.primaryPurple),
+            icon: const Icon(Icons.send, color: AppTheme.textPurple),
             onPressed: _sendMessage,
           ),
         ],
