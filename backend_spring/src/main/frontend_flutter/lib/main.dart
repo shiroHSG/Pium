@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'test_websocket_page.dart';
 import 'dart:convert';
 
 void main() {
@@ -12,7 +13,37 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: TestApiPage(),
+      home: const HomePage(),
+      routes: {
+        '/rest': (_) => TestApiPage(),
+        '/socket': (_) => TestWebSocketPage(),
+      },
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('테스트 선택')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              child: const Text('REST API 테스트'),
+              onPressed: () => Navigator.pushNamed(context, '/rest'),
+            ),
+            ElevatedButton(
+              child: const Text('WebSocket 테스트'),
+              onPressed: () => Navigator.pushNamed(context, '/socket'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

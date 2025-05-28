@@ -1,5 +1,6 @@
 package com.buddy.pium.entity.chat;
 
+import com.buddy.pium.entity.post.SharePost;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -21,6 +22,10 @@ public class ChatRoom {
 
     @Column(nullable = false)
     private boolean isGroup;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "share_post_id")
+    private SharePost sharePost;
 
     @Column(name = "chatroom_name")
     private String chatRoomName;

@@ -35,4 +35,6 @@ public class ChatRoomMember {
     @CreatedDate
     @Column(name = "joined_at", nullable = false)
     private LocalDateTime joinedAt;
+
+    private Long lastReadMessageId;
 }
