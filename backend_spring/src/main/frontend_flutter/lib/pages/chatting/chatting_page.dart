@@ -1,5 +1,7 @@
+// chatting_page.dart
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
+import 'package:frontend_flutter/pages/chatting/chatting_message_page.dart';
 
 class ChattingPage extends StatefulWidget {
   const ChattingPage({Key? key}) : super(key: key);
@@ -18,6 +20,10 @@ class _ChattingPageState extends State<ChattingPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
+        title: const Text(
+          '채팅',
+          style: TextStyle(color: AppTheme.textPurple, fontWeight: FontWeight.bold),
+        ),
         actions: [
           PopupMenuButton<String>(
             offset: const Offset(0, 40),
@@ -76,6 +82,12 @@ class _ChattingPageState extends State<ChattingPage> {
         itemBuilder: (context, index) {
           return InkWell(
             onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ChatRoomPage(),
+                ),
+              );
               print('$_selectedMode 채팅방 $index 클릭됨');
             },
             child: Padding(
