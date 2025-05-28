@@ -1,8 +1,10 @@
-package com.buddy.pium.dto;
+package com.buddy.pium.dto.common;
 
+import com.buddy.pium.entity.common.Enum.Gender;
 import lombok.*;
-import java.time.LocalDate;
+
 import java.sql.Timestamp;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -10,18 +12,16 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @Builder
 public class MemberDto {
-
     private Long id;
-    private String email;
-    private String password;
-    private String name;
+    private String username;
     private String nickname;
-    private String phone;
+    private String email;
+    private String phoneNumber;
     private String address;
     private LocalDate birth;
-    private String gender;
-    private String profileImg;
+    private Gender gender;
+    private String profileImage;
     private String mateInfo;
-    private Timestamp createAt;
+    private Timestamp createdAt;
     private Timestamp updatedAt;
 }

@@ -1,36 +1,42 @@
-package com.buddy.pium.service;
+package com.buddy.pium.service.common;
 
-import com.buddy.pium.dto.MemberDto;
-import com.buddy.pium.entity.member.Member;
-import com.buddy.pium.repository.MemberRepository;
+import com.buddy.pium.entity.common.Member;
+import com.buddy.pium.repository.common.MemberRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
+@RequiredArgsConstructor
 public class MemberService {
 
     private final MemberRepository memberRepository;
 
-    public MemberService(MemberRepository memberRepository) {
-        this.memberRepository = memberRepository;
-    }
-
-    public List<Member> getAllMembers() {
-        return memberRepository.findAll();
-    }
-
-    public Optional<Member> getMemberById(Long id) {
-        return memberRepository.findById(id);
-    }
-
-    public Optional<Member> getMemberByEmail(String email) {
-        return memberRepository.findByEmail(email);
-    }
-
-    public Member saveMember(Member member) {
+    public Member save(Member member) {
         return memberRepository.save(member);
     }
 
+    public Optional<Member> findById(Long id) {
+        return memberRepository.findById(id);
+    }
+
+    public Optional<Member> findByEmail(String email) {
+        return memberRepository.findByEmail(email);
+    }
+
+    public boolean existsByEmail(String email) {
+        return memberRepository.existsByEmail(email);
+    }
+
+    public List<Member> findAll() {
+        return memberRepository.findAll();
+    }
+
+    public void delete(Long id) {
+        memberRepository.deleteById(id);
+    }
 }

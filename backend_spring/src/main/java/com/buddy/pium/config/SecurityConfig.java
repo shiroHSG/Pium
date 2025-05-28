@@ -13,20 +13,11 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
-
-import com.buddy.pium.util.JwtUtil;
-import jakarta.servlet.Filter;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 @Configuration
 @EnableMethodSecurity
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    // JWT 변수 생성
-    private final JwtUtil jwtUtil;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -34,16 +25,9 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // 로그인/회원가입은 허용
                         .anyRequest().permitAll()
-                )
-                .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class); // JWT 필터 등록
+                );
         return http.build();
-    }
-
-    @Bean // 커스텀 JwtFilter 등록
-    public Filter jwtFilter() {
-        return new JwtFilter(jwtUtil);
     }
 
     @Bean
