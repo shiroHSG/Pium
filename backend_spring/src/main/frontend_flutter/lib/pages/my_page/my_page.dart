@@ -193,11 +193,11 @@ class MyPage extends StatelessWidget {
                   _buildMyPageButton(
                     context,
                     icon: Icons.settings_outlined,
-                    label: '설정',
+                    label: '환경설정',
                     iconSize: 30,
                     textSize: 14,
                     onTap: () {
-                      print('설정');
+                      print('환경설정');
                     },
                   ),
                 ],

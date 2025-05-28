@@ -30,7 +30,7 @@ class _MyHomePageState extends State<MyHomePage> {
     dob: 'YY-MM-DD',
     height: '00',
     weight: '00',
-    development: 'OO이는 성장 중입니다.',
+    development: '00이는 생후 4개월이에요. 팔을 뻗어서 물체를 잡으려고 해요.',
   );
   ImageProvider? _babyImage;
 
@@ -134,12 +134,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   decoration: const InputDecoration(labelText: '몸무게 (kg)'),
                   keyboardType: TextInputType.number,
                 ),
-                TextField(
-                  controller: _developmentController,
-                  decoration: const InputDecoration(labelText: '성장 발달 내용'),
-                  maxLines: 2,
-                ),
-                // 이미지 선택 기능은 추가적인 구현이 필요합니다.
               ],
             ),
           ),
