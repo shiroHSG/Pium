@@ -55,6 +55,8 @@ class _SharingPageState extends State<SharingPage> {
     ),
   ];
 
+  String selectedCategory = '나눔';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,16 +80,35 @@ class _SharingPageState extends State<SharingPage> {
               children: [
                 const Text('함께함', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  height: 36,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryPurple,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Row(
-                    children: [
-                      Text('나눔', style: TextStyle(color: Colors.white)),
-                      Icon(Icons.arrow_drop_down, color: Colors.white),
-                    ],
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: selectedCategory,
+                      dropdownColor: AppTheme.primaryPurple,
+                      icon: const Icon(Icons.arrow_drop_down, color: Colors.white, size: 20),
+                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                      items: ['나눔', '품앗이'].map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(
+                            value,
+                            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Jua'),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            selectedCategory = newValue;
+                          });
+                        }
+                      },
+                    ),
                   ),
                 ),
               ],

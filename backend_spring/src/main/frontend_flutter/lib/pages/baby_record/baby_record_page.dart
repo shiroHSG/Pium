@@ -1,11 +1,120 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/pages/baby_record/add_baby_record_page.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:frontend_flutter/widgets/custom_app_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:frontend_flutter/models/baby_record_entry.dart';
 import 'package:intl/intl.dart';
+
+class BabyRecordDetailPage extends StatelessWidget {
+  final String title;
+  final DateTime createdAt;
+  final bool isPublic;
+
+  const BabyRecordDetailPage({
+    super.key,
+    required this.title,
+    required this.createdAt,
+    required this.isPublic,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final DateFormat formatter = DateFormat('yyyy년 MM월 dd일 HH시 mm분');
+    final String formattedDate = formatter.format(createdAt);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('육아일지 상세'),
+        backgroundColor: AppTheme.primaryPurple,
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  formattedDate,
+                  style: const TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+                Text(
+                  isPublic ? '공개' : '비공개',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isPublic ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textPurple,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Container(
+              width: double.infinity,
+              height: 200,
+              color: Colors.grey[200],
+              child: const Center(
+                child: Text(
+                  '여기에 이미지가 표시될 예정입니다.',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              '아직 내용이 없습니다.',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('수정 기능은 아직 구현되지 않았습니다.')),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryPurple,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('수정'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('삭제는 목록 화면에서 가능합니다.')),
+                    );
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('삭제'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class BabyRecordPage extends StatefulWidget {
   const BabyRecordPage({super.key});
@@ -29,9 +138,8 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
     if (recordsJson != null) {
       final List<dynamic> jsonList = jsonDecode(recordsJson);
       setState(() {
-        // 일지를 최신 순으로 정렬 (선택 사항)
         babyRecords = jsonList.map((json) => BabyRecordEntry.fromJson(json)).toList();
-        babyRecords.sort((a, b) => b.createdAt.compareTo(a.createdAt)); // 최신 날짜가 위로 오도록 정렬
+        babyRecords.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       });
     } else {
       setState(() {
@@ -59,7 +167,6 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
     return Scaffold(
       body: Column(
         children: [
-          // 아이 정보
           Container(
             width: screenWidth,
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
@@ -69,7 +176,6 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 아기 사진
                 Container(
                   width: 90,
                   height: 90,
@@ -86,7 +192,6 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                // 이름 및 생년월일
                 Padding(
                   padding: const EdgeInsets.only(left: 20.0),
                   child: Column(
@@ -113,14 +218,11 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
               ],
             ),
           ),
-
-          // 드롭다운 + 플러스 버튼
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // 드롭다운 버튼
                 Container(
                   height: 36,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -139,14 +241,13 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                // 플러스 버튼
                 GestureDetector(
                   onTap: () async {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const AddBabyRecordPage()),
                     );
-                    _loadBabyRecords(); // AddBabyRecordPage에서 돌아왔을 때 데이터 새로고침
+                    _loadBabyRecords();
                   },
                   child: Container(
                     width: 36,
@@ -161,8 +262,6 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
               ],
             ),
           ),
-
-          // 사진 리스트 or 메시지
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -182,11 +281,22 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
                 ),
                 itemBuilder: (context, index) {
                   final entry = babyRecords[index];
-                  // 날짜 포맷터 생성
                   final DateFormat formatter = DateFormat('yy.MM.dd');
                   final String formattedDate = formatter.format(entry.createdAt);
 
                   return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BabyRecordDetailPage(
+                            title: entry.title,
+                            createdAt: entry.createdAt,
+                            isPublic: entry.isPublic,
+                          ),
+                        ),
+                      );
+                    },
                     onLongPress: () => _deleteBabyRecord(index),
                     child: Container(
                       color: AppTheme.lightPink.withOpacity(0.5),
@@ -195,7 +305,7 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            formattedDate, // 날짜 표시
+                            formattedDate,
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.normal,
