@@ -51,32 +51,50 @@ class BabyRecordDetailPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              '사진 영역 (추후 구현)',
-              style: TextStyle(color: Colors.grey),
-            ),
             Container(
               width: double.infinity,
               height: 200,
               color: Colors.grey[200],
+              child: const Center(
+                child: Text(
+                  '여기에 이미지가 표시될 예정입니다.',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
             ),
             const SizedBox(height: 24),
             const Text(
-              '공개 내용',
+              '내용',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            Text(
-              entry.publicContent,
-              style: const TextStyle(fontSize: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Text(
+                entry.publicContent,
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
             const SizedBox(height: 16),
             const Text(
-              '비공개 내용',
+              '내 아이 일기',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            Text(
-              entry.privateContent,
-              style: const TextStyle(fontSize: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Text(
+                entry.privateContent,
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
             const SizedBox(height: 24),
             Row(
@@ -97,7 +115,7 @@ class BabyRecordDetailPage extends StatelessWidget {
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context, true); // 삭제 후 목록 새로고침을 위해 true 반환
+                    Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
