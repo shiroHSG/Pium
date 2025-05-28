@@ -57,7 +57,7 @@ class BabyRecordDetailPage extends StatelessWidget {
               color: Colors.grey[200],
               child: const Center(
                 child: Text(
-                  '여기에 이미지가 표시될 예정입니다.',
+                  '이미지',
                   style: TextStyle(color: Colors.grey),
                 ),
               ),
