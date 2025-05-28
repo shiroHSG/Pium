@@ -73,8 +73,8 @@ public class MateRequestService {
             throw new IllegalStateException("이미 배우자로 연결되어 있습니다.");
         }
 
-        sender.setMateInfo(String.valueOf(receiver.getId()));
-        receiver.setMateInfo(String.valueOf(sender.getId()));
+        sender.setMateInfo(Long.valueOf(String.valueOf(receiver.getId())));
+        receiver.setMateInfo(Long.valueOf(String.valueOf(sender.getId())));
         memberRepository.save(sender);
         memberRepository.save(receiver);
 

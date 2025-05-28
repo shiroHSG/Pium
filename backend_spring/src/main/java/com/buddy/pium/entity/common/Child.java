@@ -18,7 +18,11 @@ public class Child {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long childId;
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
     @Column(length = 20, nullable = false)
     private String name;
@@ -39,10 +43,6 @@ public class Child {
     private String profileImg;
 
     private String sensitiveInfo;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "child", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MemberChild> memberLinks = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)
     private java.sql.Timestamp createdAt;

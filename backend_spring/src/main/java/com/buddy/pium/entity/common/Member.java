@@ -5,8 +5,6 @@ import lombok.*;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
@@ -46,19 +44,11 @@ public class Member {
     @Column(nullable = false, length = 1)
     private Enum.Gender gender; // 성별 ('M', 'F')
 
-    @Column(length = 255)
+    @Column
     private String profileImage;
 
     @Column
     private Long mateInfo;
-
-    @Column(length = 255)
-    private String refreshToken;
-
-    // 자녀 연관관계 (Member ↔ MemberChild)
-    @Builder.Default
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MemberChild> childrenLinks = new ArrayList<>();
 
     @Column(nullable = false)
     private Timestamp createdAt;

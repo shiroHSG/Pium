@@ -16,7 +16,7 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    @GetMapping("/get/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Member> getById(@PathVariable Long id) {
         System.out.println(id);
         return memberService.findById(id)
