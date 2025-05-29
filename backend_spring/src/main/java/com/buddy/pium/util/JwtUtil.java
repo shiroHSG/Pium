@@ -1,12 +1,12 @@
 package com.buddy.pium.util;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys; // ✅ 추가: Key 생성을 위한 클래스
+        import io.jsonwebtoken.security.Keys; // ✅ 추가: Key 생성을 위한 클래스
 import org.springframework.stereotype.Component;
 
 import java.security.Key; // ✅ 추가: Key 타입
 import java.util.Date;
-// test
+
 @Component
 public class JwtUtil {
 
