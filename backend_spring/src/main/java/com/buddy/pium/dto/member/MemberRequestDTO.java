@@ -1,4 +1,4 @@
-package com.buddy.pium.dto;
+package com.buddy.pium.dto.member;
 
 public class MemberRequestDTO {
 }
