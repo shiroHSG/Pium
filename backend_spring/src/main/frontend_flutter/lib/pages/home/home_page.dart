@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_flutter/models/baby_profile.dart';
 import 'package:frontend_flutter/pages/baby_record/baby_record_page.dart';
 import 'package:frontend_flutter/pages/search/people_search_page.dart';
 import 'package:frontend_flutter/pages/my_page/my_page.dart';
@@ -8,7 +9,9 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/widgets/custom_drawer.dart';
 import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
 import 'package:frontend_flutter/models/schedule.dart';
-import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart'; // AddSchedulePopup 임포트
+import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart';
+import 'package:frontend_flutter/pages/calendar_page/calendar_page.dart';
+import 'package:frontend_flutter/pages/chatting/chatting_page.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
@@ -21,37 +24,29 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   bool _isLoggedIn = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  List<Schedule> _schedules = []; // 일정을 저장할 리스트
+  List<Schedule> _schedules = [];
+  BabyProfile _babyProfile = BabyProfile(
+    name: '아이',
+    dob: 'YY-MM-DD',
+    height: '00',
+    weight: '00',
+    development: '00이는 생후 4개월이에요. 팔을 뻗어서 물체를 잡으려고 해요.',
+  );
+  ImageProvider? _babyImage;
 
   @override
   void initState() {
     super.initState();
     _checkLoginStatus();
-    // 초기 더미 일정 추가 (선택 사항)
-    _schedules.add(
-      Schedule(
-        title: '태하 예방접종',
-        date: DateTime.now(),
-        time: '14:00',
-        color: AppTheme.primaryPurple,
-      ),
-    );
-    _schedules.add(
-      Schedule(
-        title: '태하아빠 회의',
-        date: DateTime.now(),
-        time: '15:00',
-        color: Colors.orange,
-      ),
-    );
-    _schedules.add(
-      Schedule(
-        title: '가족 외식',
-        date: DateTime.now(),
-        time: '20:00',
-        color: Colors.lightGreen,
-      ),
-    );
+    _loadBabyProfile();
+  }
+
+  Future<void> _loadBabyProfile() async {
+    // 실제로는 API 호출 또는 로컬 저장소에서 아이 정보를 가져와야 합니다.
+    // 임시로 초기값을 설정합니다.
+    setState(() {
+      _babyImage = const AssetImage('assets/default_baby.png');
+    });
   }
 
   void _checkLoginStatus() {
@@ -86,7 +81,6 @@ class _MyHomePageState extends State<MyHomePage> {
     if (newSchedule != null) {
       setState(() {
         _schedules.add(newSchedule);
-        // 날짜와 시간순으로 정렬
         _schedules.sort((a, b) {
           int dateComparison = a.date.compareTo(b.date);
           if (dateComparison != 0) {
@@ -96,6 +90,79 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       });
     }
+  }
+
+  void _navigateToCalendarPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CalendarPage()),
+    );
+  }
+
+  Future<void> _showEditBabyProfileDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        final _nameController = TextEditingController(text: _babyProfile.name);
+        final _birthDateController = TextEditingController(text: _babyProfile.dob);
+        final _heightController = TextEditingController(text: _babyProfile.height ?? '');
+        final _weightController = TextEditingController(text: _babyProfile.weight ?? '');
+        final _developmentController =
+        TextEditingController(text: _babyProfile.development ?? '');
+
+        return AlertDialog(
+          title: const Text('아이 정보 수정'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(labelText: '이름'),
+                ),
+                TextField(
+                  controller: _birthDateController,
+                  decoration: const InputDecoration(labelText: '생년월일 (YYYY-MM-DD)'),
+                ),
+                TextField(
+                  controller: _heightController,
+                  decoration: const InputDecoration(labelText: '키 (cm)'),
+                  keyboardType: TextInputType.number,
+                ),
+                TextField(
+                  controller: _weightController,
+                  decoration: const InputDecoration(labelText: '몸무게 (kg)'),
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('취소'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('저장'),
+              onPressed: () {
+                setState(() {
+                  _babyProfile = BabyProfile(
+                    name: _nameController.text,
+                    dob: _birthDateController.text,
+                    height: _heightController.text.isEmpty ? null : _heightController.text,
+                    weight: _weightController.text.isEmpty ? null : _weightController.text,
+                    development: _developmentController.text.isEmpty ? null : _developmentController.text,
+                  );
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -117,7 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
       ),
-      floatingActionButton: _selectedIndex == 0 // 홈 페이지일 때만 버튼 표시
+      floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
         onPressed: _showAddSchedulePopup,
         backgroundColor: AppTheme.primaryPurple,
@@ -132,7 +199,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     switch (index) {
       case 0:
-      // 오늘 날짜의 일정 필터링
         final today = DateTime.now();
         final todaySchedules = _schedules
             .where((schedule) =>
@@ -145,139 +211,160 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: 0.0, top: 0.0, right: 0.0, bottom: 40.0),
-                child: Container(
-                  width: screenWidth,
-                  height: 250,
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
-                  decoration: BoxDecoration(
-                    color: AppTheme.lightPink,
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(15)),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryPurple,
-                              shape: BoxShape.circle,
+                padding: const EdgeInsets.only(
+                    left: 0.0, top: 0.0, right: 0.0, bottom: 40.0),
+                child: GestureDetector(
+                  onTap: _showEditBabyProfileDialog,
+                  child: Container(
+                    width: screenWidth,
+                    height: 250,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0, vertical: 30.0),
+                    decoration: BoxDecoration(
+                      color: AppTheme.lightPink,
+                      borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(15)),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryPurple,
+                                shape: BoxShape.circle,
+                                image: _babyImage != null
+                                    ? DecorationImage(
+                                  image: _babyImage!,
+                                  fit: BoxFit.cover,
+                                )
+                                    : null,
+                              ),
+                              child: _babyImage == null
+                                  ? const Center(
+                                child: Text(
+                                  '아이\n사진',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              )
+                                  : null,
                             ),
-                            child: const Center(
-                              child: Text(
-                                '아이\n사진',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
+                            const SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _babyProfile.name,
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    color: AppTheme.textPurple,
+                                  ),
                                 ),
-                              ),
+                                Text(
+                                  '${_babyProfile.dob} / ${_babyProfile.height ?? '??'} cm / ${_babyProfile.weight ?? '??'} kg',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: AppTheme.textPurple,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '이름',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  color: AppTheme.textPurple,
-                                ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Center(
+                          child: Padding(
+                            padding:
+                            const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Text(
+                              _babyProfile.development ?? '성장 발달 내용이 없습니다.',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
                               ),
-                              Text(
-                                'YY-MM-DD / 00cm / 00kg',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: AppTheme.textPurple,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: Text(
-                            'OO이는 생후 4개월이에요. 팔을 뻗어서 물체를 잡으려고 해요.',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontSize: 12,
                             ),
                           ),
                         ),
-                      ),
-                      const Spacer(),
-                    ],
+                        const Spacer(),
+                      ],
+                    ),
                   ),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 20.0),
-                  decoration: BoxDecoration(
-                    color: AppTheme.lightPink,
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.arrow_back_ios, color: Colors.grey[600], size: 20),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${today.day}일',
-                              style: TextStyle(
-                                color: AppTheme.textPurple,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                child: GestureDetector(
+                  onTap: _navigateToCalendarPage,
+                  child: Container(
+                    padding:
+                    const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 20.0),
+                    decoration: BoxDecoration(
+                      color: AppTheme.lightPink,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.arrow_back_ios,
+                            color: Colors.grey[600], size: 20),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${today.day}일',
+                                style: TextStyle(
+                                  color: AppTheme.textPurple,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            if (todaySchedules.isEmpty)
-                              const Text(
-                                '오늘 일정이 없습니다.',
-                                style: TextStyle(fontSize: 14, color: Colors.grey),
-                              ),
-                            ...todaySchedules.map((schedule) => Padding(
-                              padding: const EdgeInsets.only(bottom: 4.0),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: schedule.color,
+                              const SizedBox(height: 10),
+                              if (todaySchedules.isEmpty)
+                                const Text(
+                                  '오늘 일정이 없습니다.',
+                                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                                ),
+                              ...todaySchedules.map((schedule) => Padding(
+                                padding: const EdgeInsets.only(bottom: 4.0),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: schedule.color,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      '${schedule.title} - ${schedule.time}',
-                                      style: const TextStyle(fontSize: 14),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        '${schedule.title} - ${schedule.time}',
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            )),
-                          ],
+                                  ],
+                                ),
+                              )),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Icon(Icons.arrow_forward_ios, color: Colors.grey[600], size: 20),
-                    ],
+                        const SizedBox(width: 10),
+                        Icon(Icons.arrow_forward_ios,
+                            color: Colors.grey[600], size: 20),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -292,10 +379,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ),
                   const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
+                    padding:
+                    EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
                     child: Text(
                       '인기 게시글',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style:
+                      TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
                   const Expanded(
@@ -323,7 +412,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       Padding(
                         padding: const EdgeInsets.only(right: 8.0),
-                        child: Icon(Icons.arrow_forward_ios, color: AppTheme.textPurple),
+                        child: Icon(Icons.arrow_forward_ios,
+                            color: AppTheme.textPurple),
                       ),
                     ],
                   ),
@@ -335,7 +425,7 @@ class _MyHomePageState extends State<MyHomePage> {
       case 1:
         return const BabyRecordPage();
       case 2:
-        return const Center(child: Text('채팅 페이지 내용'));
+        return ChattingPage();
       case 3:
         return const PeopleSearchPage();
       case 4:

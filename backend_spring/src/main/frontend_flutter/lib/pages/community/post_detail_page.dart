@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:frontend_flutter/models/post_detail.dart';
+import 'package:frontend_flutter/models/post_response.dart';
 
 class PostDetailPage extends StatelessWidget {
-  final PostDetail post;
+  final PostResponse post;
 
   const PostDetailPage({
     Key? key,
@@ -49,7 +49,7 @@ class PostDetailPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          post.authorId,
+                          post.writer,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -58,7 +58,7 @@ class PostDetailPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '좋아요 ${post.likes} | 조회수 ${post.views} | 작성일 : ${post.date}',
+                          '조회수 ${post.viewCount} | 작성일 : ${post.createdAt}',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade600,
@@ -117,24 +117,20 @@ class PostDetailPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Container(
-                    width: 100,
-                    height: 100,
+              if (post.postImg != null)
+                Container(
+                  width: double.infinity,
+                  height: 200,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
                     color: Colors.grey.shade200,
-                    margin: const EdgeInsets.only(right: 8),
-                    child: const Icon(Icons.image_outlined, size: 50, color: Colors.grey),
                   ),
-                  Container(
-                    width: 100,
-                    height: 100,
-                    color: Colors.grey.shade200,
-                    margin: const EdgeInsets.only(right: 8),
-                    child: const Icon(Icons.image_outlined, size: 50, color: Colors.grey),
+                  child: Image.network(
+                    post.postImg!,
+                    fit: BoxFit.cover,
                   ),
-                ],
-              ),
+                ),
               const SizedBox(height: 24),
               const Text(
                 '댓글',
@@ -145,7 +141,7 @@ class PostDetailPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              ...post.comments.map((comment) => _buildCommentItem(comment.author, comment.text)).toList(),
+              const Text('댓글 기능은 추후 추가 예정입니다.'),
               const SizedBox(height: 24),
             ],
           ),
@@ -188,51 +184,6 @@ class PostDetailPage extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildCommentItem(String author, String text) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12.0),
-      decoration: BoxDecoration(
-        color: AppTheme.lightPink,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: Colors.grey.shade200,
-            child: const Icon(Icons.person, size: 25, color: Colors.grey),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  author,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: AppTheme.textPurple,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  text,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

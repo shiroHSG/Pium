@@ -16,6 +16,8 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
   bool _isLoggedIn = true;
   int _selectedIndex = 0;
 
+  String _selectedCategory = '나눔';
+
   void _onItemSelected(int index) {
     setState(() {
       _selectedIndex = index;
@@ -85,19 +87,35 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
                 ),
                 const SizedBox(width: 10),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  height: 36,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryPurple, // 현재 배경색이 보라색으로 설정되어 있습니다.
+                    color: AppTheme.primaryPurple,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Row(
-                    children: [
-                      Text(
-                        '나눔',
-                        style: TextStyle(color: Colors.white), // <<<--- 이 부분을 추가했습니다.
-                      ),
-                      Icon(Icons.arrow_drop_down, color: Colors.white), // 아이콘 색상도 흰색으로 일관성 유지
-                    ],
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedCategory,
+                      dropdownColor: AppTheme.primaryPurple,
+                      icon: const Icon(Icons.arrow_drop_down, color: Colors.white, size: 20),
+                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                      items: ['나눔', '품앗이'].map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(
+                            value,
+                            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Jua'),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            _selectedCategory = newValue;
+                          });
+                        }
+                      },
+                    ),
                   ),
                 ),
               ],

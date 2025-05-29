@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:frontend_flutter/models/child_profile.dart';
+import 'package:frontend_flutter/models/baby_profile.dart';
 
-class ChildProfileEditPage extends StatefulWidget {
-  final ChildProfile childProfile;
-  const ChildProfileEditPage({Key? key, required this.childProfile}) : super(key: key);
+class BabyProfileEditPage extends StatefulWidget {
+  final BabyProfile babyProfile;
+  const BabyProfileEditPage({Key? key, required this.babyProfile}) : super(key: key);
 
   @override
-  State<ChildProfileEditPage> createState() => _ChildProfileEditPageState();
+  State<BabyProfileEditPage> createState() => _BabyProfileEditPageState();
 }
 
-class _ChildProfileEditPageState extends State<ChildProfileEditPage> {
+class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _nameController;
@@ -25,12 +25,12 @@ class _ChildProfileEditPageState extends State<ChildProfileEditPage> {
   @override
   void initState() {
     super.initState();
-    _nameController     = TextEditingController(text: widget.childProfile.name);
-    _dobController      = TextEditingController(text: widget.childProfile.dob);
-    _heightController   = TextEditingController(text: widget.childProfile.height ?? '');
-    _weightController   = TextEditingController(text: widget.childProfile.weight ?? '');
-    _allergiesController= TextEditingController(text: widget.childProfile.allergies ?? '');
-    _selectedGender     = widget.childProfile.gender;
+    _nameController = TextEditingController(text: widget.babyProfile.name);
+    _dobController = TextEditingController(text: widget.babyProfile.dob);
+    _heightController = TextEditingController(text: widget.babyProfile.height ?? '');
+    _weightController = TextEditingController(text: widget.babyProfile.weight ?? '');
+    _allergiesController = TextEditingController(text: widget.babyProfile.allergies ?? '');
+    _selectedGender = widget.babyProfile.gender;
   }
 
   @override
@@ -45,7 +45,7 @@ class _ChildProfileEditPageState extends State<ChildProfileEditPage> {
 
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
-      final updated = widget.childProfile.copyWith(
+      final updated = widget.babyProfile.copyWith(
         name: _nameController.text,
         dob: _dobController.text,
         gender: _selectedGender,
@@ -70,7 +70,7 @@ class _ChildProfileEditPageState extends State<ChildProfileEditPage> {
           },
         ),
         title: const Text(
-          '아이정보 수정 페이지', // 앱바 제목
+          '아이정보 수정 페이지',
           style: TextStyle(
             color: AppTheme.textPurple,
             fontSize: 20,
@@ -88,7 +88,6 @@ class _ChildProfileEditPageState extends State<ChildProfileEditPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
-                // 프로필 이미지 영역
                 Container(
                   width: 150,
                   height: 150,
@@ -101,7 +100,6 @@ class _ChildProfileEditPageState extends State<ChildProfileEditPage> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                // 이름 입력 필드
                 _buildEditInputField(
                   controller: _nameController,
                   labelText: '이름',
@@ -113,7 +111,6 @@ class _ChildProfileEditPageState extends State<ChildProfileEditPage> {
                   },
                 ),
                 const SizedBox(height: 20),
-                // 생년월일 입력 필드
                 _buildEditInputField(
                   controller: _dobController,
                   labelText: '생년월일',
@@ -132,7 +129,6 @@ class _ChildProfileEditPageState extends State<ChildProfileEditPage> {
                   },
                 ),
                 const SizedBox(height: 20),
-                // 성별 선택
                 _buildGenderSelectionForEdit(
                   selectedGender: _selectedGender,
                   onChanged: (gender) {
@@ -142,7 +138,6 @@ class _ChildProfileEditPageState extends State<ChildProfileEditPage> {
                   },
                 ),
                 const SizedBox(height: 20),
-                // 키 입력 필드
                 _buildEditInputField(
                   controller: _heightController,
                   labelText: '키',
@@ -159,7 +154,6 @@ class _ChildProfileEditPageState extends State<ChildProfileEditPage> {
                   },
                 ),
                 const SizedBox(height: 20),
-                // 몸무게 입력 필드
                 _buildEditInputField(
                   controller: _weightController,
                   labelText: '몸무게',
@@ -176,16 +170,14 @@ class _ChildProfileEditPageState extends State<ChildProfileEditPage> {
                   },
                 ),
                 const SizedBox(height: 20),
-                // 알러지 입력 필드
                 _buildEditInputField(
                   controller: _allergiesController,
                   labelText: '알러지',
                   hintText: '예: 우유, 땅콩',
                 ),
                 const SizedBox(height: 40),
-                // 수정하기 버튼
                 ElevatedButton(
-                  onPressed: _saveProfile, // 저장 함수 호출
+                  onPressed: _saveProfile,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryPurple,
                     foregroundColor: Colors.white,
@@ -207,14 +199,13 @@ class _ChildProfileEditPageState extends State<ChildProfileEditPage> {
     );
   }
 
-  // 아이 정보 수정 페이지용 텍스트 필드 헬퍼 함수
   Widget _buildEditInputField({
     required TextEditingController controller,
     required String labelText,
     String? hintText,
     TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
-    String? Function(String?)? validator, // 유효성 검사기 추가
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,7 +254,6 @@ class _ChildProfileEditPageState extends State<ChildProfileEditPage> {
     );
   }
 
-  // 아이 정보 수정 페이지용 성별 선택 헬퍼 함수
   Widget _buildGenderSelectionForEdit({
     required String? selectedGender,
     required ValueChanged<String?> onChanged,

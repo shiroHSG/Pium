@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/pages/baby_record/add_baby_record_page.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:frontend_flutter/widgets/custom_app_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:frontend_flutter/models/baby_record_entry.dart';
 import 'package:intl/intl.dart';
+import 'package:frontend_flutter/pages/baby_record/baby_record_detail_page.dart';
 
 class BabyRecordPage extends StatefulWidget {
   const BabyRecordPage({super.key});
@@ -29,9 +29,8 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
     if (recordsJson != null) {
       final List<dynamic> jsonList = jsonDecode(recordsJson);
       setState(() {
-        // 일지를 최신 순으로 정렬 (선택 사항)
         babyRecords = jsonList.map((json) => BabyRecordEntry.fromJson(json)).toList();
-        babyRecords.sort((a, b) => b.createdAt.compareTo(a.createdAt)); // 최신 날짜가 위로 오도록 정렬
+        babyRecords.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       });
     } else {
       setState(() {
@@ -59,7 +58,6 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
     return Scaffold(
       body: Column(
         children: [
-          // 아이 정보
           Container(
             width: screenWidth,
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
@@ -69,7 +67,6 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 아기 사진
                 Container(
                   width: 90,
                   height: 90,
@@ -86,7 +83,6 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                // 이름 및 생년월일
                 Padding(
                   padding: const EdgeInsets.only(left: 20.0),
                   child: Column(
@@ -113,14 +109,11 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
               ],
             ),
           ),
-
-          // 드롭다운 + 플러스 버튼
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // 드롭다운 버튼
                 Container(
                   height: 36,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -139,14 +132,13 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                // 플러스 버튼
                 GestureDetector(
                   onTap: () async {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const AddBabyRecordPage()),
                     );
-                    _loadBabyRecords(); // AddBabyRecordPage에서 돌아왔을 때 데이터 새로고침
+                    _loadBabyRecords();
                   },
                   child: Container(
                     width: 36,
@@ -161,8 +153,6 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
               ],
             ),
           ),
-
-          // 사진 리스트 or 메시지
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -182,11 +172,20 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
                 ),
                 itemBuilder: (context, index) {
                   final entry = babyRecords[index];
-                  // 날짜 포맷터 생성
                   final DateFormat formatter = DateFormat('yy.MM.dd');
                   final String formattedDate = formatter.format(entry.createdAt);
 
                   return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BabyRecordDetailPage(
+                            entry: entry,
+                          ),
+                        ),
+                      );
+                    },
                     onLongPress: () => _deleteBabyRecord(index),
                     child: Container(
                       color: AppTheme.lightPink.withOpacity(0.5),
@@ -195,7 +194,7 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            formattedDate, // 날짜 표시
+                            formattedDate,
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.normal,

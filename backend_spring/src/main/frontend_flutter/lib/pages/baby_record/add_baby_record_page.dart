@@ -56,29 +56,29 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppTheme.lightPink,
+        backgroundColor: AppTheme.primaryPurple,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: AppTheme.textPurple),
+          icon: const Icon(Icons.close, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
         title: const Text(
-          '피움',
+          '',
           style: TextStyle(
-            color: AppTheme.textPurple,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none, color: AppTheme.textPurple),
+            icon: const Icon(Icons.notifications_none, color: Colors.white),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.menu, color: AppTheme.textPurple),
+            icon: const Icon(Icons.menu, color: Colors.white),
             onPressed: () {},
           ),
         ],

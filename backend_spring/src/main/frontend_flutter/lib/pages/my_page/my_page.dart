@@ -3,7 +3,7 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/pages/auth/login.dart';
 import 'package:frontend_flutter/pages/my_page/profile_edit_page.dart';
 
-import 'childProfile_page.dart';
+import 'babyProfile_page.dart';
 
 class MyPage extends StatelessWidget {
   const MyPage({Key? key}) : super(key: key);
@@ -176,7 +176,7 @@ class MyPage extends StatelessWidget {
                       print('아이 정보 수정');
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const ChildProfilePage()),
+                        MaterialPageRoute(builder: (context) => const BabyProfilePage()),
                       );
                     },
                   ),
@@ -193,11 +193,11 @@ class MyPage extends StatelessWidget {
                   _buildMyPageButton(
                     context,
                     icon: Icons.settings_outlined,
-                    label: '설정',
+                    label: '환경설정',
                     iconSize: 30,
                     textSize: 14,
                     onTap: () {
-                      print('설정');
+                      print('환경설정');
                     },
                   ),
                 ],
