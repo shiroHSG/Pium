@@ -5,8 +5,8 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:frontend_flutter/pages/home/home_page.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('ko_KR', null);
+  WidgetsFlutterBinding.ensureInitialized();  // 플러터와 프레임워크 연결
+  await initializeDateFormatting('ko_KR', null);  // 한국어 로케일 날짜 시간 데이터 초기화
   runApp(const MyApp());
 }
 
