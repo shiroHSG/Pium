@@ -1,6 +1,6 @@
 package com.buddy.pium.entity.post;
 
-import com.buddy.pium.entity.member.Member;
+import com.buddy.pium.entity.common.Member;
 import jakarta.persistence.*;
 import lombok.*;
 

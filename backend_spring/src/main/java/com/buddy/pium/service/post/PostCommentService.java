@@ -2,10 +2,10 @@ package com.buddy.pium.service.post;
 
 import com.buddy.pium.dto.post.PostCommentRequest;
 import com.buddy.pium.dto.post.PostCommentResponse;
-import com.buddy.pium.entity.member.Member;
+import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.Post;
 import com.buddy.pium.entity.post.PostComment;
-import com.buddy.pium.repository.member.MemberRepository;
+import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.repository.post.PostCommentRepository;
 import com.buddy.pium.repository.post.PostRepository;
 import lombok.RequiredArgsConstructor;
