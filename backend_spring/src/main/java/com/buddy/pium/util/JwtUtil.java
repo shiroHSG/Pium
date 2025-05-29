@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key; // ✅ 추가: Key 타입
 import java.util.Date;
-
+// test
 @Component
 public class JwtUtil {
 
