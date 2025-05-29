@@ -206,7 +206,7 @@ Widget buildGenderSelectionField(String labelText, String? selectedGender, Funct
                 child: Text(
                   '남성',
                   style: TextStyle(
-                    color: selectedGender == '남성' ? Colors.white : AppTheme.textPurple,
+                    color: selectedGender == 'M' ? Colors.white : AppTheme.textPurple,
                     fontFamily: 'Jua',
                     fontWeight: FontWeight.bold,
                   ),

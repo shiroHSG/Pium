@@ -86,7 +86,7 @@ class _SignupPageState extends State<SignupPage> {
       phoneNumber: _phoneController.text,
       address: _addressController.text,
       birth: _birthDateController.text,
-      gender: _selectedGender,
+      gender: _selectedGender == '남성' ? 'M' : 'F',
     );
 
     if (success) {
