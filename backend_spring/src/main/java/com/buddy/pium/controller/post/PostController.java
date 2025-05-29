@@ -19,16 +19,12 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    // public ResponseEntity<Void> create(@RequestBody PostRequest dto, Authentication auth) {
-    //     Long memberId = (Long) auth.getPrincipal(); // 추후 로그인 연동 시 사용
-    //     postService.create(dto, memberId);
-    //     return ResponseEntity.ok().build();
-    // }
-    public ResponseEntity<Void> create(@RequestBody PostRequest dto) {
-        Long mockMemberId = 1L;
-        postService.create(dto, mockMemberId);
+    public ResponseEntity<Void> create(@RequestBody PostRequest dto, Authentication auth) {
+        Long memberId = (Long) auth.getPrincipal();
+        postService.create(dto, memberId);
         return ResponseEntity.ok().build();
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<PostResponse> get(@PathVariable Long id) {
