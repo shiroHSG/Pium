@@ -4,11 +4,11 @@ import com.buddy.pium.dto.chat.ChatRoomRequestDTO;
 import com.buddy.pium.dto.chat.ChatRoomResponseDTO;
 import com.buddy.pium.entity.chat.ChatRoom;
 import com.buddy.pium.entity.chat.ChatRoomMember;
-import com.buddy.pium.entity.member.Member;
+import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.SharePost;
 import com.buddy.pium.repository.chat.ChatRoomMemberRepository;
 import com.buddy.pium.repository.chat.ChatRoomRepository;
-import com.buddy.pium.repository.member.MemberRepository;
+import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.repository.post.SharePostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -150,7 +150,7 @@ public class ChatRoomService {
         SharePost post = sharePostRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 나눔 게시글이 존재하지 않습니다."));
 
-        Optional<ChatRoom> existing = chatRoomRepository.findShareChatRoomBetween(
+        Optional<ChatRoom> existing = chatRoomRepository.findSharedChatRoomWithTwoMembers(
                 sender.getId(), receiver.getId(), postId
         );
 
@@ -180,5 +180,6 @@ public class ChatRoomService {
 
         return chatRoom;
     }
+
 
 }

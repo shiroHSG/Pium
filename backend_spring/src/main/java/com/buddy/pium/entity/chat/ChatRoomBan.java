@@ -1,6 +1,6 @@
 package com.buddy.pium.entity.chat;
 
-import com.buddy.pium.entity.member.Member;
+import com.buddy.pium.entity.common.Member;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;

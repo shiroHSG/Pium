@@ -5,11 +5,11 @@ import com.buddy.pium.dto.chat.MessageResponseDTO;
 import com.buddy.pium.entity.chat.ChatRoom;
 import com.buddy.pium.entity.chat.ChatRoomMember;
 import com.buddy.pium.entity.chat.Message;
-import com.buddy.pium.entity.member.Member;
+import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.repository.chat.ChatRoomMemberRepository;
 import com.buddy.pium.repository.chat.ChatRoomRepository;
 import com.buddy.pium.repository.chat.MessageRepository;
-import com.buddy.pium.repository.member.MemberRepository;
+import com.buddy.pium.repository.common.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -55,14 +55,22 @@ public class MessageService {
     }
 
     public ChatRoomSummaryDTO getRoomSummaryForMember(Long chatRoomId, Long memberId) {
-        int unreadCount = messageRepository.countUnreadMessages(chatRoomId, memberId);
+        // 1. 해당 사용자의 마지막 읽은 메시지 ID 조회
+        Long lastReadMessageId = chatRoomMemberRepository.findLastReadMessageId(chatRoomId, memberId);
+
+        // 2. 읽지 않은 메시지 수 계산 (상대방이 보낸 것만)
+        int unreadCount = (lastReadMessageId != null)
+                ? messageRepository.countUnreadMessages(chatRoomId, memberId, lastReadMessageId)
+                : messageRepository.countAllUnreadMessagesExceptSender(chatRoomId, memberId);
+
+        // 3. 마지막 메시지 조회
         Message lastMessage = messageRepository.findLastMessage(chatRoomId);
 
         return new ChatRoomSummaryDTO(
                 chatRoomId,
-                lastMessage.getContent(),
+                lastMessage != null ? lastMessage.getContent() : null,
                 unreadCount,
-                lastMessage.getSentAt()
+                lastMessage != null ? lastMessage.getSentAt() : null
         );
     }
 

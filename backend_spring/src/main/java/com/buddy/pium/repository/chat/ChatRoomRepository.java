@@ -10,11 +10,26 @@ import java.util.Optional;
 
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     // DM
-    Optional<ChatRoom> findDirectChatRoomBetween(Long senderId, Long receiverId);
+    @Query("""
+    SELECT crm.chatRoom
+    FROM ChatRoomMember crm
+    WHERE crm.chatRoom.isGroup = false
+      AND crm.member.id IN (:memberId1, :memberId2)
+    GROUP BY crm.chatRoom
+    HAVING COUNT(DISTINCT crm.member.id) = 2
+""")
+    Optional<ChatRoom> findDirectChatRoomBetween(Long memberId1, Long memberId2);
 
     // 나눔
-    Optional<ChatRoom> findShareChatRoomBetween(Long senderId, Long receiverId, Long postId);
+    @Query("""
+    SELECT crm.chatRoom
+    FROM ChatRoomMember crm
+    WHERE crm.chatRoom.sharePost.id = :postId
+      AND crm.member.id IN (:memberId1, :memberId2)
+    GROUP BY crm.chatRoom
+    HAVING COUNT(DISTINCT crm.member.id) = 2
+""")
+    Optional<ChatRoom> findSharedChatRoomWithTwoMembers(Long postId, Long memberId1, Long memberId2);
 
-    // 멤버 목록 조회
-    List<ChatRoomMember> findByChatRoom(ChatRoom chatRoom);
+
 }

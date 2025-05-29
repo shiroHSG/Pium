@@ -25,7 +25,7 @@ bin/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
-src/main/resources/application-local.yml
+#src/main/resources/application-local.yml
 
 ### NetBeans ###
 /nbproject/private/
@@ -37,3 +37,6 @@ src/main/resources/application-local.yml
 ### VS Code ###
 .vscode/
 .metadata/
+
+### yml 파일 ignore 처리 ###
+/src/main/resources/application-local.yml

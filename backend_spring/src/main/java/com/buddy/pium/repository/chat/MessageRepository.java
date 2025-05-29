@@ -9,9 +9,16 @@ import org.springframework.data.repository.query.Param;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
-    @Query("SELECT COUNT(m) FROM Message m WHERE m.chatRoom.id = :chatRoomId AND m.id > " +
-            "(SELECT COALESCE(MAX(r.lastReadMessageId), 0) FROM MessageRead r WHERE r.member.id = :memberId AND r.chatRoom.id = :chatRoomId)")
-    int countUnreadMessages(@Param("chatRoomId") Long chatRoomId, @Param("memberId") Long memberId);
+    @Query("""
+    SELECT COUNT(m)
+    FROM Message m
+    WHERE m.chatRoom.id = :chatRoomId
+      AND m.id > :lastReadMessageId
+      AND m.sender.id <> :memberId
+""")
+    int countUnreadMessages(Long chatRoomId, Long memberId, Long lastReadMessageId);
+
+
 
     @Query("SELECT m FROM Message m WHERE m.chatRoom.id = :chatRoomId ORDER BY m.sentAt DESC LIMIT 1")
     Message findLastMessage(@Param("chatRoomId") Long chatRoomId);
@@ -19,8 +26,23 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     // 읽음 처리 → 메시지 ID 이하의 메시지를 모두 읽음 처리
     @Modifying
     @Transactional
-    @Query("UPDATE MessageRead r SET r.lastReadMessageId = :messageId WHERE r.member.id = :memberId AND r.chatRoom.id = :chatRoomId")
+    @Query("""
+    UPDATE Message m
+    SET m.isRead = true
+    WHERE m.chatRoom.id = :chatRoomId
+      AND m.id <= :lastReadMessageId
+      AND m.sender.id <> :memberId
+""")
     void markAsReadUpTo(@Param("chatRoomId") Long chatRoomId,
                         @Param("memberId") Long memberId,
-                        @Param("messageId") Long messageId);
+                        @Param("lastReadMessageId") Long lastReadMessageId);
+
+    @Query("""
+    SELECT COUNT(m)
+    FROM Message m
+    WHERE m.chatRoom.id = :chatRoomId
+      AND m.sender.id <> :memberId
+""")
+    int countAllUnreadMessagesExceptSender(Long chatRoomId, Long memberId);
+
 }
