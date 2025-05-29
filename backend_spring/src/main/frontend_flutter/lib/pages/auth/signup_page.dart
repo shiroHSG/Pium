@@ -1,6 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:frontend_flutter/models/member.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
+import 'package:http/http.dart' as http;
+import '../../models/Member.dart';
 import 'signup_page_ui.dart'; // Import the new UI widget
+import '../../services/member_services.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({Key? key}) : super(key: key);
@@ -20,25 +26,79 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _birthDateController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
+  final String baseUrl = 'http://10.0.2.2:8080/api/member';
+
   String? _selectedGender;
 
-  void _signup() {
-    print('이메일: ${_emailController.text}');
-    print('비밀번호: ${_passwordController.text}');
-    print('닉네임: ${_nicknameController.text}');
-    print('이름: ${_nameController.text}');
-    print('전화번호: ${_phoneController.text}');
-    print('생년월일: ${_birthDateController.text}');
-    print('성별: $_selectedGender');
-    print('주소: ${_addressController.text}');
+  Future<bool> signup({
+    required String username,
+    required String email,
+    required String password,
+    required String nickname,
+    required String phoneNumber,
+    required String address,
+    required String birth,
+    required String? gender,
+  }) async {
+    final url = Uri.parse('http://10.0.2.2:8080/api/member/add'); // baseUrl 정의되어 있어야 함
 
+    final body = jsonEncode({
+      'username': username,
+      'email': email,
+      'password': password,
+      'nickname': nickname,
+      'phoneNumber': phoneNumber,
+      'address': address,
+      'birth': birth,
+      'gender': gender,
+    });
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: body,
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      print('회원가입 실패: ${response.statusCode}');
+      print('응답 내용: ${response.body}');
+      return false;
+    }
+  }
+  void _signup() async {
+    print("_signUp 실행");
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('비밀번호가 일치하지 않습니다.')),
       );
       return;
     }
-    // 실제 회원가입 로직 구현 필요
+
+    final success = await signup(
+      username: _emailController.text,
+      email: _emailController.text,
+      password: _passwordController.text,
+      nickname: _nicknameController.text,
+      phoneNumber: _phoneController.text,
+      address: _addressController.text,
+      birth: _birthDateController.text,
+      gender: _selectedGender,
+    );
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('회원가입 성공!')),
+      );
+      // 다음 화면 이동
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('회원가입 실패')),
+      );
+    }
   }
 
   void _checkNicknameDuplicate() {

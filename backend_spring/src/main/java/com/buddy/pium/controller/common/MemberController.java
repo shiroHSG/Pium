@@ -30,6 +30,7 @@ public class MemberController {
 
     @PostMapping("/add")
     public ResponseEntity<Member> create(@RequestBody Member member) {
+        System.out.println("add api 넘어옴");
         return ResponseEntity.ok(memberService.save(member));
     }
 
