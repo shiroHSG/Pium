@@ -14,11 +14,4 @@
     </annotationProcessing>
     <bytecodeTargetLevel target="17" />
   </component>
-  <component name="JavacSettings">
-    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="pium" options="-parameters" />
-      <module name="pium.main" options="-parameters" />
-      <module name="pium.test" options="-parameters" />
-    </option>
-  </component>
 </project>
