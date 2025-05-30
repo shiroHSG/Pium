@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
       home: const SplashScreen(),
       routes: {
         '/home': (context) => const MyHomePage(),
-        '/login': (context) => const Login(),
+        '/login': (context) => Login(),
       },
     );
   }

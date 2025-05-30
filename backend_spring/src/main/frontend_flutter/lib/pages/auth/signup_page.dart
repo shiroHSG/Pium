@@ -1,12 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:frontend_flutter/models/member.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:http/http.dart' as http;
-import '../../models/Member.dart';
-import '../screens/auth/signup_page_ui.dart'; // Import the new UI widget
-import '../../services/member_services.dart';
+
+import '../../screens/auth/signup_page_ui.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({Key? key}) : super(key: key);
@@ -26,8 +24,6 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _birthDateController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
-  final String baseUrl = 'http://10.0.2.2:8080/api/member';
-
   String? _selectedGender;
 
   Future<bool> signup({
@@ -39,8 +35,9 @@ class _SignupPageState extends State<SignupPage> {
     required String address,
     required String birth,
     required String? gender,
-  }) async {
-    final url = Uri.parse('http://10.0.2.2:8080/api/member/add'); // baseUrl 정의되어 있어야 함
+  })
+  async {
+    final url = Uri.parse('http://10.0.2.2:8080/api/member/add');
 
     final body = jsonEncode({
       'username': username,
@@ -86,7 +83,7 @@ class _SignupPageState extends State<SignupPage> {
       phoneNumber: _phoneController.text,
       address: _addressController.text,
       birth: _birthDateController.text,
-      gender: _selectedGender,
+      gender: _selectedGender == '남성' ? 'M' : 'F',
     );
 
     if (success) {

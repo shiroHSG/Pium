@@ -5,7 +5,7 @@ class LoginUI extends StatelessWidget {
   final TextEditingController idController;
   final TextEditingController passwordController;
   final VoidCallback onLoginPressed;
-  final VoidCallback onSignupPressed;
+  final VoidCallback onSignupPressed; // 회원가입 콜백 추가
   final VoidCallback onFindIdPressed;
   final VoidCallback onFindPasswordPressed;
 
@@ -14,7 +14,7 @@ class LoginUI extends StatelessWidget {
     required this.idController,
     required this.passwordController,
     required this.onLoginPressed,
-    required this.onSignupPressed,
+    required this.onSignupPressed, // 회원가입 콜백 추가
     required this.onFindIdPressed,
     required this.onFindPasswordPressed,
   }) : super(key: key);
@@ -111,7 +111,7 @@ class LoginUI extends StatelessWidget {
                   style: TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua'),
                 ),
                 TextButton(
-                  onPressed: onSignupPressed,
+                  onPressed: onSignupPressed, // 이 부분을 수정
                   child: const Text(
                     'sign up',
                     style: TextStyle(

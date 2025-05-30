@@ -1,113 +1,102 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/pages/auth/signup_page.dart';
-import 'package:frontend_flutter/pages/home/home_page.dart';
-import '../../services/member_services.dart';
-import '../screens/auth/login_ui.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../screens/auth/login_ui.dart';
 
 class Login extends StatefulWidget {
-  const Login({Key? key}) : super(key: key);
-
   @override
   _LoginState createState() => _LoginState();
 }
 
 class _LoginState extends State<Login> {
-  final TextEditingController _idController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final _storage = const FlutterSecureStorage();
-  bool _isLoading = false;
-  final _memberService = MemberService(); // MemberService 객체 생성
+  final _idController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
-  void initState() {
-    super.initState();
-    _loadCredentials();
+  void dispose() {
+    _idController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
-  Future<void> _loadCredentials() async {
-    final storedId = await _storage.read(key: 'id');
-    final storedPassword = await _storage.read(key: 'password');
-    if (storedId != null) {
-      setState(() {
-        _idController.text = storedId;
-      });
+  Future<void> _login() async {
+    if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
+      return;
     }
-    if (storedPassword != null) {
-      setState(() {
-        _passwordController.text = storedPassword;
-      });
-    }
-  }
 
-  Future<void> _saveCredentials() async {
-    await _storage.write(key: 'id', value: _idController.text);
-    await _storage.write(key: 'password', value: _passwordController.text);
-  }
-
-  void _login() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    String email = _idController.text;
-    String password = _passwordController.text;
-
-    String? authToken = await _memberService.login(email, password);
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (authToken != null) {
-      // 로그인 성공, 토큰 저장 및 홈 화면 이동
-      await _storage.write(key: 'authToken', value: authToken);
-      await _saveCredentials();
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MyHomePage()),
+    try {
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8080/api/login'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'email': _idController.text,
+          'password': _passwordController.text,
+        }),
       );
-    } else {
-      // 로그인 실패 처리
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('로그인에 실패했습니다. 이메일 또는 비밀번호를 확인해주세요.')),
-      );
+
+      if (response.statusCode == 200) {
+        final token = response.body;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
+
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        _showErrorDialog('로그인 실패', '이메일 또는 비밀번호를 확인하세요.');
+      }
+    } catch (e) {
+      _showErrorDialog('오류 발생', '로그인 처리 중 오류가 발생했습니다.');
+      print('로그인 오류: $e');
     }
   }
 
-  void _navigateToSignup() {
+  void _showErrorDialog(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            child: Text('확인'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _Signup() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const SignupPage()),
+      MaterialPageRoute(builder: (context) => SignupPage()),
     );
   }
 
   void _findId() {
-    print('아이디 찾기');
-    // 아이디 찾기 로직 구현
+    Navigator.pushNamed(context, '/findId');
   }
 
   void _findPassword() {
-    print('비밀번호 찾기');
-    // 비밀번호 찾기 로직 구현
+    Navigator.pushNamed(context, '/findPassword');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.lightPink,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: LoginUI(
-        idController: _idController,
-        passwordController: _passwordController,
-        onLoginPressed: _login,
-        onSignupPressed: _navigateToSignup,
-        onFindIdPressed: _findId,
-        onFindPasswordPressed: _findPassword,
+      body: Center(
+        child: LoginUI( // LoginUI 위젯 사용
+          idController: _idController,
+          passwordController: _passwordController,
+          onLoginPressed: _login,
+          onSignupPressed: _Signup,
+          onFindIdPressed: _findId,
+          onFindPasswordPressed: _findPassword,
+        ),
       ),
     );
   }
