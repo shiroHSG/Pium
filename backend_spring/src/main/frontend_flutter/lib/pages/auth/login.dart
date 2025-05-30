@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/pages/auth/signup_page.dart';
 import 'package:frontend_flutter/pages/home/home_page.dart';
-import 'package:frontend_flutter/models/member.dart'; // Member 모델 임포트
 import '../../services/member_services.dart';
-import 'login_ui.dart';
+import '../screens/auth/login_ui.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);

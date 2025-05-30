@@ -5,7 +5,7 @@ import 'package:frontend_flutter/models/member.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:http/http.dart' as http;
 import '../../models/Member.dart';
-import 'signup_page_ui.dart'; // Import the new UI widget
+import '../screens/auth/signup_page_ui.dart'; // Import the new UI widget
 import '../../services/member_services.dart';
 
 class SignupPage extends StatefulWidget {
