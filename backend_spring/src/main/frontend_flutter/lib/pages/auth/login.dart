@@ -21,7 +21,7 @@ class _LoginState extends State<Login> {
   final TextEditingController _passwordController = TextEditingController();
   final _storage = const FlutterSecureStorage();
   bool _isLoading = false;
-  final _memberService = MemberService(); // MemberService 객체 생성
+  final _memberService = MemberService(baseUrl: 'http://10.0.2.2:8080/api/member'); // MemberService 객체 생성
 
   @override
   void initState() {

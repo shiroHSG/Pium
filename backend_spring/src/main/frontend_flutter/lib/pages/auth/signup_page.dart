@@ -26,8 +26,6 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _birthDateController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
-  final String baseUrl = 'http://10.0.2.2:8080/api/member';
-
   String? _selectedGender;
 
   Future<bool> signup({
@@ -39,7 +37,8 @@ class _SignupPageState extends State<SignupPage> {
     required String address,
     required String birth,
     required String? gender,
-  }) async {
+  })
+  async {
     final url = Uri.parse('http://10.0.2.2:8080/api/member/add'); // baseUrl 정의되어 있어야 함
 
     final body = jsonEncode({
