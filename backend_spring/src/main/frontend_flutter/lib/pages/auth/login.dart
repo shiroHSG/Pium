@@ -28,7 +28,7 @@ class _LoginState extends State<Login> {
     }
 
     try {
-      final response = await http.post(
+      final response = await http.post(  // 로그인 요청
         Uri.parse('http://10.0.2.2:8080/api/member/login'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
@@ -40,12 +40,12 @@ class _LoginState extends State<Login> {
         }),
       );
 
-      if (response.statusCode == 200) {  // 로그인 요청
+      if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body); // JSON 파싱
-        final token = data['token']; // 토큰 추출
+        final token = data['token'];  // 토큰 한개 저장
 
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', token); // 토큰 저장
+        await prefs.setString('token', token);  // SharedPreferences에 저장
         print("저장된 토큰: $token");
 
         Navigator.pushReplacementNamed(context, '/home');
@@ -95,7 +95,7 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: LoginUI( // LoginUI 위젯 사용
+        child: LoginUI(
           idController: _idController,
           passwordController: _passwordController,
           onLoginPressed: _login,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/baby_profile.dart';
+import '../../screens/my_page/babyProfile_edit_page_ui.dart';
 
 class BabyProfileEditPage extends StatefulWidget {
   final BabyProfile babyProfile;
@@ -100,7 +101,7 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                _buildEditInputField(
+                EditInputField(
                   controller: _nameController,
                   labelText: '이름',
                   validator: (value) {
@@ -111,7 +112,7 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                   },
                 ),
                 const SizedBox(height: 20),
-                _buildEditInputField(
+                EditInputField(
                   controller: _dobController,
                   labelText: '생년월일',
                   keyboardType: TextInputType.datetime,
@@ -129,7 +130,7 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                   },
                 ),
                 const SizedBox(height: 20),
-                _buildGenderSelectionForEdit(
+                GenderSelectionForEdit(
                   selectedGender: _selectedGender,
                   onChanged: (gender) {
                     setState(() {
@@ -138,7 +139,7 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                   },
                 ),
                 const SizedBox(height: 20),
-                _buildEditInputField(
+                EditInputField(
                   controller: _heightController,
                   labelText: '키',
                   hintText: '예: 110cm',
@@ -154,7 +155,7 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                   },
                 ),
                 const SizedBox(height: 20),
-                _buildEditInputField(
+                EditInputField(
                   controller: _weightController,
                   labelText: '몸무게',
                   hintText: '예: 18kg',
@@ -170,7 +171,7 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                   },
                 ),
                 const SizedBox(height: 20),
-                _buildEditInputField(
+                EditInputField(
                   controller: _allergiesController,
                   labelText: '알러지',
                   hintText: '예: 우유, 땅콩',
@@ -196,136 +197,6 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildEditInputField({
-    required TextEditingController controller,
-    required String labelText,
-    String? hintText,
-    TextInputType keyboardType = TextInputType.text,
-    List<TextInputFormatter>? inputFormatters,
-    String? Function(String?)? validator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          labelText,
-          style: const TextStyle(
-            color: AppTheme.textPurple,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 10),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          inputFormatters: inputFormatters,
-          validator: validator,
-          decoration: InputDecoration(
-            hintText: hintText,
-            hintStyle: TextStyle(color: AppTheme.textPurple.withOpacity(0.6)),
-            filled: true,
-            fillColor: AppTheme.lightPink,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppTheme.primaryPurple, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
-            ),
-            isDense: true,
-            contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 15),
-          ),
-          style: const TextStyle(color: AppTheme.textPurple),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGenderSelectionForEdit({
-    required String? selectedGender,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '성별',
-          style: TextStyle(
-            color: AppTheme.textPurple,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () => onChanged('남아'),
-                child: Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: selectedGender == '남아' ? AppTheme.primaryPurple : AppTheme.lightPink,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: selectedGender == '남아' ? AppTheme.primaryPurple : Colors.transparent,
-                      width: selectedGender == '남아' ? 2 : 0,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '남아',
-                      style: TextStyle(
-                        color: selectedGender == '남아' ? Colors.white : AppTheme.textPurple,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: GestureDetector(
-                onTap: () => onChanged('여아'),
-                child: Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: selectedGender == '여아' ? AppTheme.primaryPurple : AppTheme.lightPink,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: selectedGender == '여아' ? AppTheme.primaryPurple : Colors.transparent,
-                      width: selectedGender == '여아' ? 2 : 0,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '여아',
-                      style: TextStyle(
-                        color: selectedGender == '여아' ? Colors.white : AppTheme.textPurple,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }

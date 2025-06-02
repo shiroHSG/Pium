@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_flutter/pages/baby_record/add_baby_record_page.dart';
-import 'package:frontend_flutter/theme/app_theme.dart';
+import 'package:frontend_flutter/models/baby_record_entry.dart';
+import 'package:frontend_flutter/screens/baby_record/baby_record_page_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'package:frontend_flutter/models/baby_record_entry.dart';
-import 'package:intl/intl.dart';
 import 'package:frontend_flutter/pages/baby_record/baby_record_detail_page.dart';
+
+import 'add_baby_record_page.dart';
 
 class BabyRecordPage extends StatefulWidget {
   const BabyRecordPage({super.key});
@@ -53,116 +53,24 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       body: Column(
         children: [
-          Container(
-            width: screenWidth,
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-            decoration: BoxDecoration(
-              color: AppTheme.lightPink,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 90,
-                  height: 90,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.grey,
-                  ),
-                  child: const Center(
-                    child: Text(
-                      '아이\n사진',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Padding(
-                  padding: const EdgeInsets.only(left: 20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        '이름',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: AppTheme.textPurple,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        '생년월일',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.textPurple,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  height: 36,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
-                    color: AppTheme.primaryPurple,
-                  ),
-                  child: Row(
-                    children: const [
-                      Text(
-                        '이름',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      Icon(Icons.keyboard_arrow_down, color: Colors.white),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                GestureDetector(
-                  onTap: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AddBabyRecordPage()),
-                    );
-                    _loadBabyRecords();
-                  },
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppTheme.primaryPurple,
-                    ),
-                    child: const Icon(Icons.add, color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
+          const BabyRecordHeader(),
+          BabyRecordFilterAndAdd(
+            onAddPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddBabyRecordPage()),
+              );
+              _loadBabyRecords();
+            },
           ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: babyRecords.isEmpty
-                  ? const Center(
-                child: Text(
-                  '불러올 일지가 없습니다',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-              )
+                  ? const EmptyBabyRecordList()
                   : GridView.builder(
                 itemCount: babyRecords.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -172,10 +80,10 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
                 ),
                 itemBuilder: (context, index) {
                   final entry = babyRecords[index];
-                  final DateFormat formatter = DateFormat('yy.MM.dd');
-                  final String formattedDate = formatter.format(entry.createdAt);
-
-                  return GestureDetector(
+                  return BabyRecordGridItem(
+                    entry: entry,
+                    onDelete: _deleteBabyRecord,
+                    index: index,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -186,42 +94,6 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
                         ),
                       );
                     },
-                    onLongPress: () => _deleteBabyRecord(index),
-                    child: Container(
-                      color: AppTheme.lightPink.withOpacity(0.5),
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            formattedDate,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.normal,
-                              color: Colors.black54,
-                            ),
-                          ),
-                          Expanded(
-                            child: Center(
-                              child: Text(
-                                entry.title,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.textPurple),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            entry.isPublic ? '공개' : '비공개',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: entry.isPublic ? Colors.green : Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   );
                 },
               ),
