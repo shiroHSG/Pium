@@ -5,6 +5,7 @@ import com.buddy.pium.dto.chat.ChatRoomResponseDTO;
 import com.buddy.pium.service.chat.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,8 +20,10 @@ public class ChatRoomController {
     @PostMapping
     public ResponseEntity<ChatRoomResponseDTO> getOrCreateChatRoom(
             @RequestBody ChatRoomRequestDTO dto,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+//            @AuthenticationPrincipal CustomUserDetails userDetails
+            Authentication authentication   //임시
     ) {
+        Long senderId = (Long) authentication.getPrincipal();
         ChatRoomResponseDTO responseDTO = chatRoomService.getOrCreateChatRoom(dto, senderId);
         return ResponseEntity.ok(responseDTO);
     }
