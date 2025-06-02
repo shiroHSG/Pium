@@ -1,6 +1,8 @@
 package com.buddy.pium.dto.chat;
 
+import com.buddy.pium.entity.chat.Enum;
 import lombok.*;
+import org.antlr.v4.runtime.misc.NotNull;
 
 @Getter
 @Setter
@@ -9,17 +11,18 @@ import lombok.*;
 @Builder
 public class ChatRoomRequestDTO {
 
-    // ✅ true: 단체 채팅방, false: 1:1(DM/나눔)
-    private Boolean isGroup;
+    @NotNull
+    private Enum.ChatRoomType type; //DIRECT, SHARE, GROUP
+
+    // ✅ direct / share
+    private Long receiverId;
+
+    // ✅ share only
+    private Long sharePostId;
 
     // ✅ group only
     private String chatRoomName;
     private String password;
     private String imageUrl;
 
-    // ✅ direct / share
-    private Long receiverId;
-
-    // ✅ share only
-    private Long postId;
 }

@@ -1,9 +1,14 @@
 package com.buddy.pium.entity.post;
 
+import com.buddy.pium.entity.chat.ChatRoom;
+import com.buddy.pium.entity.chat.ChatRoomMember;
 import com.buddy.pium.entity.common.Member;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -26,4 +31,7 @@ public class SharePost {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
+
+    @OneToMany(mappedBy = "sharePost", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatRoom> chatRoom = new ArrayList<>();
 }

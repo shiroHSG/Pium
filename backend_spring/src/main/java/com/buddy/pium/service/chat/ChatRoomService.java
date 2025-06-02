@@ -4,6 +4,7 @@ import com.buddy.pium.dto.chat.ChatRoomRequestDTO;
 import com.buddy.pium.dto.chat.ChatRoomResponseDTO;
 import com.buddy.pium.entity.chat.ChatRoom;
 import com.buddy.pium.entity.chat.ChatRoomMember;
+import com.buddy.pium.entity.chat.Enum;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.SharePost;
 import com.buddy.pium.repository.chat.ChatRoomMemberRepository;
@@ -28,158 +29,122 @@ public class ChatRoomService {
     private final SharePostRepository sharePostRepository;
     private final MemberRepository memberRepository;
 
-    @Transactional
-    public ChatRoomResponseDTO createChatRoom(ChatRoomRequestDTO dto, Long senderId) {
-        if (dto.getIsGroup() == null) {
-            throw new IllegalArgumentException("isGroup 필드는 필수입니다.");
+    //direct(개인, 나눔) dto 전달
+    public ChatRoomResponseDTO getOrCreateChatRoom(ChatRoomRequestDTO dto, Long currentUserId ) {
+        Enum.ChatRoomType type = dto.getType();
+
+        if(type == null) {
+            throw new IllegalArgumentException("채팅방 타입이 없습니다.");
         }
 
-        Member sender = memberRepository.findById(senderId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
-
-        if (dto.getIsGroup()) {
-            // 단체방
-            return toResponseDTO(createGroupChatRoom(dto, sender), senderId);
-        } else {
-            // 1:1
-            if (dto.getReceiverId() == null) {
-                throw new IllegalArgumentException("1:1 채팅에는 receiverId가 필요합니다.");
-            }
-
-            Member receiver = memberRepository.findById(dto.getReceiverId())
-                    .orElseThrow(() -> new EntityNotFoundException("상대방을 찾을 수 없습니다."));
-
-            if (dto.getPostId() != null) {
-                return toResponseDTO(getOrCreateShareChatRoom(sender, receiver, dto.getPostId()), senderId);
-            } else {
-                return toResponseDTO(getOrCreateDirectChatRoom(sender, receiver), senderId);
-            }
-        }
+        return switch (type) {
+            case DIRECT, SHARE -> handleDirectOrShareChatRoom(dto, currentUserId);
+            case GROUP -> handleGroupChatRoom(dto, currentUserId);
+        };
     }
 
-    private ChatRoomResponseDTO toResponseDTO(ChatRoom chatRoom, Long currentUserId) {
-        String chatRoomName;
+    private ChatRoomResponseDTO handleDirectOrShareChatRoom(ChatRoomRequestDTO dto, Long currentUserId) {
+        Enum.ChatRoomType type = dto.getType();
+        Long receiverId = dto.getReceiverId();
+        Long sharePostId = dto.getSharePostId();
 
-        if (chatRoom.isGroup()) {
-            chatRoomName = chatRoom.getChatRoomName();
-        } else {
-            List<ChatRoomMember> members = chatRoomMemberRepository.findByChatRoom(chatRoom);
-            Member other = members.stream()
-                    .map(ChatRoomMember::getMember)
-                    .filter(m -> !m.getId().equals(currentUserId))
-                    .findFirst()
-                    .orElse(null);
-            chatRoomName = (other != null) ? other.getNickname() : "(알 수 없음)";
+        // 🔐 자기 자신에게 메시지 보낼 수 없음
+        if (currentUserId.equals(receiverId)) {
+            throw new IllegalArgumentException("자기 자신과는 채팅할 수 없습니다.");
         }
 
-        return ChatRoomResponseDTO.builder()
-                .chatRoomId(chatRoom.getId())
-                .isGroup(chatRoom.isGroup())
-                .chatRoomName(chatRoomName)
-                .lastMessage(chatRoom.getLastMessageContent())
-                .lastSentAt(chatRoom.getLastMessageSentAt())
-                .build();
-    }
+        // 🧍‍♂️ 유저 조회
+        Member sender = memberRepository.findById(currentUserId)
+                .orElseThrow(() -> new EntityNotFoundException("보내는 유저가 존재하지 않습니다."));
 
-    @Transactional
-    public ChatRoom createGroupChatRoom(ChatRoomRequestDTO dto, Member creator) {
+        Member receiver = memberRepository.findById(receiverId)
+                .orElseThrow(() -> new EntityNotFoundException("받는 유저가 존재하지 않습니다."));
+
+        // 📦 나눔 게시글 확인 (SHARE일 경우만)
+        SharePost sharePost = null;
+        if (type == Enum.ChatRoomType.SHARE) {
+            if (sharePostId == null) {
+                throw new IllegalArgumentException("나눔 채팅방은 sharePostId가 필요합니다.");
+            }
+            sharePost = sharePostRepository.findById(sharePostId)
+                    .orElseThrow(() -> new EntityNotFoundException("해당 나눔글이 존재하지 않습니다."));
+        }
+
+
+        // 🔍 기존 채팅방 있는지 확인
+        Optional<ChatRoom> optionalRoom =
+                chatRoomRepository.findExistingDirectRoom(currentUserId, receiverId, type, sharePostId);
+        if (optionalRoom.isPresent()) {
+            return toResponseDTO(optionalRoom.get());
+        }
+
+        // 🏗 새로운 채팅방 생성
         ChatRoom chatRoom = ChatRoom.builder()
-                .isGroup(true)
-                .chatRoomName(dto.getChatRoomName())
-                .password(dto.getPassword())
-                .imageUrl(dto.getImageUrl())
-                .createdAt(LocalDateTime.now())
+                .type(type)
+                .sharePost(sharePost)
                 .build();
         chatRoomRepository.save(chatRoom);
 
+
+        // 👥 참여자 등록
+        chatRoomMemberRepository.saveAll(List.of(
+                ChatRoomMember.builder()
+                        .chatRoom(chatRoom)
+                        .member(sender)
+                        .isAdmin(false)
+                        .build(),
+                ChatRoomMember.builder()
+                        .chatRoom(chatRoom)
+                        .member(receiver)
+                        .isAdmin(false)
+                        .build()
+        ));
+
+        return toResponseDTO(chatRoom);
+    }
+
+    private ChatRoomResponseDTO handleGroupChatRoom(ChatRoomRequestDTO dto, Long currentUserId) {
+        // 필수값 검증
+        String roomName = dto.getChatRoomName();
+        if (roomName == null || roomName.trim().isEmpty()) {
+            throw new IllegalArgumentException("그룹 채팅방 이름은 필수입니다.");
+        }
+
+        // 현재 로그인한 사용자 조회
+        Member creator = memberRepository.findById(currentUserId)
+                .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+
+        // 채팅방 생성
+        ChatRoom chatRoom = ChatRoom.builder()
+                .type(Enum.ChatRoomType.GROUP)
+                .chatRoomName(roomName)
+                .password(dto.getPassword())       // optional
+                .imageUrl(dto.getImageUrl())       // optional
+                .build();
+
+        chatRoomRepository.save(chatRoom);
+
+        // 생성자만 입장 (관리자)
         ChatRoomMember creatorMember = ChatRoomMember.builder()
                 .chatRoom(chatRoom)
                 .member(creator)
                 .isAdmin(true)
-                .joinedAt(LocalDateTime.now())
                 .build();
+
         chatRoomMemberRepository.save(creatorMember);
 
-        return chatRoom;
+        return toResponseDTO(chatRoom);
     }
 
-    //dm 채팅방
-    @Transactional
-    public ChatRoom getOrCreateDirectChatRoom(Member sender, Member receiver) {
-        if (sender.getId().equals(receiver.getId())) {
-            throw new IllegalArgumentException("자기 자신과는 채팅할 수 없습니다.");
-        }
-
-        Optional<ChatRoom> existing = chatRoomRepository.findDirectChatRoomBetween(
-                sender.getId(), receiver.getId()
-        );
-
-        if (existing.isPresent()) return existing.get();
-
-        ChatRoom chatRoom = ChatRoom.builder()
-                .isGroup(false)
-                .createdAt(LocalDateTime.now())
+    private ChatRoomResponseDTO toResponseDTO(ChatRoom chatRoom) {
+        return ChatRoomResponseDTO.builder()
+                .chatRoomId(chatRoom.getId())
+                .type(chatRoom.getType())
+                .chatRoomName(chatRoom.getChatRoomName())
+                .imageUrl(chatRoom.getImageUrl())
+                .lastMessage(chatRoom.getLastMessageContent())
+                .lastSentAt(chatRoom.getLastMessageSentAt())
+                .sharePostId(chatRoom.getSharePost() != null ? chatRoom.getSharePost().getId() : null)
                 .build();
-        chatRoomRepository.save(chatRoom);
-
-        chatRoomMemberRepository.saveAll(List.of(
-                ChatRoomMember.builder()
-                        .chatRoom(chatRoom)
-                        .member(sender)
-                        .isAdmin(false)
-                        .joinedAt(LocalDateTime.now())
-                        .build(),
-                ChatRoomMember.builder()
-                        .chatRoom(chatRoom)
-                        .member(receiver)
-                        .isAdmin(false)
-                        .joinedAt(LocalDateTime.now())
-                        .build()
-        ));
-
-        return chatRoom;
     }
-
-    // 나눔 채팅방
-    @Transactional
-    public ChatRoom getOrCreateShareChatRoom(Member sender, Member receiver, Long postId) {
-        if (sender.getId().equals(receiver.getId())) {
-            throw new IllegalArgumentException("자기 자신과는 채팅할 수 없습니다.");
-        }
-
-        SharePost post = sharePostRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 나눔 게시글이 존재하지 않습니다."));
-
-        Optional<ChatRoom> existing = chatRoomRepository.findSharedChatRoomWithTwoMembers(
-                sender.getId(), receiver.getId(), postId
-        );
-
-        if (existing.isPresent()) return existing.get();
-
-        ChatRoom chatRoom = ChatRoom.builder()
-                .isGroup(false)
-                .sharePost(post)
-                .createdAt(LocalDateTime.now())
-                .build();
-        chatRoomRepository.save(chatRoom);
-
-        chatRoomMemberRepository.saveAll(List.of(
-                ChatRoomMember.builder()
-                        .chatRoom(chatRoom)
-                        .member(sender)
-                        .isAdmin(false)
-                        .joinedAt(LocalDateTime.now())
-                        .build(),
-                ChatRoomMember.builder()
-                        .chatRoom(chatRoom)
-                        .member(receiver)
-                        .isAdmin(false)
-                        .joinedAt(LocalDateTime.now())
-                        .build()
-        ));
-
-        return chatRoom;
-    }
-
-
 }

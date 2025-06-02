@@ -7,6 +7,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -20,18 +22,20 @@ public class ChatRoom {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private boolean isGroup;
+    // DIRECT, SHARE, GROUP
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private Enum.ChatRoomType type;
 
+    // SHARE일때만 사용, 나머지 null
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "share_post_id")
     private SharePost sharePost;
 
+    // GROUP일 때만 사용
     @Column(name = "chatroom_name")
     private String chatRoomName;
-
     private String password;
-
     @Column(name = "image_url")
     private String imageUrl;
 
@@ -40,6 +44,15 @@ public class ChatRoom {
 
     @Column(name = "last_sent_at")
     private LocalDateTime lastMessageSentAt;
+
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatRoomMember> chatRoomMembers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatRoomBan> chatRoomBan = new ArrayList<>();
+
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Message> messages = new ArrayList<>();
 
     @CreatedDate
     @Column(name = "created_at", nullable = false)

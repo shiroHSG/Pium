@@ -1,5 +1,6 @@
 package com.buddy.pium.dto.chat;
 
+import com.buddy.pium.entity.chat.Enum;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -12,12 +13,12 @@ import java.time.LocalDateTime;
 public class ChatRoomResponseDTO {
 
     private Long chatRoomId;
+    private Enum.ChatRoomType type;
 
-    private boolean isGroup;
+    private Long sharePostId;
 
     private String chatRoomName;
-
+    private String imageUrl;
     private String lastMessage;
-
     private LocalDateTime lastSentAt;
 }

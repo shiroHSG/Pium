@@ -40,14 +40,14 @@ public class PostController {
         return ResponseEntity.ok(postService.getAll(category));
     }
 
-    @PutMapping("/{id}")
     public ResponseEntity<Void> update(@PathVariable Long id,
                                        @RequestBody PostUpdateRequest dto,
                                        Authentication auth) {
         Long memberId = (Long) auth.getPrincipal();
         postService.update(id, memberId, dto);
         return ResponseEntity.ok().build();
-    }
+    }    @PutMapping("/{id}")
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id,
