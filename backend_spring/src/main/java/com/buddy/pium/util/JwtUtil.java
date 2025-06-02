@@ -1,56 +1,96 @@
 package com.buddy.pium.util;
 
 import io.jsonwebtoken.*;
-        import io.jsonwebtoken.security.Keys; // ✅ 추가: Key 생성을 위한 클래스
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.security.Key; // ✅ 추가: Key 타입
+import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    // ✅ 수정: 단순 문자열 대신 32자 이상 길이의 시크릿 키 사용 (서명용 Key 객체 필요)
-    private static final String SECRET = "ThisIsMySuperSecretJwtKeyThatIsLongEnough123456";
+    @Value("${jwt.secret}")
+    private String secretKey;
 
-    // ✅ 추가: 문자열 키를 byte 배열로 변환해 Key 객체로 생성
-    private static final Key KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
+    // Access Token 유효기간: 1시간
+    private final long ACCESS_EXPIRATION = 60 * 60 * 1000;
 
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60; // 1시간
+    // Access Token 유효기간: 1분 Test
+    // private final long ACCESS_EXPIRATION = 60 * 1000;
 
-    // ✅ 수정: claim에 email 포함, Key 객체를 사용한 signWith 방식으로 변경
-    public String generateToken(Long id, String email) {
-        return Jwts.builder()
-                .setSubject(String.valueOf(id)) // JWT의 subject로 사용자 ID 설정
-                .claim("email", email)         // 이메일 클레임에 추가
+    // Refresh Token 유효기간: 7일
+    private final long REFRESH_EXPIRATION = 7 * 24 * 60 * 60 * 1000;
+
+    
+    /**
+     * 서명용 SecretKey 생성 (Base64 디코딩 후 키로 사용)
+     */
+    private SecretKey getSigningKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    /**
+     * Access Token 발급 (id, mateInfo 포함)
+     */
+    public String generateAccessToken(Long memberId, Long mateInfo) {
+        JwtBuilder builder = Jwts.builder()
+                .setSubject(memberId.toString())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(KEY, SignatureAlgorithm.HS256) // ✅ 수정된 서명 방식
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_EXPIRATION))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256);
+
+        if (mateInfo != null) {
+            builder.claim("mateInfo", mateInfo);
+        }
+
+        return builder.compact();
+    }
+
+    /**
+     * Refresh Token 발급 (id만 포함)
+     */
+    public String generateRefreshToken(Long memberId) {
+        return Jwts.builder()
+                .setSubject(memberId.toString())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_EXPIRATION))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // ✅ 수정: parserBuilder()를 통해 Key 객체로 파싱 (0.11.x 이상에서 필수)
+    /**
+     * 토큰 유효성 검사 및 Claim 추출
+     */
     public Claims validateTokenAndGetClaims(String token) {
         try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(KEY) // ✅ Key 객체 사용
-                    .build()
+            return Jwts.parser()
+                    .setSigningKey(getSigningKey())
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            throw new RuntimeException("Token expired");
+            throw new RuntimeException("토큰이 만료되었습니다.");
         } catch (JwtException e) {
-            throw new RuntimeException("Invalid token");
+            throw new RuntimeException("유효하지 않은 토큰입니다.");
         }
     }
 
-    // 사용자 ID 추출
-    public Long getUserId(String token) {
+    /**
+     * 토큰에서 memberId(Long) 추출
+     */
+    public Long getMemberIdFromToken(String token) {
         return Long.parseLong(validateTokenAndGetClaims(token).getSubject());
     }
 
-    // ✅ 선택: 이메일 클레임 추출 메서드 추가
-    public String getEmail(String token) {
-        return validateTokenAndGetClaims(token).get("email", String.class);
+    /**
+     * 토큰에서 mateInfo(Long) 추출
+     */
+    public Long getMateInfoFromToken(String token) {
+        Claims claims = validateTokenAndGetClaims(token);
+        Object mateInfo = claims.get("mateInfo");
+        return (mateInfo != null) ? Long.parseLong(mateInfo.toString()) : null;
     }
 }

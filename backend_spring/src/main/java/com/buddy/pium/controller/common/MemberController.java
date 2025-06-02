@@ -1,17 +1,19 @@
 package com.buddy.pium.controller.common;
 
-import com.buddy.pium.entity.common.Member;
+import com.buddy.pium.dto.common.*;
 import com.buddy.pium.service.common.MemberService;
-import com.buddy.pium.util.JwtUtil; // ✅ 추가: JwtUtil import
+import com.buddy.pium.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus; // ✅ 추가
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-        import org.springframework.security.core.Authentication; // ✅ 추가
+import com.buddy.pium.dto.common.LoginRequestDto;
+import com.buddy.pium.dto.common.LoginResponseDto;
+
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/member")
@@ -19,83 +21,102 @@ import java.util.Optional;
 public class MemberController {
 
     private final MemberService memberService;
-    private final JwtUtil jwtUtil; // ✅ 추가: JWT 유틸 주입
+    private final JwtUtil jwtUtil;
 
+    /**
+     * 회원 가입
+     */
+    @PostMapping("/register")
+    public ResponseEntity<MemberResponseDto> create(@RequestBody MemberRegisterDto registerDto) {
+        MemberResponseDto responseDto = memberService.createMember(registerDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    }
+
+    /**
+     * 회원 정보 수정
+     */
+    @PostMapping("/edit")
+    public ResponseEntity<MemberResponseDto> update(@RequestBody MemberUpdateDto updateDto,
+                                                    Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        MemberResponseDto responseDto = memberService.updateMember(memberId, updateDto);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    /**
+     * ID로 회원 조회
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<Member> getById(@PathVariable Long id) {
-        return memberService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<MemberResponseDto> getById(@PathVariable Long id) {
+        MemberResponseDto responseDto = memberService.getMemberById(id);
+        return ResponseEntity.ok(responseDto);
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<Member> create(@RequestBody Member member) {
-        return ResponseEntity.ok(memberService.save(member));
-    }
-
+    /**
+     * 전체 회원 조회
+     */
     @GetMapping
-    public ResponseEntity<List<Member>> getAll() {
-        return ResponseEntity.ok(memberService.findAll());
+    public ResponseEntity<List<MemberResponseDto>> getAll() {
+        List<MemberResponseDto> responseList = memberService.getAllMembers();
+        return ResponseEntity.ok(responseList);
     }
 
+    /**
+     * 회원 삭제
+     */
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        memberService.delete(id);
+        memberService.deleteMember(id);
         return ResponseEntity.noContent().build();
     }
 
-    //    @PostMapping("/edit/{id}")
-//    public ResponseEntity<Member> updateMember(@PathVariable Long id, @RequestBody Member updatedMember) {
-    @PostMapping("/edit")
-    public ResponseEntity<Member> updateMember(@RequestBody Member updatedMember, Authentication authentication) {
-        Long id = (Long) authentication.getPrincipal();
-        Optional<Member> memberOptional = memberService.findById(id);
-        if (memberOptional.isPresent()) {
-            Member member = memberOptional.get();
-
-            // ✅ 수정: null 아닌 필드만 업데이트
-            if (updatedMember.getUsername() != null) member.setUsername(updatedMember.getUsername());
-            if (updatedMember.getNickname() != null) member.setNickname(updatedMember.getNickname());
-            if (updatedMember.getEmail() != null) member.setEmail(updatedMember.getEmail());
-            if (updatedMember.getPassword() != null) member.setPassword(updatedMember.getPassword());
-            if (updatedMember.getAddress() != null) member.setAddress(updatedMember.getAddress());
-            if (updatedMember.getBirth() != null) member.setBirth(updatedMember.getBirth());
-            if (updatedMember.getPhoneNumber() != null) member.setPhoneNumber(updatedMember.getPhoneNumber());
-            if (updatedMember.getProfileImage() != null) member.setProfileImage(updatedMember.getProfileImage());
-            if (updatedMember.getMateInfo() != null) member.setMateInfo(updatedMember.getMateInfo());
-
-            return ResponseEntity.ok(memberService.save(member));
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
+    /**
+     * 내 정보 조회 (/me)
+     */
     @GetMapping("/me")
-    public ResponseEntity<Member> getById(Authentication authentication) {
-        Long id = (Long) authentication.getPrincipal();
-        return memberService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<MemberResponseDto> getMe(Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        MemberResponseDto responseDto = memberService.getMemberById(memberId);
+        return ResponseEntity.ok(responseDto);
     }
 
-    // ✅ 추가: 로그인 API (JWT 토큰 발급)
+    /**
+     * 로그인 → AccessToken + RefreshToken 반환
+     */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest) {
-        String email = loginRequest.get("email");
-        String password = loginRequest.get("password");
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
 
-        Optional<Member> memberOptional = memberService.findByEmail(email);
+        System.out.println("[Controller] 로그인 요청 들어옴");
+        System.out.println("[Controller] 이메일: " + loginRequest.getEmail());
+        System.out.println("[Controller] 비밀번호: " + loginRequest.getPassword());
 
-        if (memberOptional.isPresent()) {
-            Member member = memberOptional.get();
+        LoginResponseDto loginResponse = memberService.login(loginRequest);
+        return ResponseEntity.ok(loginResponse);
+    }
 
-            // ✅ 평문 비밀번호와 암호화된 비밀번호 비교
-            if (memberService.verifyPassword(password, member.getPassword())) {
-                String token = jwtUtil.generateToken(member.getId(), member.getNickname());
-                return ResponseEntity.ok(Map.of("token", token));
-            }
+    // AccessToken 재발급
+    @PostMapping("/reissue")
+    public ResponseEntity<?> reissueAccessToken(@RequestHeader("Authorization") String bearerToken) {
+        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body("Refresh Token이 필요합니다.");
         }
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
+        String refreshToken = bearerToken.substring(7);
+
+        try {
+            String newAccessToken = memberService.reissueAccessToken(refreshToken);
+            return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+
+        memberService.logout(memberId);
+        return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));
+    }
+
 }

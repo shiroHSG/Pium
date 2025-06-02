@@ -21,3 +21,8 @@ logging:
     org.springframework.web.multipart: DEBUG
     org.springframework.web.servlet.DispatcherServlet: DEBUG
     org.hibernate: ERROR
+
+# backend_spring/src/main/resources/application.yml
+jwt:
+  secret: ${JWT_SECRET}
+

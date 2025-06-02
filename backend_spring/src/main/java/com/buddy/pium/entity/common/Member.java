@@ -31,7 +31,7 @@ public class Member {
     @Column(nullable = false, length = 100)
     private String password;
 
-    @Column(length = 15)
+    @Column(nullable = false, length = 15)
     private String phoneNumber;
 
     @Column(length = 100)
@@ -67,4 +67,7 @@ public class Member {
     protected void onUpdate() {
         this.updatedAt = new Timestamp(System.currentTimeMillis());
     }
+
+    @Column(length = 500)
+    private String refreshToken;
 }
