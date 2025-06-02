@@ -9,6 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/chat-room")
@@ -23,8 +25,20 @@ public class ChatRoomController {
 //            @AuthenticationPrincipal CustomUserDetails userDetails
             Authentication authentication   //임시
     ) {
-        Long senderId = (Long) authentication.getPrincipal();
-        ChatRoomResponseDTO responseDTO = chatRoomService.getOrCreateChatRoom(dto, senderId);
+        Long memberId = (Long) authentication.getPrincipal();
+        ChatRoomResponseDTO responseDTO = chatRoomService.getOrCreateChatRoom(dto, memberId);
         return ResponseEntity.ok(responseDTO);
     }
+
+    // 채팅방 리스트 조회
+    @GetMapping
+    public ResponseEntity<List<ChatRoomResponseDTO>> getMyChatRooms(
+//            @AuthenticationPrincipal CustomUserDetails userDetails
+            Authentication authentication   //임시
+    ) {
+        Long memberId = (Long) authentication.getPrincipal();
+        List<ChatRoomResponseDTO> chatRooms = chatRoomService.getChatRoomsForMember(memberId);
+        return ResponseEntity.ok(chatRooms);
+    }
+
 }

@@ -15,10 +15,18 @@ public class ChatRoomResponseDTO {
     private Long chatRoomId;
     private Enum.ChatRoomType type;
 
+    // DIRECT , SHARE
+    private String otherNickname;
+    private String otherProfileImageUrl;
+    // SHARE
     private Long sharePostId;
 
+    // GROUP
     private String chatRoomName;
     private String imageUrl;
+
     private String lastMessage;
     private LocalDateTime lastSentAt;
+
+    private int unreadCount;
 }

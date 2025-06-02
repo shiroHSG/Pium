@@ -17,8 +17,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,10 +34,6 @@ public class ChatRoomService {
     //direct(개인, 나눔) dto 전달
     public ChatRoomResponseDTO getOrCreateChatRoom(ChatRoomRequestDTO dto, Long currentUserId ) {
         Enum.ChatRoomType type = dto.getType();
-
-        if(type == null) {
-            throw new IllegalArgumentException("채팅방 타입이 없습니다.");
-        }
 
         return switch (type) {
             case DIRECT, SHARE -> handleDirectOrShareChatRoom(dto, currentUserId);
@@ -75,7 +73,7 @@ public class ChatRoomService {
         Optional<ChatRoom> optionalRoom =
                 chatRoomRepository.findExistingDirectRoom(currentUserId, receiverId, type, sharePostId);
         if (optionalRoom.isPresent()) {
-            return toResponseDTO(optionalRoom.get());
+            return toResponseDTO(optionalRoom.get(), currentUserId);
         }
 
         // 🏗 새로운 채팅방 생성
@@ -100,7 +98,7 @@ public class ChatRoomService {
                         .build()
         ));
 
-        return toResponseDTO(chatRoom);
+        return toResponseDTO(chatRoom, currentUserId);
     }
 
     private ChatRoomResponseDTO handleGroupChatRoom(ChatRoomRequestDTO dto, Long currentUserId) {
@@ -133,18 +131,54 @@ public class ChatRoomService {
 
         chatRoomMemberRepository.save(creatorMember);
 
-        return toResponseDTO(chatRoom);
+        return toResponseDTO(chatRoom, currentUserId);
     }
 
-    private ChatRoomResponseDTO toResponseDTO(ChatRoom chatRoom) {
+    // 채팅방 리스트 조회
+    public List<ChatRoomResponseDTO> getChatRoomsForMember(Long memberId) {
+        List<ChatRoomMember> myChatRoomMembers =
+                chatRoomMemberRepository.findByMemberId(memberId);
+
+        return myChatRoomMembers.stream()
+                .map(ChatRoomMember::getChatRoom)
+                .distinct()
+                .sorted(Comparator.comparing(
+                        ChatRoom::getLastMessageSentAt,
+                        Comparator.nullsLast(Comparator.reverseOrder())
+                ))
+                .map(chatRoom -> toResponseDTO(chatRoom, memberId)) // 정렬 후 DTO 변환
+                .collect(Collectors.toList());
+    }
+
+    private ChatRoomResponseDTO toResponseDTO(ChatRoom chatRoom, Long currentUserId) {
+        String otherNickname = null;
+        String otherProfileImageUrl = null;
+
+        if (chatRoom.getType() == Enum.ChatRoomType.DIRECT || chatRoom.getType() == Enum.ChatRoomType.SHARE) {
+            // 채팅방의 모든 멤버 중 나와 다른 사람 찾기
+            Member other = chatRoom.getChatRoomMembers().stream()
+                    .map(ChatRoomMember::getMember)
+                    .filter(member -> !member.getId().equals(currentUserId))
+                    .findFirst()
+                    .orElse(null);
+
+            if (other != null) {
+                otherNickname = other.getNickname();
+                otherProfileImageUrl = other.getProfileImage();
+            }
+        }
+
         return ChatRoomResponseDTO.builder()
                 .chatRoomId(chatRoom.getId())
                 .type(chatRoom.getType())
-                .chatRoomName(chatRoom.getChatRoomName())
-                .imageUrl(chatRoom.getImageUrl())
+                .chatRoomName(chatRoom.getChatRoomName()) // GROUP만 사용
+                .imageUrl(chatRoom.getImageUrl())         // GROUP만 사용
                 .lastMessage(chatRoom.getLastMessageContent())
                 .lastSentAt(chatRoom.getLastMessageSentAt())
                 .sharePostId(chatRoom.getSharePost() != null ? chatRoom.getSharePost().getId() : null)
+                .otherNickname(otherNickname)                 // DIRECT, SHARE만 사용
+                .otherProfileImageUrl(otherProfileImageUrl)   // DIRECT, SHARE만 사용
                 .build();
     }
+
 }
