@@ -29,7 +29,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String uri = request.getRequestURI();
         // ✅ 로그인, 회원가입 요청은 필터 통과시킴
-        if (uri.equals("/api/member/login") || uri.equals("/api/member/add")) {
+        if (uri.equals("/api/member/login") || uri.equals("/api/member/add") || uri.equals("/api/member")) {
             filterChain.doFilter(request, response);
             return;
         }

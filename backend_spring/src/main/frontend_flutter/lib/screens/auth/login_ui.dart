@@ -8,6 +8,7 @@ class LoginUI extends StatelessWidget {
   final VoidCallback onSignupPressed; // 회원가입 콜백 추가
   final VoidCallback onFindIdPressed;
   final VoidCallback onFindPasswordPressed;
+  final GlobalKey<FormState> formKey;
 
   const LoginUI({
     Key? key,
@@ -17,6 +18,7 @@ class LoginUI extends StatelessWidget {
     required this.onSignupPressed, // 회원가입 콜백 추가
     required this.onFindIdPressed,
     required this.onFindPasswordPressed,
+    required this.formKey,
   }) : super(key: key);
 
   Widget _buildInputField(String labelText, TextEditingController controller, bool isPassword) {
@@ -70,6 +72,7 @@ class LoginUI extends StatelessWidget {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40.0),
+        key: formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

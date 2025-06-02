@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus; // ✅ 추가
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-        import org.springframework.security.core.Authentication; // ✅ 추가
+import org.springframework.security.core.Authentication; // ✅ 추가
 
 import java.util.List;
 import java.util.Map;
@@ -92,7 +92,7 @@ public class MemberController {
 
             // ✅ 평문 비밀번호와 암호화된 비밀번호 비교
             if (memberService.verifyPassword(password, member.getPassword())) {
-                String token = jwtUtil.generateToken(member.getId(), member.getNickname());
+                String token = jwtUtil.generateToken(member.getId(), member.getEmail());
                 return ResponseEntity.ok(Map.of("token", token));
             }
         }

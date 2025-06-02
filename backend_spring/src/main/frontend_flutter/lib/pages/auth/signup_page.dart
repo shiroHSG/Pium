@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:http/http.dart' as http;
-
 import '../../screens/auth/signup_page_ui.dart';
 
 class SignupPage extends StatefulWidget {
@@ -37,7 +36,7 @@ class _SignupPageState extends State<SignupPage> {
     required String? gender,
   })
   async {
-    final url = Uri.parse('http://10.0.2.2:8080/api/member/add');
+    final url = Uri.parse('http://10.0.2.2:8080/api/member/add'); // baseUrl 정의되어 있어야 함
 
     final body = jsonEncode({
       'username': username,

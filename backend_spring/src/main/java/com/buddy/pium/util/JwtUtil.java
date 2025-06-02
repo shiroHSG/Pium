@@ -1,7 +1,7 @@
 package com.buddy.pium.util;
 
 import io.jsonwebtoken.*;
-        import io.jsonwebtoken.security.Keys; // ✅ 추가: Key 생성을 위한 클래스
+import io.jsonwebtoken.security.Keys; // ✅ 추가: Key 생성을 위한 클래스
 import org.springframework.stereotype.Component;
 
 import java.security.Key; // ✅ 추가: Key 타입
@@ -14,7 +14,7 @@ public class JwtUtil {
     private static final String SECRET = "ThisIsMySuperSecretJwtKeyThatIsLongEnough123456";
 
     // ✅ 추가: 문자열 키를 byte 배열로 변환해 Key 객체로 생성
-    private static final Key KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
+    private static final Key KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     private static final long EXPIRATION_TIME = 1000 * 60 * 60; // 1시간
 
@@ -25,7 +25,7 @@ public class JwtUtil {
                 .claim("email", email)         // 이메일 클레임에 추가
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(KEY, SignatureAlgorithm.HS256) // ✅ 수정된 서명 방식
+                .signWith(KEY) // ✅ 수정된 서명 방식
                 .compact();
     }
 
