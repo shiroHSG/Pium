@@ -1,9 +1,9 @@
 package com.buddy.pium.entity.common;
 
 import jakarta.persistence.*;
-import lombok.*;
+        import lombok.*;
 
-import java.sql.Timestamp;
+        import java.sql.Timestamp;
 
 @Entity
 @Getter

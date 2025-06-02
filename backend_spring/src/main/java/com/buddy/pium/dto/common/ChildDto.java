@@ -3,7 +3,7 @@ package com.buddy.pium.dto.common;
 import com.buddy.pium.entity.common.Enum.Gender;
 import lombok.*;
 
-import java.sql.Timestamp;
+        import java.sql.Timestamp;
 import java.time.LocalDate;
 
 @Getter

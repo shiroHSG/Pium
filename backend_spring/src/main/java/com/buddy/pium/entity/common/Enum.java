@@ -4,12 +4,6 @@ public class Enum {
     public enum Gender {
         M, F
     }
-    public enum RelationType {
-        MOTHER,
-        FATHER,
-        GUARDIAN,
-        GRANDPARENT
-    }
 
     public enum MateRequestStatus {
         PENDING,
