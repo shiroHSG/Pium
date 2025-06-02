@@ -3,10 +3,13 @@ package com.buddy.pium.controller.common;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.common.MemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -62,4 +65,31 @@ public class MemberController {
         }
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<Member> getById(Authentication authentication) {
+        Long id = (Long) authentication.getPrincipal();
+        return memberService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // ✅ 추가: 로그인 API (JWT 토큰 발급)
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest) {
+        String email = loginRequest.get("email");
+        String password = loginRequest.get("password");
+
+        Optional<Member> memberOptional = memberService.findByEmail(email);
+
+        if (memberOptional.isPresent()) {
+            Member member = memberOptional.get();
+
+            // ✅ 평문 비밀번호와 암호화된 비밀번호 비교
+            if (memberService.verifyPassword(password, member.getPassword())) {
+                String token = jwtUtil.generateToken(member.getId(), member.getNickname());
+                return ResponseEntity.ok(Map.of("token", token));
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
 }
