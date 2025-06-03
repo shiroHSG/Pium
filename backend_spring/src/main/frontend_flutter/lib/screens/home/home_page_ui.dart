@@ -114,62 +114,65 @@ class TodayScheduleCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 40.0),
       child: GestureDetector(
         onTap: onCalendarTap,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 20.0),
-          decoration: BoxDecoration(
-            color: AppTheme.lightPink,
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.arrow_back_ios, color: Colors.grey[600], size: 20),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${today.day}일',
-                      style: const TextStyle(
-                        color: AppTheme.textPurple,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 40.0),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 20.0),
+            decoration: BoxDecoration(
+              color: AppTheme.lightPink,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.arrow_back_ios, color: Colors.grey[600], size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${today.day}일',
+                        style: const TextStyle(
+                          color: AppTheme.textPurple,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    if (todaySchedules.isEmpty)
-                      const Text(
-                        '오늘 일정이 없습니다.',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                    ...todaySchedules.map((schedule) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4.0),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: schedule.color,
+                      const SizedBox(height: 10),
+                      if (todaySchedules.isEmpty)
+                        const Text(
+                          '오늘 일정이 없습니다.',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                      ...todaySchedules.map((schedule) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4.0),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: schedule.color,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              '${schedule.title} - ${schedule.time}',
-                              style: const TextStyle(fontSize: 14),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '${schedule.title} - ${schedule.time}',
+                                style: const TextStyle(fontSize: 14),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    )),
-                  ],
+                          ],
+                        ),
+                      )),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Icon(Icons.arrow_forward_ios, color: Colors.grey[600], size: 20),
-            ],
+                const SizedBox(width: 10),
+                Icon(Icons.arrow_forward_ios, color: Colors.grey[600], size: 20),
+              ],
+            ),
           ),
         ),
       ),

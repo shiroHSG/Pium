@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:frontend_flutter/models/baby_record_entry.dart';
+import 'package:frontend_flutter/screens/baby_record/add_baby_record_page_ui.dart';
 
 class AddBabyRecordPage extends StatefulWidget {
   const AddBabyRecordPage({super.key});
@@ -55,33 +55,16 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryPurple,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: const Text(
-          '',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.white),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
+      appBar: AddBabyRecordAppBar(
+        onCancel: () {
+          Navigator.pop(context);
+        },
+        onNotification: () {
+          // 알림 버튼 액션
+        },
+        onMenu: () {
+          // 메뉴 버튼 액션
+        },
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -92,146 +75,32 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
-                  height: 36,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
-                    color: AppTheme.primaryPurple,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Text(
-                        '이름',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      Icon(Icons.keyboard_arrow_down, color: Colors.white),
-                    ],
-                  ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _isPublic ? '공개' : '비공개',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: AppTheme.textPurple,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Switch(
-                      value: _isPublic,
-                      onChanged: (newValue) {
-                        setState(() {
-                          _isPublic = newValue;
-                        });
-                      },
-                      activeColor: AppTheme.primaryPurple,
-                      inactiveTrackColor: Colors.grey[300],
-                      inactiveThumbColor: Colors.grey[500],
-                    ),
-                  ],
+                const BabyNameDropdown(),
+                PublicPrivateSwitch(
+                  isPublic: _isPublic,
+                  onSwitchChanged: (newValue) {
+                    setState(() {
+                      _isPublic = newValue;
+                    });
+                  },
                 ),
               ],
             ),
             const SizedBox(height: 25),
-
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey),
-              ),
-              child: TextField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  hintText: '제목을 입력하세요',
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
+            TitleInputField(titleController: _titleController),
             const SizedBox(height: 20),
-
-            Container(
-              height: 150,
-              padding: const EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey),
-              ),
-              child: TextField(
-                controller: _publicContentController,
-                maxLines: null,
-                expands: true,
-                textAlignVertical: TextAlignVertical.top,
-                decoration: const InputDecoration(
-                  hintText: '내용을 입력하세요',
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
+            PublicContentInputField(publicContentController: _publicContentController),
             const SizedBox(height: 20),
-
-            Container(
-              height: 200,
-              padding: const EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey),
-              ),
-              child: TextField(
-                controller: _privateContentController,
-                maxLines: null,
-                expands: true,
-                textAlignVertical: TextAlignVertical.top,
-                decoration: const InputDecoration(
-                  hintText: '내 아이 일기 내용을 입력하세요',
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
+            PrivateContentInputField(privateContentController: _privateContentController),
             const SizedBox(height: 20),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    // 사진 첨부 로직 (현재는 단순히 placeholder)
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryPurple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                  ),
-                  child: const Text(
-                    '사진 첨부',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: () async {
-                    await _saveBabyRecord();
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryPurple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                  ),
-                  child: const Text(
-                    '완료',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ),
-              ],
+            ActionButtons(
+              onAttachPhoto: () {
+                // 사진 첨부 로직
+              },
+              onComplete: () async {
+                await _saveBabyRecord();
+                Navigator.pop(context);
+              },
             ),
           ],
         ),
