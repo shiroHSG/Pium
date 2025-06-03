@@ -19,7 +19,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
 
-    public Post create(PostRequest dto, Long memberId) {
+    public PostResponse create(PostRequest dto, Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("회원 없음"));
 
