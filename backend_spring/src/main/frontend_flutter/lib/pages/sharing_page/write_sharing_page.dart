@@ -1,6 +1,8 @@
+// lib/pages/sharing_page/write_sharing_page.dart
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import 'package:frontend_flutter/widgets/custom_drawer.dart';
+import 'package:frontend_flutter/screens/sharing_page/write_sharing_page_ui.dart';
 
 class WriteSharingPostPage extends StatefulWidget {
   const WriteSharingPostPage({Key? key}) : super(key: key);
@@ -20,14 +22,33 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
 
   void _onItemSelected(int index) {
     setState(() {
-      _selectedIndex = index;
+      _selectedIndex = index;  // 아이템 선택
     });
   }
 
   void _onLoginStatusChanged(bool status) {
     setState(() {
-      _isLoggedIn = status;
+      _isLoggedIn = status;  // 로그인 상태 변경
     });
+  }
+
+  void _handleCategoryChanged(String? newValue) {
+    if (newValue != null) {
+      setState(() {
+        _selectedCategory = newValue;  // 카테고리 변경
+      });
+    }
+  }
+
+  void _handleAttachPhoto() {
+    // TODO: 사진 첨부 기능 구현
+    print('사진 첨부');
+  }
+
+  void _handleComplete() {
+    // TODO: 작성 완료 및 저장 로직 구현
+    print('제목: ${_titleController.text}, 상세 내용: ${_detailsController.text}, 카테고리: $_selectedCategory');
+    Navigator.pop(context);
   }
 
   @override
@@ -40,25 +61,7 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryPurple,
-        title: const Text('나눔품앗이', style: TextStyle(color: Colors.white)),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.white),
-            onPressed: () {},
-          ),
-          Builder(
-            builder: (innerContext) => IconButton(
-              icon: const Icon(Icons.menu, color: Colors.white),
-              onPressed: () {
-                Scaffold.of(innerContext).openEndDrawer();
-              },
-            ),
-          ),
-        ],
-      ),
+      appBar: const WriteSharingAppBar(),
       endDrawer: CustomDrawer(
         onItemSelected: _onItemSelected,
         onLoginStatusChanged: _onLoginStatusChanged,
@@ -70,103 +73,20 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
           children: [
             Row(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _titleController,
-                    decoration: InputDecoration(
-                      hintText: '제목',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    ),
-                  ),
-                ),
+                WriteSharingTitleInput(titleController: _titleController),
                 const SizedBox(width: 10),
-                Container(
-                  height: 36,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryPurple,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _selectedCategory,
-                      dropdownColor: AppTheme.primaryPurple,
-                      icon: const Icon(Icons.arrow_drop_down, color: Colors.white, size: 20),
-                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
-                      items: ['나눔', '품앗이'].map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(
-                            value,
-                            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Jua'),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            _selectedCategory = newValue;
-                          });
-                        }
-                      },
-                    ),
-                  ),
+                WriteSharingCategoryDropdown(
+                  selectedCategory: _selectedCategory,
+                  onCategoryChanged: _handleCategoryChanged,
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: TextField(
-                controller: _detailsController,
-                maxLines: null,
-                expands: true,
-                textAlignVertical: TextAlignVertical.top,
-                decoration: InputDecoration(
-                  hintText: '상세 내용',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
-            ),
+            const SizedBox(height: 14),
+            WriteSharingDetailsInput(detailsController: _detailsController),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFf9d9e7),
-                    foregroundColor: Colors.black54,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  ),
-                  child: const Text('사진 첨부'),
-                ),
-                const SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryPurple,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  ),
-                  child: const Text('완료'),
-                ),
-              ],
+            WriteSharingActionButtons(
+              onAttachPhotoPressed: _handleAttachPhoto,
+              onCompletePressed: _handleComplete,
             ),
           ],
         ),

@@ -46,9 +46,9 @@ class SharingCategoryDropdown extends StatelessWidget {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: selectedCategory,
-          dropdownColor: AppTheme.primaryPurple,
+          dropdownColor: Colors.white,
           icon: const Icon(Icons.arrow_drop_down, color: Colors.white, size: 20),
-          style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+          style: const TextStyle(color: AppTheme.textPurple, fontSize: 14, fontWeight: FontWeight.w500),
           items: ['나눔', '품앗이'].map((String value) {
             return DropdownMenuItem<String>(
               value: value,
@@ -65,7 +65,7 @@ class SharingCategoryDropdown extends StatelessWidget {
   }
 }
 
-class SharingListItem extends StatelessWidget {
+class SharingListItem extends StatefulWidget {
   final SharingItem item;
   final VoidCallback onTap;
   final VoidCallback onFavoriteTap;
@@ -78,13 +78,20 @@ class SharingListItem extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<SharingListItem> createState() => _SharingListItemState();
+}
+
+class _SharingListItemState extends State<SharingListItem> {
+  bool _isFavorited = false; // 찜 상태를 관리하는 변수
+
+  @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: onTap,
+        onTap: widget.onTap,
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Row(
@@ -95,9 +102,9 @@ class SharingListItem extends StatelessWidget {
                 height: 80,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: item.imageUrl != null
+                  child: widget.item.imageUrl != null
                       ? Image.network(
-                    item.imageUrl!,
+                    widget.item.imageUrl!,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
@@ -121,15 +128,23 @@ class SharingListItem extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                    Text(widget.item.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4),
-                    Text(item.details, style: const TextStyle(color: Colors.grey), overflow: TextOverflow.ellipsis),
+                    Text(widget.item.details, style: const TextStyle(color: Colors.grey), overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.favorite_border, color: AppTheme.primaryPurple),
-                onPressed: onFavoriteTap,
+                icon: Icon(
+                  _isFavorited ? Icons.favorite : Icons.favorite_border,
+                  color: AppTheme.primaryPurple,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isFavorited = !_isFavorited; // 상태를 토글
+                  });
+                  widget.onFavoriteTap(); // 원래 찜 기능 콜백 호출
+                },
               ),
             ],
           ),
