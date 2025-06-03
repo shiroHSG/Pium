@@ -3,16 +3,28 @@ import 'package:http/http.dart' as http;
 import '../models/post_response.dart';
 
 class PostApiService {
-  static const String baseUrl = 'http://10.0.2.2:8080';
+  static const String baseUrl = 'http://10.0.2.2:8080/posts';
 
-  static Future<List<PostResponse>> fetchPosts(String category) async {
-    final response = await http.get(Uri.parse('$baseUrl/posts?category=$category'));
+  static Future<List<PostResponse>> fetchPosts(
+      String category, {
+        String? type,
+        String? keyword,
+        String? sort,
+      }) async {
+    final Uri uri = Uri.parse('$baseUrl/posts').replace(queryParameters: {
+      'category': category,
+      if (type != null) 'type': type,
+      if (keyword != null) 'keyword': keyword,
+      if (sort != null) 'sort': sort,
+    });
+
+    final response = await http.get(uri);
 
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
       return body.map((e) => PostResponse.fromJson(e)).toList();
     } else {
-      throw Exception('Failed to load posts');
+      throw Exception('\nFailed to load posts');
     }
   }
 
@@ -41,7 +53,6 @@ class PostApiService {
     if (response.statusCode == 201) {
       return PostResponse.fromJson(jsonDecode(response.body));
     } else {
-      // 서버에서 에러 메시지를 포함할 경우 파싱하여 보여줄 수 있습니다.
       throw Exception('Failed to create post: ${response.statusCode} ${response.body}');
     }
   }

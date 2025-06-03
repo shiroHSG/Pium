@@ -5,7 +5,7 @@ class LoginUI extends StatelessWidget {
   final TextEditingController idController;
   final TextEditingController passwordController;
   final VoidCallback onLoginPressed;
-  final VoidCallback onSignupPressed; // 회원가입 콜백 추가
+  final VoidCallback onSignupPressed;
   final VoidCallback onFindIdPressed;
   final VoidCallback onFindPasswordPressed;
   final GlobalKey<FormState> formKey;
@@ -15,7 +15,7 @@ class LoginUI extends StatelessWidget {
     required this.idController,
     required this.passwordController,
     required this.onLoginPressed,
-    required this.onSignupPressed, // 회원가입 콜백 추가
+    required this.onSignupPressed,
     required this.onFindIdPressed,
     required this.onFindPasswordPressed,
     required this.formKey,
@@ -69,85 +69,88 @@ class LoginUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40.0),
-        key: formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 60),
-            Image.asset(
-              'assets/logo1.png',
-              width: 150,
-            ),
-            const SizedBox(height: 50),
-            _buildInputField('아이디', idController, false),
-            const SizedBox(height: 20),
-            _buildInputField('비밀번호', passwordController, true),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: onLoginPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryPurple,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+    return Scaffold(
+      backgroundColor: AppTheme.lightPink,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40.0),
+          key: formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 60),
+              Image.asset(
+                'assets/logo1.png',
+                width: 150,
+              ),
+              const SizedBox(height: 50),
+              _buildInputField('아이디', idController, false),
+              const SizedBox(height: 20),
+              _buildInputField('비밀번호', passwordController, true),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: onLoginPressed,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryPurple,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text(
+                  '로그인',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontFamily: 'Jua',
+                  ),
                 ),
               ),
-              child: const Text(
-                '로그인',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  fontFamily: 'Jua',
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  '계정이 없으신가요?',
-                  style: TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua'),
-                ),
-                TextButton(
-                  onPressed: onSignupPressed, // 이 부분을 수정
-                  child: const Text(
-                    'sign up',
-                    style: TextStyle(
-                      color: AppTheme.textPurple,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Jua',
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    '계정이 없으신가요?',
+                    style: TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua'),
+                  ),
+                  TextButton(
+                    onPressed: onSignupPressed,
+                    child: const Text(
+                      'sign up',
+                      style: TextStyle(
+                        color: AppTheme.textPurple,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Jua',
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 60),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  onPressed: onFindIdPressed,
-                  child: const Text(
-                    '아이디찾기',
-                    style: TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua'),
+                ],
+              ),
+              const SizedBox(height: 60),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: onFindIdPressed,
+                    child: const Text(
+                      '아이디찾기',
+                      style: TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua'),
+                    ),
                   ),
-                ),
-                const Text(' | ', style: TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua')),
-                TextButton(
-                  onPressed: onFindPasswordPressed,
-                  child: const Text(
-                    '비밀번호 찾기',
-                    style: TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua'),
+                  const Text(' | ', style: TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua')),
+                  TextButton(
+                    onPressed: onFindPasswordPressed,
+                    child: const Text(
+                      '비밀번호 찾기',
+                      style: TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua'),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

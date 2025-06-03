@@ -42,11 +42,14 @@ class _LoginState extends State<Login> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body); // JSON 파싱
-        final token = data['token'];  // 토큰 한개 저장
+        final token = data['token'];  // 토큰 저장
+        final nickname = data['nickname']; // 닉네임 저장 (서버 응답에 'nickname' 필드가 있다고 가정)
 
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', token);  // SharedPreferences에 저장
+        await prefs.setString('token', token);  // SharedPreferences에 토큰 저장
+        await prefs.setString('loggedInNickname', nickname); // SharedPreferences에 닉네임 저장
         print("저장된 토큰: $token");
+        print("저장된 닉네임: $nickname");
 
         Navigator.pushReplacementNamed(context, '/home');
       } else {

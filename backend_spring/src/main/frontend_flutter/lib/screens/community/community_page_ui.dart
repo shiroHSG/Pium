@@ -195,7 +195,7 @@ class PostList extends StatelessWidget {
               height: 80,
               margin: const EdgeInsets.only(right: 12),
               child: Image.network(
-                '<span class="math-inline">\{PostApiService\.baseUrl\}/</span>{post.postImg!}',
+                '${PostApiService.baseUrl}/${post.postImg!}',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(Icons.broken_image, size: 40, color: Colors.grey);
@@ -287,18 +287,11 @@ class CreatePostFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // **현재 로그인한 사용자 아이디를 가져오는 로직을 여기에 구현해야 합니다.**
-    // 이는 앱의 상태 관리 방식에 따라 달라집니다.
-    // 예시로 'loggedInUserId'라는 변수에 아이디가 저장되어 있다고 가정합니다.
-    String loggedInUserId = '로그인된아이디'; // **실제 앱의 로직으로 대체해야 함**
-
     return FloatingActionButton(
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => CreatePostPage(loggedInUserId: loggedInUserId),
-          ),
+          MaterialPageRoute(builder: (context) => const CreatePostPage(loggedInUserId: '',)),
         );
       },
       child: const Icon(Icons.edit),
@@ -307,76 +300,6 @@ class CreatePostFab extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(30.0),
       ),
-    );
-  }
-}
-
-class CommunityPage extends StatefulWidget {
-  const CommunityPage({Key? key}) : super(key: key);
-
-  @override
-  State<CommunityPage> createState() => _CommunityPageState();
-}
-
-class _CommunityPageState extends State<CommunityPage> {
-  String _selectedCategory = '전체';
-  late Future<List<PostResponse>> _futurePosts;
-  String _searchKeyword = '';
-  String _searchType = ''; // 예: 'title', 'content', 'writer'
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchPosts();
-  }
-
-  void _fetchPosts() {
-    setState(() {
-      _futurePosts = PostApiService.fetchPosts(
-        _selectedCategory == '전체' ? '' : _selectedCategory,
-        type: _searchType.isNotEmpty ? _searchType : null,
-        keyword: _searchKeyword.isNotEmpty ? _searchKeyword : null,
-      );
-    });
-  }
-
-  void _onCategorySelected(String category) {
-    setState(() {
-      _selectedCategory = category;
-      _fetchPosts();
-    });
-  }
-
-  void _onSearch(String type, String keyword) {
-    setState(() {
-      _searchType = type;
-      _searchKeyword = keyword;
-      _fetchPosts();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CommunityAppBar(),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CommunitySearchBar(onSearch: _onSearch),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: CommunityCategoryButtons(
-              selectedCategory: _selectedCategory,
-              onCategorySelected: _onCategorySelected,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: PostList(futurePosts: _futurePosts),
-          ),
-        ],
-      ),
-      floatingActionButton: const CreatePostFab(),
     );
   }
 }

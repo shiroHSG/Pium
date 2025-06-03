@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/pages/chatting/chatting_message_page.dart';
+import 'package:frontend_flutter/screens/chatting/chatting_page_ui.dart';
 
 class ChattingPage extends StatefulWidget {
   const ChattingPage({Key? key}) : super(key: key);
@@ -14,62 +15,33 @@ class _ChattingPageState extends State<ChattingPage> {
   String _selectedMode = '나눔/품앗이'; // 기본 선택
   final List<String> _modeOptions = ['나눔/품앗이', '채팅'];
 
+  void _handleModeSelection(String value) {
+    setState(() {
+      _selectedMode = value;
+    });
+    print('선택된 모드: $_selectedMode');
+  }
+
+  void _navigateToChatRoom(int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ChatRoomPage(),
+      ),
+    );
+  }
+
+  void _startNewChat() {
+    print('새 $_selectedMode 시작');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        title: const Text(
-          '채팅',
-          style: TextStyle(color: AppTheme.textPurple, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            offset: const Offset(0, 40),
-            color: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            onSelected: (String value) {
-              setState(() {
-                _selectedMode = value;
-              });
-              print('선택된 모드: $_selectedMode');
-            },
-            itemBuilder: (BuildContext context) {
-              return _modeOptions.map((String option) {
-                return PopupMenuItem<String>(
-                  value: option,
-                  child: Text(
-                    option,
-                    style: const TextStyle(color: AppTheme.textPurple),
-                  ),
-                );
-              }).toList();
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  Text(
-                    _selectedMode,
-                    style: const TextStyle(
-                      color: AppTheme.textPurple,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(
-                    Icons.arrow_drop_down,
-                    color: AppTheme.textPurple,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+      appBar: ChattingAppBar(
+        selectedMode: _selectedMode,
+        modeOptions: _modeOptions,
+        onModeSelected: _handleModeSelection,
       ),
       body: ListView.separated(
         itemCount: 5,
@@ -80,65 +52,16 @@ class _ChattingPageState extends State<ChattingPage> {
           endIndent: 16,
         ),
         itemBuilder: (context, index) {
-          return InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ChatRoomPage(),
-                ),
-              );
-              print('$_selectedMode 채팅방 $index 클릭됨');
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              child: Row(
-                children: [
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.grey[300],
-                    ),
-                    child: const Center(
-                      child: Icon(Icons.person, color: Colors.grey),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          '제목',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: AppTheme.textPurple,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          '내용 요약',
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          return ChattingListItem(
+            index: index,
+            selectedMode: _selectedMode,
+            onTap: () => _navigateToChatRoom(index),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          print('새 $_selectedMode 시작');
-        },
-        backgroundColor: AppTheme.primaryPurple,
-        child: const Icon(Icons.add, color: Colors.white),
+      floatingActionButton: ChattingFloatingActionButton(
+        selectedMode: _selectedMode,
+        onPressed: _startNewChat,
       ),
     );
   }
