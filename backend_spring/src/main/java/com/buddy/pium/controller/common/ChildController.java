@@ -1,8 +1,8 @@
 package com.buddy.pium.controller.common;
 
-import com.buddy.pium.dto.common.ChildRequestDto;
-import com.buddy.pium.dto.common.ChildResponseDto;
+import com.buddy.pium.dto.common.*;
 import com.buddy.pium.service.common.ChildService;
+import com.buddy.pium.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,37 +16,35 @@ import java.util.List;
 public class ChildController {
 
     private final ChildService childService;
+    private final JwtUtil jwtUtil;
 
-    @PostMapping
-    public ResponseEntity<ChildResponseDto> create(@RequestBody ChildRequestDto dto, Authentication authentication) {
-        Long memberId = (Long) authentication.getPrincipal();
-        return ResponseEntity.ok(childService.createChild(memberId, dto));
+    @PostMapping("/register")
+    public ResponseEntity<?> addChild(@RequestBody ChildRegisterDto dto, Authentication auth) {
+        Long memberId = (Long) auth.getPrincipal();
+        childService.addChild(dto, memberId);
+        return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ChildResponseDto> update(@PathVariable Long id,
-                                                   @RequestBody ChildRequestDto dto,
-                                                   Authentication authentication) {
-        Long memberId = (Long) authentication.getPrincipal();
-        return ResponseEntity.ok(childService.updateChild(memberId, id, dto));
+    @DeleteMapping("/{childId}")
+    public ResponseEntity<?> deleteChild(@PathVariable Long childId, Authentication auth) {
+        Long memberId = (Long) auth.getPrincipal();
+        childService.deleteChild(childId, memberId);
+        return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
-        Long memberId = (Long) authentication.getPrincipal();
-        childService.deleteChild(memberId, id);
-        return ResponseEntity.noContent().build();
+    @PutMapping("/{childId}")
+    public ResponseEntity<?> updateChild(@PathVariable Long childId,
+                                         @RequestBody ChildUpdateDto dto,
+                                         Authentication auth) {
+        Long memberId = (Long) auth.getPrincipal();
+        childService.updateChild(childId, dto, memberId);
+        return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ChildResponseDto> getOne(@PathVariable Long id, Authentication authentication) {
-        Long memberId = (Long) authentication.getPrincipal();
-        return ResponseEntity.ok(childService.getChild(memberId, id));
-    }
-
-    @GetMapping
-    public ResponseEntity<List<ChildResponseDto>> getAll(Authentication authentication) {
-        Long memberId = (Long) authentication.getPrincipal();
-        return ResponseEntity.ok(childService.getAllChildren(memberId));
+    @GetMapping("/me")
+    public ResponseEntity<List<ChildResponseDto>> getChildren(Authentication auth) {
+        Long memberId = (Long) auth.getPrincipal();
+        Long mateId = jwtUtil.extractMateId(auth);
+        return ResponseEntity.ok(childService.getChildren(memberId, mateId));
     }
 }

@@ -4,6 +4,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -92,5 +93,20 @@ public class JwtUtil {
         Claims claims = validateTokenAndGetClaims(token);
         Object mateInfo = claims.get("mateInfo");
         return (mateInfo != null) ? Long.parseLong(mateInfo.toString()) : null;
+    }
+
+    // ✅ Authentication에서 mateInfo 추출
+    public Long extractMateId(Authentication authentication) {
+        Object details = authentication.getDetails();
+        if (details instanceof Long) {
+            return (Long) details;
+        } else if (details instanceof String str) {
+            try {
+                return Long.parseLong(str);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
     }
 }

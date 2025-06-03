@@ -46,7 +46,7 @@ public class MemberController {
     /**
      * ID로 회원 조회
      */
-    @GetMapping("/{id}")
+    @GetMapping("/user/{id}")
     public ResponseEntity<MemberResponseDto> getById(@PathVariable Long id) {
         MemberResponseDto responseDto = memberService.getMemberById(id);
         return ResponseEntity.ok(responseDto);
@@ -55,7 +55,7 @@ public class MemberController {
     /**
      * 전체 회원 조회
      */
-    @GetMapping
+    @GetMapping("/user")
     public ResponseEntity<List<MemberResponseDto>> getAll() {
         List<MemberResponseDto> responseList = memberService.getAllMembers();
         return ResponseEntity.ok(responseList);
@@ -86,6 +86,7 @@ public class MemberController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
 
+        // 로그 출력용
         System.out.println("[Controller] 로그인 요청 들어옴");
         System.out.println("[Controller] 이메일: " + loginRequest.getEmail());
         System.out.println("[Controller] 비밀번호: " + loginRequest.getPassword());
@@ -114,6 +115,9 @@ public class MemberController {
     @PostMapping("/logout")
     public ResponseEntity<?> logout(Authentication authentication) {
         Long memberId = (Long) authentication.getPrincipal();
+
+        // 로그 출력용
+        System.out.println("[Controller] 로그아웃 요청 - memberId: " + memberId);
 
         memberService.logout(memberId);
         return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));

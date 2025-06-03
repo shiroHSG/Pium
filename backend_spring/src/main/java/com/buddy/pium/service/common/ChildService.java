@@ -1,12 +1,10 @@
 package com.buddy.pium.service.common;
 
-import com.buddy.pium.dto.common.ChildRequestDto;
-import com.buddy.pium.dto.common.ChildResponseDto;
+import com.buddy.pium.dto.common.*;
 import com.buddy.pium.entity.common.Child;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.repository.common.ChildRepository;
 import com.buddy.pium.repository.common.MemberRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,14 +12,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class ChildService {
 
     private final ChildRepository childRepository;
     private final MemberRepository memberRepository;
 
-    public ChildResponseDto createChild(Long memberId, ChildRequestDto dto) {
+    public void addChild(ChildRegisterDto dto, Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("Member not found"));
 
@@ -36,17 +33,24 @@ public class ChildService {
                 .sensitiveInfo(dto.getSensitiveInfo())
                 .build();
 
-        return toResponseDto(childRepository.save(child));
+        childRepository.save(child);
     }
 
-    public ChildResponseDto updateChild(Long memberId, Long childId, ChildRequestDto dto) {
+    public void deleteChild(Long childId, Long memberId) {
         Child child = childRepository.findById(childId)
                 .orElseThrow(() -> new RuntimeException("Child not found"));
-
         if (!child.getMember().getId().equals(memberId)) {
-            throw new RuntimeException("Unauthorized update attempt");
+            throw new RuntimeException("권한이 없습니다.");
         }
+        childRepository.delete(child);
+    }
 
+    public void updateChild(Long childId, ChildUpdateDto dto, Long memberId) {
+        Child child = childRepository.findById(childId)
+                .orElseThrow(() -> new RuntimeException("Child not found"));
+        if (!child.getMember().getId().equals(memberId)) {
+            throw new RuntimeException("권한이 없습니다.");
+        }
         child.setName(dto.getName());
         child.setBirth(dto.getBirth());
         child.setGender(dto.getGender());
@@ -54,48 +58,19 @@ public class ChildService {
         child.setWeight(dto.getWeight());
         child.setProfileImg(dto.getProfileImg());
         child.setSensitiveInfo(dto.getSensitiveInfo());
-
-        return toResponseDto(childRepository.save(child));
     }
 
-    public void deleteChild(Long memberId, Long childId) {
-        Child child = childRepository.findById(childId)
-                .orElseThrow(() -> new RuntimeException("Child not found"));
-
-        if (!child.getMember().getId().equals(memberId)) {
-            throw new RuntimeException("Unauthorized delete attempt");
+    public List<ChildResponseDto> getChildren(Long memberId, Long mateId) {
+        if (mateId != null) {
+            return childRepository.findByMemberIdIn(List.of(memberId, mateId))
+                    .stream()
+                    .map(ChildResponseDto::from)
+                    .collect(Collectors.toList());
+        } else {
+            return childRepository.findByMemberId(memberId)
+                    .stream()
+                    .map(ChildResponseDto::from)
+                    .collect(Collectors.toList());
         }
-
-        childRepository.delete(child);
-    }
-
-    public ChildResponseDto getChild(Long memberId, Long childId) {
-        Child child = childRepository.findById(childId)
-                .orElseThrow(() -> new RuntimeException("Child not found"));
-
-        if (!child.getMember().getId().equals(memberId)) {
-            throw new RuntimeException("Unauthorized access");
-        }
-
-        return toResponseDto(child);
-    }
-
-    public List<ChildResponseDto> getAllChildren(Long memberId) {
-        return childRepository.findAllByMemberId(memberId).stream()
-                .map(this::toResponseDto)
-                .collect(Collectors.toList());
-    }
-
-    private ChildResponseDto toResponseDto(Child child) {
-        return ChildResponseDto.builder()
-                .id(child.getId())
-                .name(child.getName())
-                .birth(child.getBirth())
-                .gender(child.getGender())
-                .height(child.getHeight())
-                .weight(child.getWeight())
-                .profileImg(child.getProfileImg())
-                .sensitiveInfo(child.getSensitiveInfo())
-                .build();
     }
 }

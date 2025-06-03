@@ -136,10 +136,17 @@ public class MemberService {
                 .id(member.getId())
                 .username(member.getUsername())
                 .nickname(member.getNickname())
+                .email(member.getEmail())
+                .password("****")  // 🔐 마스킹
+                .phoneNumber(member.getPhoneNumber())
                 .address(member.getAddress())
                 .birth(member.getBirth())
+                .gender(member.getGender())
                 .profileImage(member.getProfileImage())
                 .mateInfo(member.getMateInfo())
+                .refreshToken("****")  // 🔐 마스킹 또는 null
+                .createdAt(member.getCreatedAt())  // 🔄 변환
+                .updatedAt(member.getUpdatedAt())  // 🔄 변환
                 .build();
     }
 
@@ -162,6 +169,10 @@ public class MemberService {
     public void logout(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+
+        // 로그 출력용
+        System.out.println("[Service] 로그아웃 요청 - memberId: " + memberId);
+        System.out.println("[Service] RefreshToken 제거 완료");
 
         member.setRefreshToken(null);
         memberRepository.save(member);

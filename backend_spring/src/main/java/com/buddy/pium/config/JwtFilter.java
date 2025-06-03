@@ -14,6 +14,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
+// 유연한 경로 매칭 도구 ex) /{id} -> /**
+import org.springframework.util.AntPathMatcher;
+// 예외 경로 모음
 import static com.buddy.pium.config.SecurityConstants.ALLOWED_URLS;
 
 @Component
@@ -33,8 +36,14 @@ public class JwtFilter extends OncePerRequestFilter {
         String uri = request.getRequestURI();
         System.out.println("[JwtFilter] 요청 URI: " + uri);
 
+        // ✅ 유연한 경로 검사 도구
+        AntPathMatcher pathMatcher = new AntPathMatcher();
+
         // ✅ 인증 제외 URL 처리
-        if (ALLOWED_URLS.contains(uri)) {
+        boolean isAllowed = ALLOWED_URLS.stream()
+                .anyMatch(pattern -> pathMatcher.match(pattern, uri));
+
+        if (isAllowed) {
             System.out.println("[JwtFilter] 인증 제외 경로 → 필터 통과");
             filterChain.doFilter(request, response);
             return;

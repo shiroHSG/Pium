@@ -1,4 +1,3 @@
-// ChildRequestDto.java
 package com.buddy.pium.dto.common;
 
 import com.buddy.pium.entity.common.Enum;
@@ -11,7 +10,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChildRequestDto {
+public class ChildRegisterDto {
     private String name;
     private LocalDate birth;
     private Enum.Gender gender;
