@@ -37,16 +37,12 @@ public class JwtUtil {
     /**
      * Access Token 발급 (id, mateInfo 포함)
      */
-    public String generateAccessToken(Long memberId, Long mateInfo) {
+    public String generateAccessToken(Long memberId) {
         JwtBuilder builder = Jwts.builder()
                 .setSubject(memberId.toString())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + ACCESS_EXPIRATION))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256);
-
-        if (mateInfo != null) {
-            builder.claim("mateInfo", mateInfo);
-        }
 
         return builder.compact();
     }

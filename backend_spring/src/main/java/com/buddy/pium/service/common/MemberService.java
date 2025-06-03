@@ -103,9 +103,8 @@ public class MemberService {
 
                 // ✅ mateInfo 로그 확인
                 System.out.println("[Service] member.getId(): " + member.getId());
-                System.out.println("[Service] member.getMateInfo(): " + member.getMateInfo());
 
-                String accessToken = jwtUtil.generateAccessToken(member.getId(), member.getMateInfo());
+                String accessToken = jwtUtil.generateAccessToken(member.getId());
                 String refreshToken = jwtUtil.generateRefreshToken(member.getId());
 
                 // ✅ 발급된 토큰 로그 출력
@@ -162,7 +161,7 @@ public class MemberService {
             throw new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다.");
         }
 
-        return jwtUtil.generateAccessToken(member.getId(), member.getMateInfo());
+        return jwtUtil.generateAccessToken(member.getId());
     }
 
     // 로그아웃

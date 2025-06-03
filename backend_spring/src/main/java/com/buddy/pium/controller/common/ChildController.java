@@ -1,6 +1,8 @@
 package com.buddy.pium.controller.common;
 
 import com.buddy.pium.dto.common.*;
+import com.buddy.pium.entity.common.Member;
+import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.service.common.ChildService;
 import com.buddy.pium.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChildController {
 
+    private final MemberRepository memberRepository;
     private final ChildService childService;
     private final JwtUtil jwtUtil;
 
@@ -44,7 +47,9 @@ public class ChildController {
     @GetMapping("/me")
     public ResponseEntity<List<ChildResponseDto>> getChildren(Authentication auth) {
         Long memberId = (Long) auth.getPrincipal();
-        Long mateId = jwtUtil.extractMateId(auth);
+        Long mateId = memberRepository.findById(memberId)
+                .map(Member::getMateInfo)
+                .orElse(null);
         return ResponseEntity.ok(childService.getChildren(memberId, mateId));
     }
 }
