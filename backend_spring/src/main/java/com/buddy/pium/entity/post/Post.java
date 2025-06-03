@@ -36,8 +36,7 @@ public class Post {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    @Column(nullable = false)
-    private Integer likeCount = 0;
+    private Integer likeCount;
 
     @PrePersist
     public void prePersist() {

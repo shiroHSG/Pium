@@ -24,10 +24,11 @@ public class PostController {
     //     postService.create(dto, memberId);
     //     return ResponseEntity.ok().build();
     // }
-    public ResponseEntity<Void> create(@RequestBody PostRequest dto) {
-        Long mockMemberId = 1L;
-        postService.create(dto, mockMemberId);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> create(@RequestBody PostRequest dto, Authentication authentication) {
+        PostResponse response;
+        Long senderId = (Long) authentication.getPrincipal();
+        response = postService.create(dto, senderId);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")

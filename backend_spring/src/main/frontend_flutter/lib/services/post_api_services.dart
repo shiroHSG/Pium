@@ -11,7 +11,7 @@ class PostApiService {
         String? keyword,
         String? sort,
       }) async {
-    final Uri uri = Uri.parse('$baseUrl/posts').replace(queryParameters: {
+    final Uri uri = Uri.parse('$baseUrl').replace(queryParameters: {
       'category': category,
       if (type != null) 'type': type,
       if (keyword != null) 'keyword': keyword,
@@ -35,7 +35,7 @@ class PostApiService {
     String? postImg,
     required String writer,
   }) async {
-    final url = Uri.parse('$baseUrl/posts');
+    final url = Uri.parse('$baseUrl');
     final response = await http.post(
       url,
       headers: <String, String>{
