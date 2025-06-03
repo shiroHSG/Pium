@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
 import 'package:frontend_flutter/pages/sharing_page/sharing_detail_page.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
 import 'package:frontend_flutter/pages/sharing_page/write_sharing_page.dart';
+import 'package:frontend_flutter/screens/sharing_page/sharing_page_ui.dart';
 
 class SharingPage extends StatefulWidget {
   const SharingPage({Key? key}) : super(key: key);
@@ -57,20 +57,44 @@ class _SharingPageState extends State<SharingPage> {
 
   String selectedCategory = '나눔';
 
+  void _handleCategoryChanged(String? newValue) {
+    if (newValue != null) {
+      setState(() {
+        selectedCategory = newValue;
+      });
+      // TODO: 선택된 카테고리에 따라 아이템 필터링 또는 API 호출 등의 로직 추가
+      print('선택된 카테고리: $selectedCategory');
+    }
+  }
+
+  void _navigateToDetail(SharingItem item) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SharingDetailPage(item: item)),
+    );
+  }
+
+  void _navigateToWritePost() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const WriteSharingPostPage()),
+    );
+  }
+
+  void _handleRequestShare() {
+    // TODO: 나눔 요청하기 기능 구현
+    print('나눔 요청하기 버튼 클릭');
+  }
+
+  void _handleFavorite(SharingItem item) {
+    // TODO: 찜 기능 구현
+    print('${item.name} 찜하기');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryPurple,
-        title: const Text('나눔 품앗이', style: TextStyle(color: Colors.white)),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
-      ),
+      appBar: const SharingAppBar(),
       body: Column(
         children: [
           Padding(
@@ -79,37 +103,9 @@ class _SharingPageState extends State<SharingPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('함께함', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                Container(
-                  height: 36,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryPurple,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: selectedCategory,
-                      dropdownColor: AppTheme.primaryPurple,
-                      icon: const Icon(Icons.arrow_drop_down, color: Colors.white, size: 20),
-                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
-                      items: ['나눔', '품앗이'].map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(
-                            value,
-                            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Jua'),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            selectedCategory = newValue;
-                          });
-                        }
-                      },
-                    ),
-                  ),
+                SharingCategoryDropdown(
+                  selectedCategory: selectedCategory,
+                  onCategoryChanged: _handleCategoryChanged,
                 ),
               ],
             ),
@@ -119,108 +115,17 @@ class _SharingPageState extends State<SharingPage> {
               itemCount: _sharingItems.length,
               itemBuilder: (context, index) {
                 final item = _sharingItems[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => SharingDetailPage(item: item)),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 80,
-                            height: 80,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: item.imageUrl != null
-                                  ? Image.network(
-                                item.imageUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    color: const Color(0xFFf9d9e7),
-                                    child: const Center(
-                                      child: Text('이미지 없음', style: TextStyle(color: Colors.grey)),
-                                    ),
-                                  );
-                                },
-                              )
-                                  : Container(
-                                color: const Color(0xFFf9d9e7),
-                                child: const Center(
-                                  child: Text('제품 이미지', style: TextStyle(color: Colors.grey)),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                                const SizedBox(height: 4),
-                                Text(item.details, style: const TextStyle(color: Colors.grey), overflow: TextOverflow.ellipsis),
-                              ],
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.favorite_border, color: AppTheme.primaryPurple),
-                            onPressed: () {},
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                return SharingListItem(
+                  item: item,
+                  onTap: () => _navigateToDetail(item),
+                  onFavoriteTap: () => _handleFavorite(item),
                 );
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryPurple,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: const Text('나눔 요청하기', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const WriteSharingPostPage()),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryPurple,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: const Text('나눔 글 작성', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
-            ),
+          SharingActionButtons(
+            onRequestTap: _handleRequestShare,
+            onWriteTap: _navigateToWritePost,
           ),
         ],
       ),
