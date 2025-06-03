@@ -35,7 +35,7 @@ public class ChildController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/{childId}")
+    @PatchMapping("/edit/{childId}")
     public ResponseEntity<?> updateChild(@PathVariable Long childId,
                                          @RequestBody ChildUpdateDto dto,
                                          Authentication auth) {

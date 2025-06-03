@@ -35,7 +35,7 @@ public class MemberController {
     /**
      * 회원 정보 수정
      */
-    @PostMapping("/edit")
+    @PatchMapping("/edit")
     public ResponseEntity<MemberResponseDto> update(@RequestBody MemberUpdateDto updateDto,
                                                     Authentication authentication) {
         Long memberId = (Long) authentication.getPrincipal();
