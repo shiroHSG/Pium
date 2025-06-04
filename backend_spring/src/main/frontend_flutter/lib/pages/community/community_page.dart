@@ -1,315 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:frontend_flutter/models/post_response.dart';
-import 'package:frontend_flutter/services/post_api_services.dart';
-import '../../pages/community/create_post_page.dart';
-import '../../pages/community/post_detail_page.dart';
-
-class CommunityAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CommunityAppBar({Key? key}) : super(key: key);
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: AppTheme.primaryPurple,
-      foregroundColor: Colors.white,
-      title: const Text(
-        '커뮤니티',
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      centerTitle: true,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications_none),
-          onPressed: () {},
-          color: Colors.white,
-        ),
-      ],
-    );
-  }
-}
-
-class CommunitySearchBar extends StatefulWidget {
-  final Function(String type, String keyword) onSearch;
-
-  const CommunitySearchBar({Key? key, required this.onSearch}) : super(key: key);
-
-  @override
-  _CommunitySearchBarState createState() => _CommunitySearchBarState();
-}
-
-class _CommunitySearchBarState extends State<CommunitySearchBar> {
-  final TextEditingController _searchController = TextEditingController();
-  String _searchType = 'title'; // 기본 검색 타입
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: '검색어를 입력해주세요',
-                prefixIcon: const Icon(Icons.search, color: AppTheme.textPurple),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                suffixIcon: PopupMenuButton<String>(
-                  icon: const Icon(Icons.arrow_drop_down),
-                  onSelected: (String value) {
-                    setState(() {
-                      _searchType = value;
-                    });
-                  },
-                  itemBuilder: (BuildContext context) => [
-                    const PopupMenuItem(
-                      value: 'title',
-                      child: Text('제목'),
-                    ),
-                    const PopupMenuItem(
-                      value: 'content',
-                      child: Text('내용'),
-                    ),
-                    const PopupMenuItem(
-                      value: 'writer',
-                      child: Text('작성자'),
-                    ),
-                  ],
-                ),
-              ),
-              style: const TextStyle(color: AppTheme.textPurple),
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: () {
-              widget.onSearch(_searchType, _searchController.text);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryPurple,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-              minimumSize: const Size(50, 48),
-            ),
-            child: const Icon(Icons.search),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class CommunityCategoryButtons extends StatelessWidget {
-  final String selectedCategory;
-  final Function(String) onCategorySelected;
-
-  const CommunityCategoryButtons({
-    Key? key,
-    required this.selectedCategory,
-    required this.onCategorySelected,
-  }) : super(key: key);
-
-  Widget _buildCategoryButton(String text) {
-    bool isSelected = (selectedCategory == text);
-
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      child: ElevatedButton(
-        onPressed: () {
-          onCategorySelected(text);
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected ? AppTheme.primaryPurple : Colors.white,
-          foregroundColor: isSelected ? Colors.white : AppTheme.textPurple,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-            side: const BorderSide(color: AppTheme.primaryPurple),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          minimumSize: Size.zero,
-        ),
-        child: Text(text, style: const TextStyle(fontSize: 14)),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _buildCategoryButton('전체'),
-          _buildCategoryButton('자유'),
-          _buildCategoryButton('팁'),
-          _buildCategoryButton('질문'),
-          _buildCategoryButton('모임'),
-        ],
-      ),
-    );
-  }
-}
-
-class PostList extends StatelessWidget {
-  final Future<List<PostResponse>> futurePosts;
-
-  const PostList({Key? key, required this.futurePosts}) : super(key: key);
-
-  Widget _buildPostItem({required BuildContext context, required PostResponse post}) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PostDetailPage(
-              post: post as dynamic,
-            ),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
-        ),
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            post.postImg != null && post.postImg!.isNotEmpty
-                ? Container(
-              width: 80,
-              height: 80,
-              margin: const EdgeInsets.only(right: 12),
-              child: Image.network(
-                '<span class="math-inline">\{PostApiService\.baseUrl\}/</span>{post.postImg!}',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(Icons.broken_image, size: 40, color: Colors.grey);
-                },
-              ),
-            )
-                : Container(
-              width: 80,
-              height: 80,
-              color: Colors.grey.shade200,
-              margin: const EdgeInsets.only(right: 12),
-              child: const Icon(Icons.image_outlined, size: 40, color: Colors.grey),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    post.title,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textPurple),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    post.content.length > 50 ? '${post.content.substring(0, 50)}...' : post.content,
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(Icons.comment, size: 16, color: Colors.grey.shade500),
-                      const SizedBox(width: 4),
-                      Text('0', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                      const SizedBox(width: 12),
-                      Icon(Icons.thumb_up, size: 16, color: Colors.grey.shade500),
-                      const SizedBox(width: 4),
-                      Text('0', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<PostResponse>>(
-      future: futurePosts,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('게시글을 불러오는데 실패했습니다: ${snapshot.error}'));
-        } else if (snapshot.hasData) {
-          final posts = snapshot.data!;
-          if (posts.isEmpty) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: Text(
-                  '해당 카테고리의 게시글이 없습니다.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-              ),
-            );
-          }
-          return ListView.builder(
-            itemCount: posts.length,
-            itemBuilder: (context, index) {
-              final post = posts[index];
-              return _buildPostItem(context: context, post: post);
-            },
-          );
-        } else {
-          return const Center(child: Text('데이터가 없습니다.'));
-        }
-      },
-    );
-  }
-}
-
-class CreatePostFab extends StatelessWidget {
-  const CreatePostFab({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    // **현재 로그인한 사용자 아이디를 가져오는 로직을 여기에 구현해야 합니다.**
-    // 이는 앱의 상태 관리 방식에 따라 달라집니다.
-    // 예시로 'loggedInUserId'라는 변수에 아이디가 저장되어 있다고 가정합니다.
-    String loggedInUserId = '로그인된아이디'; // **실제 앱의 로직으로 대체해야 함**
-
-    return FloatingActionButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CreatePostPage(loggedInUserId: loggedInUserId),
-          ),
-        );
-      },
-      child: const Icon(Icons.edit),
-      backgroundColor: AppTheme.primaryPurple,
-      foregroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30.0),
-      ),
-    );
-  }
-}
+import 'package:frontend_flutter/models/post/post_response.dart';
+import 'package:frontend_flutter/models/post/post_api_services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frontend_flutter/screens/community/community_page_ui.dart';
 
 class CommunityPage extends StatefulWidget {
   const CommunityPage({Key? key}) : super(key: key);
@@ -322,12 +15,29 @@ class _CommunityPageState extends State<CommunityPage> {
   String _selectedCategory = '전체';
   late Future<List<PostResponse>> _futurePosts;
   String _searchKeyword = '';
-  String _searchType = ''; // 예: 'title', 'content', 'writer'
+  String _searchType = '';
+  String _loggedInUserId = ''; // 로그인된 사용자 ID를 저장할 변수
 
   @override
   void initState() {
     super.initState();
+    _loadLoggedInUserId(); // initState에서 사용자 ID를 비동기적으로 로드
     _fetchPosts();
+  }
+
+  // SharedPreferences에서 로그인된 사용자 ID를 비동기적으로 로드하는 함수
+  Future<void> _loadLoggedInUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('loggedInUserId'); // 'loggedInUserId' 키로 저장된 값을 가져옴
+    if (userId != null) {
+      setState(() {
+        _loggedInUserId = userId; // 로드된 ID로 상태 업데이트
+      });
+      print("로드된 사용자 ID: $_loggedInUserId"); // 확인용 출력
+    } else {
+      print("로그인된 사용자 ID를 찾을 수 없습니다. (아마 로그인 전이거나, 저장된 ID가 없음)");
+      // TODO: 로그인되어 있지 않은 경우에 대한 추가 처리 (예: 로그인 페이지로 강제 이동)를 여기에 구현할 수 있습니다.
+    }
   }
 
   void _fetchPosts() {
@@ -355,6 +65,11 @@ class _CommunityPageState extends State<CommunityPage> {
     });
   }
 
+  // 게시글 작성 후 목록을 새로고침하는 콜백 함수
+  void _onPostCreated() {
+    _fetchPosts(); // 게시글이 생성되면 다시 API를 호출하여 목록을 업데이트
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -376,7 +91,10 @@ class _CommunityPageState extends State<CommunityPage> {
           ),
         ],
       ),
-      floatingActionButton: const CreatePostFab(),
+      floatingActionButton: CreatePostFab(
+        loggedInUserId: _loggedInUserId, // 로드된 사용자 ID를 CreatePostFab에 전달
+        onPostCreated: _onPostCreated, // 게시글 생성 후 새로고침 콜백 전달
+      ),
     );
   }
 }

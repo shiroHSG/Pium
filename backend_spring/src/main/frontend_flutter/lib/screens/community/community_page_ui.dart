@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:frontend_flutter/models/post_response.dart';
-import 'package:frontend_flutter/services/post_api_services.dart';
-import '../../pages/community/create_post_page.dart';
-import '../../pages/community/post_detail_page.dart';
+import 'package:frontend_flutter/models/post/post_response.dart';
+import 'package:frontend_flutter/models/post/post_api_services.dart';
+import 'package:frontend_flutter/pages/community/create_post_page.dart';
+import 'package:frontend_flutter/pages/community/post_detail_page.dart';
 
 class CommunityAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CommunityAppBar({Key? key}) : super(key: key);
@@ -175,7 +175,7 @@ class PostList extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => PostDetailPage(
-              post: post as dynamic,
+              post: post, // PostDetailPage가 PostResponse 타입을 받도록 수정 권장
             ),
           ),
         );
@@ -195,7 +195,7 @@ class PostList extends StatelessWidget {
               height: 80,
               margin: const EdgeInsets.only(right: 12),
               child: Image.network(
-                '${PostApiService.baseUrl}/${post.postImg!}',
+                '<span class="math-inline">\{PostApiService\.baseUrl\}/</span>{post.postImg!}',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(Icons.broken_image, size: 40, color: Colors.grey);
@@ -283,16 +283,31 @@ class PostList extends StatelessWidget {
 }
 
 class CreatePostFab extends StatelessWidget {
-  const CreatePostFab({Key? key}) : super(key: key);
+  final String loggedInUserId;
+  final VoidCallback onPostCreated; // 게시글 작성 성공 시 호출될 콜백 함수
+
+  const CreatePostFab({
+    Key? key,
+    required this.loggedInUserId,
+    required this.onPostCreated,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
-      onPressed: () {
-        Navigator.push(
+      onPressed: () async {
+        // CreatePostPage로 이동하고 결과(게시글 생성 성공 여부)를 기다립니다.
+        final bool? postCreated = await Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const CreatePostPage(loggedInUserId: '',)),
+          MaterialPageRoute(
+            builder: (context) => CreatePostPage(loggedInUserId: loggedInUserId),
+          ),
         );
+
+        // 게시글이 성공적으로 생성되었다면 (true가 반환되었다면) 게시글 목록을 새로고침합니다.
+        if (postCreated == true) {
+          onPostCreated();
+        }
       },
       child: const Icon(Icons.edit),
       backgroundColor: AppTheme.primaryPurple,

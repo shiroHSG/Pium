@@ -25,6 +25,7 @@ public class PostController {
     //     return ResponseEntity.ok().build();
     // }
     public ResponseEntity<?> create(@RequestBody PostRequest dto, Authentication authentication) {
+        System.out.println("create post");
         PostResponse response;
         Long senderId = (Long) authentication.getPrincipal();
         response = postService.create(dto, senderId);

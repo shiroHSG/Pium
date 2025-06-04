@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:frontend_flutter/models/post_response.dart';
+import 'package:frontend_flutter/models/post/post_response.dart';
 
 class PostDetailHeader extends StatelessWidget {
   final PostResponse post;

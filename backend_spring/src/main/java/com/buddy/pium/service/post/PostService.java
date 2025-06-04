@@ -31,7 +31,9 @@ public class PostService {
                 .member(member)
                 .build();
 
-        return postRepository.save(post);
+        postRepository.save(post);
+
+        return toResponse(post);
     }
 
     public PostResponse get(Long id) {
@@ -103,7 +105,7 @@ public class PostService {
                 post.getContent(),
                 post.getCategory(),
                 post.getPostImg(),
-                post.getMember().getNickname(),
+                post.getMember(),
                 post.getViewCount() != null ? post.getViewCount() : 0,
                 post.getCreatedAt()
         );

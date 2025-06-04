@@ -98,7 +98,7 @@ class ContentTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 250,
+      height: 350,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey.shade300),
@@ -120,7 +120,7 @@ class ContentTextField extends StatelessWidget {
   }
 }
 
-class WriterTextField extends StatelessWidget {
+/*class WriterTextField extends StatelessWidget {
   final TextEditingController writerController;
 
   const WriterTextField({Key? key, required this.writerController}) : super(key: key);
@@ -139,7 +139,7 @@ class WriterTextField extends StatelessWidget {
       enabled: false,
     );
   }
-}
+}*/
 
 class ActionButtons extends StatelessWidget {
   final VoidCallback onAttachPhoto;
