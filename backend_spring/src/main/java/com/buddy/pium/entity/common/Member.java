@@ -90,14 +90,4 @@ public class Member {
     private List<Entity명> 임의의 변수명(ex. "calenders") = new ArrayList<>();
     */
 
-    // ✅ 연관관계 편의 메서드
-    public void addChild(Child child) {
-        children.add(child);
-        child.setMember(this);
-    }
-
-    public void removeChild(Child child) {
-        children.remove(child);
-        child.setMember(null);
-    }
 }
