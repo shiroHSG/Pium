@@ -1,16 +1,13 @@
 package com.buddy.pium.controller.common;
 
+import com.buddy.pium.annotation.CurrentMemberId;
 import com.buddy.pium.dto.common.*;
 import com.buddy.pium.service.common.MemberService;
 import com.buddy.pium.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import com.buddy.pium.dto.common.LoginRequestDto;
-import com.buddy.pium.dto.common.LoginResponseDto;
-
 
 import java.util.List;
 import java.util.Map;
@@ -37,8 +34,7 @@ public class MemberController {
      */
     @PatchMapping("/edit")
     public ResponseEntity<MemberResponseDto> update(@RequestBody MemberUpdateDto updateDto,
-                                                    Authentication authentication) {
-        Long memberId = (Long) authentication.getPrincipal();
+                                                    @CurrentMemberId Long memberId) {
         MemberResponseDto responseDto = memberService.updateMember(memberId, updateDto);
         return ResponseEntity.ok(responseDto);
     }
@@ -46,7 +42,7 @@ public class MemberController {
     /**
      * ID로 회원 조회
      */
-    @GetMapping("/user/{id}")
+    @GetMapping("/users/{id}")
     public ResponseEntity<MemberResponseDto> getById(@PathVariable Long id) {
         MemberResponseDto responseDto = memberService.getMemberById(id);
         return ResponseEntity.ok(responseDto);
@@ -55,7 +51,7 @@ public class MemberController {
     /**
      * 전체 회원 조회
      */
-    @GetMapping("/user")
+    @GetMapping("/users")
     public ResponseEntity<List<MemberResponseDto>> getAll() {
         List<MemberResponseDto> responseList = memberService.getAllMembers();
         return ResponseEntity.ok(responseList);
@@ -64,7 +60,7 @@ public class MemberController {
     /**
      * 회원 삭제
      */
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/delete/users/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         memberService.deleteMember(id);
         return ResponseEntity.noContent().build();
@@ -73,9 +69,8 @@ public class MemberController {
     /**
      * 내 정보 조회 (/me)
      */
-    @GetMapping("/me")
-    public ResponseEntity<MemberResponseDto> getMe(Authentication authentication) {
-        Long memberId = (Long) authentication.getPrincipal();
+    @GetMapping
+    public ResponseEntity<MemberResponseDto> getMe(@CurrentMemberId Long memberId) {
         MemberResponseDto responseDto = memberService.getMemberById(memberId);
         return ResponseEntity.ok(responseDto);
     }
@@ -95,7 +90,9 @@ public class MemberController {
         return ResponseEntity.ok(loginResponse);
     }
 
-    // AccessToken 재발급
+    /**
+     * AccessToken 재발급
+     */
     @PostMapping("/reissue")
     public ResponseEntity<?> reissueAccessToken(@RequestHeader("Authorization") String bearerToken) {
         if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
@@ -112,9 +109,11 @@ public class MemberController {
         }
     }
 
+    /**
+     * 로그아웃
+     */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(Authentication authentication) {
-        Long memberId = (Long) authentication.getPrincipal();
+    public ResponseEntity<?> logout(@CurrentMemberId Long memberId) {
 
         // 로그 출력용
         System.out.println("[Controller] 로그아웃 요청 - memberId: " + memberId);

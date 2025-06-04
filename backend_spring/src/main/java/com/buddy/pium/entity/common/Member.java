@@ -2,9 +2,13 @@ package com.buddy.pium.entity.common;
 
 import jakarta.persistence.*;
         import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-        import java.sql.Timestamp;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -12,6 +16,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "member")
 public class Member {
 
@@ -50,23 +55,13 @@ public class Member {
     @Column
     private Long mateInfo;
 
+    @CreatedDate
     @Column(nullable = false)
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
 
+    @LastModifiedDate
     @Column(nullable = false)
-    private Timestamp updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        Timestamp now = new Timestamp(System.currentTimeMillis());
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = new Timestamp(System.currentTimeMillis());
-    }
+    private LocalDateTime updatedAt;
 
     @Column(length = 500)
     private String refreshToken;

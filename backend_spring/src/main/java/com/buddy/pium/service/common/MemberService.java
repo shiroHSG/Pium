@@ -48,6 +48,7 @@ public class MemberService {
     }
 
     // 회원 정보 수정
+    @Transactional
     public MemberResponseDto updateMember(Long memberId, MemberUpdateDto dto) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
@@ -61,8 +62,8 @@ public class MemberService {
         if (dto.getGender() != null) member.setGender(dto.getGender());
         if (dto.getProfileImage() != null) member.setProfileImage(dto.getProfileImage());
 
-        Member updated = memberRepository.save(member);
-        return toResponseDto(updated);
+        // 변경 감지를 통해 자동으로 DB 반영됨 (save 호출 불필요)
+        return toResponseDto(member);
     }
 
     public MemberResponseDto getMemberById(Long id) {

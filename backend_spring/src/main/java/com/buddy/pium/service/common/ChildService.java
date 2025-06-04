@@ -7,6 +7,7 @@ import com.buddy.pium.repository.common.ChildRepository;
 import com.buddy.pium.repository.common.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,19 +46,22 @@ public class ChildService {
         childRepository.delete(child);
     }
 
+    @Transactional
     public void updateChild(Long childId, ChildUpdateDto dto, Long memberId) {
         Child child = childRepository.findById(childId)
                 .orElseThrow(() -> new RuntimeException("Child not found"));
+
         if (!child.getMember().getId().equals(memberId)) {
             throw new RuntimeException("권한이 없습니다.");
         }
-        child.setName(dto.getName());
-        child.setBirth(dto.getBirth());
-        child.setGender(dto.getGender());
-        child.setHeight(dto.getHeight());
-        child.setWeight(dto.getWeight());
-        child.setProfileImg(dto.getProfileImg());
-        child.setSensitiveInfo(dto.getSensitiveInfo());
+
+        if (dto.getName() != null) child.setName(dto.getName());
+        if (dto.getBirth() != null) child.setBirth(dto.getBirth());
+        if (dto.getGender() != null) child.setGender(dto.getGender());
+        if (dto.getHeight() != null) child.setHeight(dto.getHeight());
+        if (dto.getWeight() != null) child.setWeight(dto.getWeight());
+        if (dto.getProfileImg() != null) child.setProfileImg(dto.getProfileImg());
+        if (dto.getSensitiveInfo() != null) child.setSensitiveInfo(dto.getSensitiveInfo());
     }
 
     public List<ChildResponseDto> getChildren(Long memberId, Long mateId) {

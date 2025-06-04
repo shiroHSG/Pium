@@ -5,6 +5,7 @@ import com.buddy.pium.entity.common.Enum;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -24,6 +25,6 @@ public class MemberResponseDto {
     private String profileImage;
     private Long mateInfo;
     private String refreshToken;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
