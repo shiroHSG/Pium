@@ -210,4 +210,44 @@ public class ChatRoomService {
                 .build();
     }
 
+    // 채팅방 수정
+    @Transactional
+    public void updateGroupChatRoom(Long chatRoomId, ChatRoomRequestDTO dto, MultipartFile image, Long memberId) {
+        //채팅방 조회
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new EntityNotFoundException("채팅방을 찾을 수 없습니다."));
+
+        if (chatRoom.getType() != Enum.ChatRoomType.GROUP) {
+            throw new IllegalArgumentException("그룹 채팅방만 수정할 수 있습니다.");
+        }
+
+        // 로그인한 사용자 = 방장인지 확인
+        ChatRoomMember member = chatRoomMemberRepository.findByChatRoomAndMemberId(chatRoom, memberId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방 멤버가 아닙니다."));
+
+        if (!member.isAdmin()) {
+            throw new IllegalArgumentException("채팅방을 수정할 권한이 없습니다.");
+        }
+
+        // 채팅방 이름 수정
+        if (dto.getChatRoomName() != null) {
+            chatRoom.setChatRoomName(dto.getChatRoomName());
+        }
+
+        // 비밀번호 수정
+        if (dto.getPassword() != null) {
+            chatRoom.setPassword(dto.getPassword());
+        }
+
+        // 이미지 수정 (기존 이미지가 있다면 삭제 후 새로 저장)
+        if (image != null && !image.isEmpty()) {
+            if (chatRoom.getImageUrl() != null) {
+                fileUploadService.delete(chatRoom.getImageUrl());
+            }
+
+            String imageUrl = fileUploadService.upload(image, "chatrooms");
+            chatRoom.setImageUrl(imageUrl);
+        }
+        chatRoomRepository.save(chatRoom);
+    }
 }

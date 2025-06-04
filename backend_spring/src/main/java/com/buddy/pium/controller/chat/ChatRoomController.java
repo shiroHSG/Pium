@@ -56,4 +56,28 @@ public class ChatRoomController {
         return ResponseEntity.ok(chatRooms);
     }
 
+    // 채팅방 수정
+    @PatchMapping(value = "{chatRoomId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateGroupChatRoom(
+            @PathVariable Long chatRoomId,
+            @RequestPart("chatRoomData") String chatRoomDataJson,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            Authentication authentication
+    ) {
+        try {
+            Long memberId = (Long) authentication.getPrincipal();
+
+            ObjectMapper mapper = new ObjectMapper();
+            ChatRoomRequestDTO dto = mapper.readValue(chatRoomDataJson, ChatRoomRequestDTO.class);
+
+            chatRoomService.updateGroupChatRoom(chatRoomId, dto, image, memberId);
+            return ResponseEntity.ok(Map.of("message", "채팅방 수정 완료"));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // 채팅방 삭제
 }
