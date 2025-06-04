@@ -9,12 +9,15 @@ import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.SharePost;
 import com.buddy.pium.repository.chat.ChatRoomMemberRepository;
 import com.buddy.pium.repository.chat.ChatRoomRepository;
+import com.buddy.pium.repository.chat.MessageRepository;
 import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.repository.post.SharePostRepository;
+import com.buddy.pium.service.FileUploadService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -30,14 +33,16 @@ public class ChatRoomService {
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final SharePostRepository sharePostRepository;
     private final MemberRepository memberRepository;
+    private final MessageRepository messageRepository;
+    private final FileUploadService fileUploadService;
 
     //direct(개인, 나눔) dto 전달
-    public ChatRoomResponseDTO getOrCreateChatRoom(ChatRoomRequestDTO dto, Long currentUserId ) {
+    public ChatRoomResponseDTO getOrCreateChatRoom(ChatRoomRequestDTO dto, MultipartFile image, Long currentUserId ) {
         Enum.ChatRoomType type = dto.getType();
 
         return switch (type) {
             case DIRECT, SHARE -> handleDirectOrShareChatRoom(dto, currentUserId);
-            case GROUP -> handleGroupChatRoom(dto, currentUserId);
+            case GROUP -> handleGroupChatRoom(dto, image, currentUserId);
         };
     }
 
@@ -101,7 +106,7 @@ public class ChatRoomService {
         return toResponseDTO(chatRoom, currentUserId);
     }
 
-    private ChatRoomResponseDTO handleGroupChatRoom(ChatRoomRequestDTO dto, Long currentUserId) {
+    private ChatRoomResponseDTO handleGroupChatRoom(ChatRoomRequestDTO dto, MultipartFile image, Long currentUserId) {
         // 필수값 검증
         String roomName = dto.getChatRoomName();
         if (roomName == null || roomName.trim().isEmpty()) {
@@ -112,12 +117,18 @@ public class ChatRoomService {
         Member creator = memberRepository.findById(currentUserId)
                 .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
 
+        // 이미지 로컬에 저장
+        String imageUrl = null;
+        if (image != null && !image.isEmpty()) {
+            imageUrl = fileUploadService.upload(image, "chatrooms"); // 폴더명 chatrooms
+        }
+
         // 채팅방 생성
         ChatRoom chatRoom = ChatRoom.builder()
                 .type(Enum.ChatRoomType.GROUP)
                 .chatRoomName(roomName)
                 .password(dto.getPassword())       // optional
-                .imageUrl(dto.getImageUrl())       // optional
+                .imageUrl(imageUrl)       // optional
                 .build();
 
         chatRoomRepository.save(chatRoom);
@@ -136,23 +147,41 @@ public class ChatRoomService {
 
     // 채팅방 리스트 조회
     public List<ChatRoomResponseDTO> getChatRoomsForMember(Long memberId) {
-        List<ChatRoomMember> myChatRoomMembers =
-                chatRoomMemberRepository.findByMemberId(memberId);
+        List<ChatRoom> chatRooms = chatRoomRepository.findAllByMemberIdWithMembers(memberId);
 
-        return myChatRoomMembers.stream()
-                .map(ChatRoomMember::getChatRoom)
-                .distinct()
+        return chatRooms.stream()
                 .sorted(Comparator.comparing(
                         ChatRoom::getLastMessageSentAt,
                         Comparator.nullsLast(Comparator.reverseOrder())
                 ))
-                .map(chatRoom -> toResponseDTO(chatRoom, memberId)) // 정렬 후 DTO 변환
+                .map(chatRoom -> toResponseDTO(chatRoom, memberId))
                 .collect(Collectors.toList());
     }
+
 
     private ChatRoomResponseDTO toResponseDTO(ChatRoom chatRoom, Long currentUserId) {
         String otherNickname = null;
         String otherProfileImageUrl = null;
+
+        // 현재 사용자
+        Member currentUser = memberRepository.findById(currentUserId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 멤버를 찾을 수 없습니다."));
+
+        // lastReadMessageId 조회
+        ChatRoomMember chatRoomMember = chatRoomMemberRepository
+                .findByChatRoomAndMember(chatRoom, currentUser)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방 멤버가 아닙니다."));
+
+        Long lastReadMessageId = chatRoomMember.getLastReadMessageId();
+
+        int unreadCount;
+        if (lastReadMessageId == null) {
+            // 처음 입장한 경우 → 내가 보낸 걸 제외하고 전체 메시지 수
+            unreadCount = messageRepository.countByChatRoomAndSenderNot(chatRoom, currentUser);
+        } else {
+            unreadCount = messageRepository.countByChatRoomAndIdGreaterThanAndSenderNot(
+                    chatRoom, lastReadMessageId, currentUser);
+        }
 
         if (chatRoom.getType() == Enum.ChatRoomType.DIRECT || chatRoom.getType() == Enum.ChatRoomType.SHARE) {
             // 채팅방의 모든 멤버 중 나와 다른 사람 찾기

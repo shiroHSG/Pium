@@ -23,6 +23,5 @@ public class ChatRoomRequestDTO {
     // ✅ group only
     private String chatRoomName;
     private String password;
-    private String imageUrl;
-
+//    private String imageUrl;
 }

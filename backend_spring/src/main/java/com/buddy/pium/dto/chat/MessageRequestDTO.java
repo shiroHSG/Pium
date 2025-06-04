@@ -1,9 +1,11 @@
 package com.buddy.pium.dto.chat;
 
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class MessageRequestDTO {
-    private Long senderId;  // 임시
     private String content;
 }

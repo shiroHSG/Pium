@@ -1,19 +1,20 @@
 package com.buddy.pium.dto.chat;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class MessageResponseDTO {
     private Long messageId;
     private Long senderId;
+    private String senderNickname;
     private String content;
     private LocalDateTime sentAt;
+
+    private int unreadCount;
 }

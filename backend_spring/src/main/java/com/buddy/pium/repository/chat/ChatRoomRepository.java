@@ -29,4 +29,11 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             @Param("type") Enum.ChatRoomType type,
             @Param("sharePostId") Long sharePostId
     );
+
+    @Query("""
+    SELECT cr FROM ChatRoom cr
+    JOIN FETCH cr.chatRoomMembers crm
+    WHERE crm.member.id = :memberId
+""")
+    List<ChatRoom> findAllByMemberIdWithMembers(@Param("memberId") Long memberId);
 }
