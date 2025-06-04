@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -17,11 +18,15 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     int countByChatRoomAndSenderNot(ChatRoom chatRoom, Member sender);
 
-    List<Message> findTop100ByChatRoomIdOrderByIdDesc(Long chatRoomId);
+    // 처음 입장 시
+    List<Message> findByChatRoomIdAndSentAtAfterOrderByIdAsc(Long chatRoomId, LocalDateTime joinedAt);
 
-    List<Message> findByChatRoomIdAndIdGreaterThanOrderByIdAsc(Long chatRoomId, Long lastReadMessageId);
+    // 최신 이후 메시지
+    List<Message> findByChatRoomIdAndIdGreaterThanEqualAndSentAtAfterOrderByIdAsc(Long chatRoomId, Long lastReadMessageId, LocalDateTime joinedAt);
 
-    List<Message> findTop100ByChatRoomIdAndIdLessThanOrderByIdDesc(Long chatRoomId, Long pivotId);
+    // 이전 10개
+    List<Message> findTop10ByChatRoomIdAndIdLessThanAndSentAtAfterOrderByIdDesc(Long chatRoomId, Long lastReadMessageId, LocalDateTime joinedAt);
 
-    List<Message> findTop100ByChatRoomIdAndIdGreaterThanOrderByIdAsc(Long chatRoomId, Long pivotId);
+    // prev 무한스크롤
+    List<Message> findTop100ByChatRoomIdAndIdLessThanAndSentAtAfterOrderByIdDesc(Long chatRoomId, Long pivotId, LocalDateTime joinedAt);
 }

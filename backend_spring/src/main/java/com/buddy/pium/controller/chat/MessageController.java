@@ -40,6 +40,7 @@ public class MessageController {
     }
 
     // 메세지 조회 pivotId : 기준 메시지 ID, direction : prev, latest
+    // 메세지를 불러올때 가장 처음온 메세지 id를 pivotId로 지정
     // 메세지 조회와 동시에 읽음 처리도 여기서
     @GetMapping("/{chatRoomId}/messages")
     public ResponseEntity<List<MessageResponseDTO>> getMessages(

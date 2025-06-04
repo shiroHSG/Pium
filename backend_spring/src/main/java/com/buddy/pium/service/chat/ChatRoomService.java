@@ -37,7 +37,7 @@ public class ChatRoomService {
     private final FileUploadService fileUploadService;
 
     //direct(개인, 나눔) dto 전달
-    public ChatRoomResponseDTO getOrCreateChatRoom(ChatRoomRequestDTO dto, MultipartFile image, Long currentUserId ) {
+    public ChatRoomResponseDTO getOrCreateChatRoom(ChatRoomRequestDTO dto, MultipartFile image, Long currentUserId) {
         Enum.ChatRoomType type = dto.getType();
 
         return switch (type) {
@@ -249,5 +249,33 @@ public class ChatRoomService {
             chatRoom.setImageUrl(imageUrl);
         }
         chatRoomRepository.save(chatRoom);
+    }
+
+    @Transactional
+    public void leaveChatRoom(Long chatRoomId, Long memberId) {
+
+        // 채팅방 조회
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new EntityNotFoundException("채팅방을 찾을 수 없습니다."));
+
+
+        // ChatRoomMember 조회 및 삭제
+        ChatRoomMember member = chatRoomMemberRepository.findByChatRoomAndMemberId(chatRoom, memberId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방에 참여 중이지 않습니다."));
+
+        chatRoomMemberRepository.delete(member);
+
+        // 남은 인원 수 확인
+        int remainingMembers = chatRoomMemberRepository.countByChatRoom(chatRoom);
+
+        if (remainingMembers == 0) {
+            // 이미지 삭제 (있다면)
+            if (chatRoom.getImageUrl() != null) {
+                fileUploadService.delete(chatRoom.getImageUrl());
+            }
+
+            // 채팅방 삭제
+            chatRoomRepository.delete(chatRoom);
+        }
     }
 }

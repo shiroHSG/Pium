@@ -17,12 +17,12 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/chat-room")
+@RequestMapping("/api/chatroom")
 public class ChatRoomController {
 
     private final ChatRoomService chatRoomService;
 
-    // 채팅방 생성
+    // 기존 채팅방 반환 또는 생성
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> getOrCreateChatRoom(
             @RequestPart("chatRoomData") String chatRoomDataJson,
@@ -62,7 +62,7 @@ public class ChatRoomController {
             @PathVariable Long chatRoomId,
             @RequestPart("chatRoomData") String chatRoomDataJson,
             @RequestPart(value = "image", required = false) MultipartFile image,
-            Authentication authentication
+            Authentication authentication   // 임시
     ) {
         try {
             Long memberId = (Long) authentication.getPrincipal();
@@ -73,6 +73,24 @@ public class ChatRoomController {
             chatRoomService.updateGroupChatRoom(chatRoomId, dto, image, memberId);
             return ResponseEntity.ok(Map.of("message", "채팅방 수정 완료"));
 
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // 채팅방 나가기
+    @DeleteMapping("{chatRoomId}/leave")
+    public ResponseEntity<?> leaveChatRoom(
+            @PathVariable Long chatRoomId,
+            Authentication authentication // 임시
+    ) {
+        try {
+            Long memberId = (Long) authentication.getPrincipal();
+
+            chatRoomService.leaveChatRoom(chatRoomId, memberId);
+
+            return ResponseEntity.ok(Map.of("message", "채팅방을 나갔습니다."));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
