@@ -16,14 +16,6 @@ public class WebConfig implements WebMvcConfigurer {
     private final CurrentMemberArgumentResolver currentMemberArgumentResolver;
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("*")  // Flutter 앱 실행 URL로 제한 가능
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-                .allowedHeaders("*");
-    }
-
-    @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(currentMemberArgumentResolver);
     }
