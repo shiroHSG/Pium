@@ -7,7 +7,7 @@ class PostResponse {
   final String content;
   final String category;
   final String? postImg;  // String? -> null 허용
-  final String writer;
+  final String author;
   final int viewCount;
   final String createdAt;
 
@@ -17,26 +17,19 @@ class PostResponse {
     required this.content,
     required this.category,
     this.postImg,  // nullable이기 때문에 required 사용X
-    required this.writer,
+    required this.author,
     required this.viewCount,
     required this.createdAt,
   });
 
   factory PostResponse.fromJson(Map<String, dynamic> json) {
-    // author 맵에서 'nickname'를 가져와 writer에 할당
-    final Map<String, dynamic>? authorMap = json['author'] as Map<String, dynamic>?;
-
-    final String writerName = authorMap != null && authorMap.containsKey('nickname')
-        ? authorMap['nickname'] as String // nickname은 String 타입으로 확신
-        : '알 수 없음';
-
     return PostResponse(
       id: json['id'] as int,
       title: json['title'] as String,
       content: json['content'] as String,
       category: json['category'] as String,
       postImg: json['postImg'] as String?,
-      writer: writerName,
+      author: json['author'] as String,
       viewCount: json['viewCount'] as int,
       createdAt: json['createdAt'] as String,
     );

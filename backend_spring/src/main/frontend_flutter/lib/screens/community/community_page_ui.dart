@@ -81,7 +81,7 @@ class _CommunitySearchBarState extends State<CommunitySearchBar> {
                       child: Text('내용'),
                     ),
                     const PopupMenuItem(
-                      value: 'writer',
+                      value: 'author',
                       child: Text('작성자'),
                     ),
                   ],
@@ -163,6 +163,8 @@ class CommunityCategoryButtons extends StatelessWidget {
   }
 }
 
+
+
 class PostList extends StatelessWidget {
   final Future<List<PostResponse>> futurePosts;
 
@@ -175,7 +177,7 @@ class PostList extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => PostDetailPage(
-              post: post, // PostDetailPage가 PostResponse 타입을 받도록 수정 권장
+              post: post,
             ),
           ),
         );
@@ -189,13 +191,14 @@ class PostList extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // postImg는 nullable이므로 null 체크 필요
             post.postImg != null && post.postImg!.isNotEmpty
                 ? Container(
               width: 80,
               height: 80,
               margin: const EdgeInsets.only(right: 12),
               child: Image.network(
-                '<span class="math-inline">\{PostApiService\.baseUrl\}/</span>{post.postImg!}',
+                '${PostApiService.baseUrl}/${post.postImg!}',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(Icons.broken_image, size: 40, color: Colors.grey);
@@ -219,21 +222,39 @@ class PostList extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
+                    // content는 항상 String이라고 가정하지만, 혹시 길이에 따른 에러가 발생할 수도 있으니 확인
                     post.content.length > 50 ? '${post.content.substring(0, 50)}...' : post.content,
                     style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
+                  // 작성자 정보 및 좋아요/댓글 (이 부분에 작성자 이름 추가)
                   Row(
                     children: [
+                      Icon(Icons.person, size: 16, color: Colors.grey.shade500),
+                      const SizedBox(width: 4),
+                      // PostResponse의 writer 필드를 사용
+                      Text(
+                        post.author, // 여기에 작성자 이름을 표시합니다.
+                        style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                      ),
+                      const SizedBox(width: 12),
+                      // created at 추가 (선택 사항)
+                      // Icon(Icons.access_time, size: 16, color: Colors.grey.shade500),
+                      // const SizedBox(width: 4),
+                      // Text(
+                      //   post.createdAt, // PostResponse에 createdAt 필드가 있으므로 사용 가능
+                      //   style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                      // ),
+                      // const SizedBox(width: 12),
                       Icon(Icons.comment, size: 16, color: Colors.grey.shade500),
                       const SizedBox(width: 4),
-                      Text('0', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                      Text('0', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // TODO: 댓글 수 연동
                       const SizedBox(width: 12),
                       Icon(Icons.thumb_up, size: 16, color: Colors.grey.shade500),
                       const SizedBox(width: 4),
-                      Text('0', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                      Text('0', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // TODO: 좋아요 수 연동
                     ],
                   ),
                 ],
@@ -253,9 +274,12 @@ class PostList extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
+          // 오류 발생 시 디버깅을 위해 상세 에러 메시지를 출력합니다.
+          print('PostList FutureBuilder Error: ${snapshot.error}');
           return Center(child: Text('게시글을 불러오는데 실패했습니다: ${snapshot.error}'));
         } else if (snapshot.hasData) {
           final posts = snapshot.data!;
+          print(posts);
           if (posts.isEmpty) {
             return const Center(
               child: Padding(

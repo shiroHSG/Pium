@@ -20,9 +20,23 @@ class PostApiService {
       if (sort != null) 'sort': sort,
     });
 
-    final response = await http.get(uri);
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      throw Exception('로그인 토큰이 없습니다. 로그인 해주세요.');
+    }
+
+    final response = await http.get(
+      uri,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+    );
 
     if (response.statusCode == 200) {
+      print('게시글 조회 성공 200');
       List<dynamic> body = jsonDecode(response.body);
       return body.map((e) => PostResponse.fromJson(e)).toList();
     } else {

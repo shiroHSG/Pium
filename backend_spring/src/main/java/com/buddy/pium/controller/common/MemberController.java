@@ -6,6 +6,7 @@ import com.buddy.pium.util.JwtUtil; // ✅ 추가: JwtUtil import
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus; // ✅ 추가
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication; // ✅ 추가
 
@@ -72,7 +73,7 @@ public class MemberController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<Member> getById(Authentication authentication) {
+    public ResponseEntity<Member> getById(Authentication authentication @AuthenticationPrincipal CustomUserDetails userdetaies) {
         Long id = (Long) authentication.getPrincipal();
         return memberService.findById(id)
                 .map(ResponseEntity::ok)

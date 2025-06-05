@@ -23,7 +23,7 @@ class PostDetailHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                post.writer,
+                post.author,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

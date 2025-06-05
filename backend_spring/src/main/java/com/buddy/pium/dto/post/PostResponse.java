@@ -2,14 +2,14 @@ package com.buddy.pium.dto.post;
 
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.Post;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
 public class PostResponse {
     private Long id;
@@ -17,7 +17,7 @@ public class PostResponse {
     private String content;
     private String category;
     private String postImg;
-    private Member author;
+    private String author;
     private int viewCount;
     private LocalDateTime createdAt;
 
@@ -28,7 +28,7 @@ public class PostResponse {
                 post.getContent(),
                 post.getCategory(),
                 post.getPostImg(),
-                post.getMember(),
+                post.getMember().getNickname(),
                 post.getViewCount(),
                 post.getCreatedAt()
         );

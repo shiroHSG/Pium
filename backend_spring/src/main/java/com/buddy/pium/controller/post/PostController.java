@@ -25,7 +25,6 @@ public class PostController {
     //     return ResponseEntity.ok().build();
     // }
     public ResponseEntity<?> create(@RequestBody PostRequest dto, Authentication authentication) {
-        System.out.println("create post");
         PostResponse response;
         Long senderId = (Long) authentication.getPrincipal();
         response = postService.create(dto, senderId);
@@ -38,7 +37,7 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PostResponse>> getAll(@RequestParam String category) {
+    public ResponseEntity<List<PostResponse>> getAll(@RequestParam String category, Authentication authentication) {
         return ResponseEntity.ok(postService.getAll(category));
     }
 
@@ -58,7 +57,7 @@ public class PostController {
         postService.delete(id, memberId);
         return ResponseEntity.ok().build();
     }
-
+    // /search?type=자유&keyword=123
     @GetMapping("/search")
     public ResponseEntity<Page<PostResponse>> search(
             @RequestParam(required = false) String type,

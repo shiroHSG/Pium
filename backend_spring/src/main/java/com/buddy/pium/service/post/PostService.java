@@ -105,7 +105,7 @@ public class PostService {
                 post.getContent(),
                 post.getCategory(),
                 post.getPostImg(),
-                post.getMember(),
+                post.getMember().getNickname(),
                 post.getViewCount() != null ? post.getViewCount() : 0,
                 post.getCreatedAt()
         );

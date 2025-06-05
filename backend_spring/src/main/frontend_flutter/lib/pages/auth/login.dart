@@ -16,6 +16,7 @@ class _LoginState extends State<Login> {
   final _formKey = GlobalKey<FormState>();
 
   @override
+//  자원해제
   void dispose() {
     _idController.dispose();
     _passwordController.dispose();
