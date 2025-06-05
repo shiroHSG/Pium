@@ -251,6 +251,7 @@ public class ChatRoomService {
         chatRoomRepository.save(chatRoom);
     }
 
+    // 채팅방 떠나기
     @Transactional
     public void leaveChatRoom(Long chatRoomId, Long memberId) {
 
@@ -278,4 +279,30 @@ public class ChatRoomService {
             chatRoomRepository.delete(chatRoom);
         }
     }
+
+    // 채팅방 방장이 삭제
+    @Transactional
+    public void deleteGroupChatRoom(Long chatRoomId, Long memberId) {
+        // 1. 채팅방 조회
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new EntityNotFoundException("채팅방이 존재하지 않습니다."));
+
+        // 2. 그룹 채팅방인지 확인
+        if (chatRoom.getType() != Enum.ChatRoomType.GROUP) {
+            throw new IllegalArgumentException("그룹 채팅방만 수정할 수 있습니다.");
+        }
+
+        // 3. 방장이 맞는지 확인
+        ChatRoomMember admin = chatRoomMemberRepository
+                .findByChatRoomIdAndMemberId(chatRoomId, memberId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 채팅방에 참여 중이지 않습니다."));
+
+        if (!admin.isAdmin()) {
+            throw new IllegalArgumentException("방장만 채팅방을 삭제할 수 있습니다.");
+        }
+
+        //
+        chatRoomRepository.delete(chatRoom);
+    }
+
 }

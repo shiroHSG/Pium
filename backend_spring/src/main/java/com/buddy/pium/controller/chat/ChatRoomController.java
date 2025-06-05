@@ -23,6 +23,9 @@ public class ChatRoomController {
     private final ChatRoomService chatRoomService;
 
     // 기존 채팅방 반환 또는 생성
+    // DIRECT : type, receiverId
+    // SHARE : type, receiverId, sharePostId
+    // GROUP : type, password, chatRoomName
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> getOrCreateChatRoom(
             @RequestPart("chatRoomData") String chatRoomDataJson,
@@ -97,5 +100,18 @@ public class ChatRoomController {
         }
     }
 
-    // 채팅방 삭제
+    // 채팅방 삭제(방장)
+    @DeleteMapping("/{chatRoomId}")
+    public ResponseEntity<?> deleteGroupChatRoom(
+            @PathVariable Long chatRoomId,
+            Authentication authentication
+    ) {
+        try {
+            Long memberId = (Long) authentication.getPrincipal(); // JWT 인증 기반
+            chatRoomService.deleteGroupChatRoom(chatRoomId, memberId);
+            return ResponseEntity.ok(Map.of("message", "채팅방이 성공적으로 삭제되었습니다."));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
 }

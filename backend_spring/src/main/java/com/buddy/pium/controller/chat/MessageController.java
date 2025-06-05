@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/chat-rooms")
+@RequestMapping("/api/chatroom")
 public class MessageController {
 
     private final MessageService messageService;
@@ -27,7 +27,6 @@ public class MessageController {
             @RequestBody MessageRequestDTO dto,
             Authentication authentication   //임시
     ) {
-        System.out.println("메세지 전송 : " + authentication);
         Long senderId = (Long) authentication.getPrincipal();
 
         MessageResponseDTO response = messageService.sendMessage(
