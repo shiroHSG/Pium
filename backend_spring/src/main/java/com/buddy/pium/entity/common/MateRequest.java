@@ -1,9 +1,11 @@
 package com.buddy.pium.entity.common;
 
 import jakarta.persistence.*;
-        import lombok.*;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
-        import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -30,12 +32,12 @@ public class MateRequest {
     @Column(nullable = false)
     private Enum.MateRequestStatus status;
 
+    @CreatedDate
     @Column(nullable = false)
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = new Timestamp(System.currentTimeMillis());
-        this.status = Enum.MateRequestStatus.PENDING;
-    }
+    @LastModifiedDate
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
 }

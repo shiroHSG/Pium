@@ -13,6 +13,7 @@
             <option value="$PROJECT_DIR$/backend_spring" />
           </set>
         </option>
+        <option name="resolveExternalAnnotations" value="true" />
       </GradleProjectSettings>
     </option>
   </component>

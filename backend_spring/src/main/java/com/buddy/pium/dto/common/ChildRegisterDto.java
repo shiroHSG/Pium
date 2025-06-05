@@ -1,9 +1,8 @@
 package com.buddy.pium.dto.common;
 
-import com.buddy.pium.entity.common.Enum.Gender;
+import com.buddy.pium.entity.common.Enum;
 import lombok.*;
 
-        import java.sql.Timestamp;
 import java.time.LocalDate;
 
 @Getter
@@ -11,15 +10,12 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChildDto {
-    private Long childId;
+public class ChildRegisterDto {
     private String name;
     private LocalDate birth;
-    private Gender gender;
+    private Enum.Gender gender;
     private Double height;
     private Double weight;
     private String profileImg;
     private String sensitiveInfo;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
 }
