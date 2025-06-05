@@ -19,12 +19,17 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<Void> create(@RequestBody PostRequest dto, Authentication auth) {
-        Long memberId = (Long) auth.getPrincipal();
-        postService.create(dto, memberId);
-        return ResponseEntity.ok().build();
+    // public ResponseEntity<Void> create(@RequestBody PostRequest dto, Authentication auth) {
+    //     Long memberId = (Long) auth.getPrincipal(); // 추후 로그인 연동 시 사용
+    //     postService.create(dto, memberId);
+    //     return ResponseEntity.ok().build();
+    // }
+    public ResponseEntity<?> create(@RequestBody PostRequest dto, Authentication authentication) {
+        PostResponse response;
+        Long senderId = (Long) authentication.getPrincipal();
+        response = postService.create(dto, senderId);
+        return ResponseEntity.ok(response);
     }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<PostResponse> get(@PathVariable Long id) {
@@ -32,7 +37,7 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PostResponse>> getAll(@RequestParam String category) {
+    public ResponseEntity<List<PostResponse>> getAll(@RequestParam String category, Authentication authentication) {
         return ResponseEntity.ok(postService.getAll(category));
     }
 
@@ -52,7 +57,7 @@ public class PostController {
         postService.delete(id, memberId);
         return ResponseEntity.ok().build();
     }
-
+    // /search?type=자유&keyword=123
     @GetMapping("/search")
     public ResponseEntity<Page<PostResponse>> search(
             @RequestParam(required = false) String type,

@@ -90,4 +90,5 @@ public class Member {
     private List<Entity명> 임의의 변수명(ex. "calenders") = new ArrayList<>();
     */
 
+
 }
