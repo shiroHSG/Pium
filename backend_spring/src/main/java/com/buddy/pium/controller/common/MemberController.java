@@ -73,7 +73,7 @@ public class MemberController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<Member> getById(Authentication authentication @AuthenticationPrincipal CustomUserDetails userdetaies) {
+    public ResponseEntity<Member> getById(Authentication authentication) {
         Long id = (Long) authentication.getPrincipal();
         return memberService.findById(id)
                 .map(ResponseEntity::ok)

@@ -12,7 +12,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     List<Post> findAllByCategory(String category);
 
-    List<Post> findAllPosts();
+    // List<Post> findAllPosts();
 
     Page<Post> findByTitleContaining(String keyword, Pageable pageable);
 
