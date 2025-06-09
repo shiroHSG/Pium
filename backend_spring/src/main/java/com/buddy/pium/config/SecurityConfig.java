@@ -36,7 +36,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // ✅ 로그인 및 회원가입 요청은 허용, 비인가 요청시 엔드포인트 추가
-                        .requestMatchers("/api/member/login", "/api/member/add").permitAll()
+                        .requestMatchers("/api/member/login", "/api/member/add", "/api/member").permitAll()
+                        .requestMatchers("/api/shares/**").authenticated() // Share API 추가😃
                         // ✅ 그 외의 요청은 인증 필요
                         .anyRequest().authenticated()
                 )

@@ -7,3 +7,4 @@ import lombok.Setter;
 public class PostCommentRequest {
     private String content;
 }
+// 댓글 작성

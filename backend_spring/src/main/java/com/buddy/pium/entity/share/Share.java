@@ -1,4 +1,4 @@
-package com.buddy.pium.entity.post;
+package com.buddy.pium.entity.share;
 
 import com.buddy.pium.entity.common.Member;
 import jakarta.persistence.*;
@@ -8,40 +8,30 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @EntityListeners(AuditingEntityListener.class)
-public class Post {
+public class Share {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "member_id")
     private Member member;
-
-    @Column(nullable = false)
-    private String category;
 
     @Column(nullable = false, length = 100)
     private String title;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(columnDefinition = "text", nullable = false)
     private String content;
 
-    @Builder.Default
-    private Long viewCount = 0L;
-
     private String postImg;
+
+    @Column(nullable = false)
+    private Long viewCount;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false)
@@ -50,12 +40,4 @@ public class Post {
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
-    @Builder.Default
-    @Column(nullable = false)
-    private Long likeCount = 0L;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PostLike> likes = new ArrayList<>();
 }

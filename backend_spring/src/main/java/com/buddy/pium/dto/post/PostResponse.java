@@ -15,7 +15,7 @@ public class PostResponse {
     private String category;
     private String postImg;
     private String author;
-    private int viewCount;
+    private Long viewCount;
     private LocalDateTime createdAt;
 
     public static PostResponse from(Post post) {

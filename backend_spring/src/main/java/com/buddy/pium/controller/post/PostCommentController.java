@@ -5,12 +5,10 @@ import com.buddy.pium.dto.post.PostCommentResponse;
 import com.buddy.pium.service.post.PostCommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-// 나중에 주석 제거
-// import org.springframework.security.core.Authentication;
-// import com.buddy.pium.security.MemberDetailsImpl;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,13 +19,9 @@ public class PostCommentController {
 
     @PostMapping("/{postId}/comments")
     public ResponseEntity<Void> create(@PathVariable Long postId,
-                                       @RequestBody PostCommentRequest dto /*, Authentication auth */) {
-        Long memberId = 1L;
-        // 나중에 바꿀것
-        // Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        // MemberDetailsImpl userDetails = (MemberDetailsImpl) auth.getPrincipal();
-        // Long memberId = userDetails.getId();
-
+                                       @RequestBody PostCommentRequest dto,
+                                       Authentication auth) {
+        Long memberId = (Long) auth.getPrincipal();
         postCommentService.create(postId, memberId, dto);
         return ResponseEntity.ok().build();
     }
@@ -39,15 +33,17 @@ public class PostCommentController {
 
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<Void> update(@PathVariable Long commentId,
-                                       @RequestBody PostCommentRequest dto) {
-        Long memberId = 1L;
+                                       @RequestBody PostCommentRequest dto,
+                                       Authentication auth) {
+        Long memberId = (Long) auth.getPrincipal();
         postCommentService.update(commentId, memberId, dto);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<Void> delete(@PathVariable Long commentId) {
-        Long memberId = 1L;
+    public ResponseEntity<Void> delete(@PathVariable Long commentId,
+                                       Authentication auth) {
+        Long memberId = (Long) auth.getPrincipal();
         postCommentService.delete(commentId, memberId);
         return ResponseEntity.ok().build();
     }
