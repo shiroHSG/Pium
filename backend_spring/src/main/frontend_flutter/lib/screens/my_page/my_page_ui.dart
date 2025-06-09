@@ -92,11 +92,11 @@ class _MyPageButtonsGrid extends StatelessWidget {
           _buildMyPageButton(
             context,
             icon: Icons.person_outline,
-            label: '프로필 수정',
+            label: '프로필',
             iconSize: 30,
             textSize: 14,
             onTap: () {
-              print('프로필 수정');
+              print('프로필');
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ProfileEditPage()),

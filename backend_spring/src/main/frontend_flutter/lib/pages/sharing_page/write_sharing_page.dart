@@ -65,7 +65,6 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
       endDrawer: CustomDrawer(
         onItemSelected: _onItemSelected,
         onLoginStatusChanged: _onLoginStatusChanged,
-        isLoggedIn: _isLoggedIn,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

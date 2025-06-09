@@ -13,6 +13,8 @@ import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart';
 import 'package:frontend_flutter/pages/calendar_page/calendar_page.dart';
 import 'package:frontend_flutter/pages/chatting/chatting_page.dart';
 import 'package:frontend_flutter/screens/home/home_page_ui.dart';
+import 'package:frontend_flutter/pages/auth/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
@@ -23,10 +25,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
-  bool _isLoggedIn = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<Schedule> _schedules = [];
-  BabyProfile _babyProfile = BabyProfile(  // 현재 아이 프로필 정보
+  BabyProfile _babyProfile = BabyProfile(
     name: '아이',
     dob: 'YY-MM-DD',
     height: '00',
@@ -38,21 +39,26 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus();
+    _checkLoginStatus(); // 로그인 상태 체크
     _loadBabyProfile();
   }
 
-  Future<void> _loadBabyProfile() async {
-    // 실제로는 API 호출 또는 로컬 저장소에서 아이 정보를 가져와야 합니다.
-    // 임시로 초기값을 설정합니다.
-    setState(() {
-      _babyImage = const AssetImage('assets/default_baby.png');
-    });
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? accessToken = prefs.getString('accessToken');
+    if (accessToken == null) {
+      print('토큰 없음: 로그인 페이지로 리다이렉트');
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => Login()),
+            (Route<dynamic> route) => false,
+      );
+    }
   }
 
-  void _checkLoginStatus() {
+  Future<void> _loadBabyProfile() async {
     setState(() {
-      _isLoggedIn = true;
+      _babyImage = const AssetImage('assets/default_baby.png');
     });
   }
 
@@ -67,12 +73,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _onLoginStatusChanged(bool status) {
     setState(() {
-      _isLoggedIn = status;
+      if (!status) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => Login()),
+              (Route<dynamic> route) => false,
+        );
+      }
     });
   }
 
   Future<void> _showAddSchedulePopup() async {
-    // 새 일정을 추가하는 팝업을 보여주는 함수
     final newSchedule = await showDialog<Schedule>(
       context: context,
       builder: (BuildContext context) {
@@ -95,7 +106,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _navigateToCalendarPage() {
-    // 캘린더 페이지로 이동하는 함수
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const CalendarPage()),
@@ -103,7 +113,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _showEditBabyProfileDialog() async {
-    // 아이 프로필 수정 다이얼로그를 보여주는 함수
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -181,7 +190,6 @@ class _MyHomePageState extends State<MyHomePage> {
       endDrawer: CustomDrawer(
         onItemSelected: _onItemTapped,
         onLoginStatusChanged: _onLoginStatusChanged,
-        isLoggedIn: _isLoggedIn,
       ),
       body: _getPageContent(_selectedIndex),
       bottomNavigationBar: CustomBottomNavigationBar(
