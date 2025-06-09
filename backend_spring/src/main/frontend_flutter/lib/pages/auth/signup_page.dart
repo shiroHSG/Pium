@@ -36,7 +36,7 @@ class _SignupPageState extends State<SignupPage> {
     required String? gender,
   })
   async {
-    final url = Uri.parse('http://10.0.2.2:8080/api/member/add'); // baseUrl 정의되어 있어야 함
+    final url = Uri.parse('http://10.0.2.2:8080/api/member/register'); // baseUrl 정의되어 있어야 함
 
     final body = jsonEncode({
       'username': username,
