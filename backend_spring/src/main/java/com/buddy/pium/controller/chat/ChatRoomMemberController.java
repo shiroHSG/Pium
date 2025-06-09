@@ -33,10 +33,11 @@ public class ChatRoomMemberController {
         }
     }
 
-    @PutMapping("/{chatRoomId}/delegate-admin")
+    // 관리자 위임
+    @PatchMapping("/{chatRoomId}/members/{newAdminId}/delegate")
     public ResponseEntity<?> delegateAdmin(
             @PathVariable Long chatRoomId,
-            @RequestParam("newAdminId") Long newAdminId,
+            @PathVariable Long newAdminId,
             Authentication authentication
     ) {
         Long currentUserId = (Long) authentication.getPrincipal();

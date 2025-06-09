@@ -2,6 +2,8 @@ package com.buddy.pium.controller.chat;
 
 import com.buddy.pium.dto.chat.ChatRoomRequestDTO;
 import com.buddy.pium.dto.chat.ChatRoomResponseDTO;
+import com.buddy.pium.dto.chat.InviteCheckResponseDTO;
+import com.buddy.pium.dto.chat.InviteLinkResponseDTO;
 import com.buddy.pium.service.chat.ChatRoomService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -113,5 +115,39 @@ public class ChatRoomController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
+    }
+
+    // 초대 링크 가져오기
+    @GetMapping("{chatRoomId}/invite-link")
+    public ResponseEntity<?> getInviteLink(
+            @PathVariable Long chatRoomId,
+            Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        InviteLinkResponseDTO response = chatRoomService.getInviteLink(chatRoomId, memberId);
+        return ResponseEntity.ok(response);
+    }
+
+    // 초대 링크 정보 조회
+    //alreadyJoined == true -> 바로 메세지 api 호출
+    @GetMapping("/invite/{inviteCode}")
+    public ResponseEntity<InviteCheckResponseDTO> checkInvite(
+            @PathVariable String inviteCode,
+            Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        InviteCheckResponseDTO response = chatRoomService.checkInviteAccess(inviteCode, memberId);
+        return ResponseEntity.ok(response);
+    }
+
+    // 초대 링크 검증 및 입장 처리
+    //alreadyJoined == 비밀번호 있을경우 체크 및 false일 경우 멤버 등록
+    @PostMapping("invite/{inviteCode}")
+    public ResponseEntity<Long> enterChatRoomViaInvite(
+            @PathVariable String inviteCode,
+            @RequestParam(required = false) String password,
+            Authentication authentication) {
+
+        Long memberId = (Long) authentication.getPrincipal();
+        Long chatRoomId = chatRoomService.enterChatRoomViaInvite(inviteCode, memberId, password);
+        return ResponseEntity.ok(chatRoomId);
     }
 }

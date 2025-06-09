@@ -2,11 +2,14 @@ package com.buddy.pium.service.chat;
 
 import com.buddy.pium.dto.chat.ChatRoomRequestDTO;
 import com.buddy.pium.dto.chat.ChatRoomResponseDTO;
+import com.buddy.pium.dto.chat.InviteCheckResponseDTO;
+import com.buddy.pium.dto.chat.InviteLinkResponseDTO;
 import com.buddy.pium.entity.chat.ChatRoom;
 import com.buddy.pium.entity.chat.ChatRoomMember;
 import com.buddy.pium.entity.chat.Enum;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.SharePost;
+import com.buddy.pium.repository.chat.ChatRoomBanRepository;
 import com.buddy.pium.repository.chat.ChatRoomMemberRepository;
 import com.buddy.pium.repository.chat.ChatRoomRepository;
 import com.buddy.pium.repository.chat.MessageRepository;
@@ -15,7 +18,10 @@ import com.buddy.pium.repository.post.SharePostRepository;
 import com.buddy.pium.service.FileUploadService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import lombok.Locked;
+import org.apache.commons.lang3.RandomStringUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,6 +41,7 @@ public class ChatRoomService {
     private final MemberRepository memberRepository;
     private final MessageRepository messageRepository;
     private final FileUploadService fileUploadService;
+    private final ChatRoomBanRepository chatRoomBanRepository;
 
     //direct(개인, 나눔) dto 전달
     public ChatRoomResponseDTO getOrCreateChatRoom(ChatRoomRequestDTO dto, MultipartFile image, Long currentUserId) {
@@ -129,6 +136,7 @@ public class ChatRoomService {
                 .chatRoomName(roomName)
                 .password(dto.getPassword())       // optional
                 .imageUrl(imageUrl)       // optional
+                .inviteCode(RandomStringUtils.randomAlphanumeric(10))
                 .build();
 
         chatRoomRepository.save(chatRoom);
@@ -305,4 +313,98 @@ public class ChatRoomService {
         chatRoomRepository.delete(chatRoom);
     }
 
+    // 초대 코드 가져오기
+    @Transactional
+    public InviteLinkResponseDTO getInviteLink(Long chatRoomId, Long memberId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new EntityNotFoundException("채팅방을 찾을 수 없습니다."));
+
+        if (chatRoom.getType() != Enum.ChatRoomType.GROUP) {
+            throw new IllegalArgumentException("초대 링크는 그룹 채팅방에서만 사용할 수 있습니다.");
+        }
+
+        // (옵션) 요청자가 이 채팅방의 멤버인지 검증
+        boolean isMember = chatRoomMemberRepository.existsByChatRoomIdAndMemberId(chatRoomId, memberId);
+        if (!isMember) {
+            throw new IllegalArgumentException("해당 채팅방에 속한 멤버만 초대 링크를 조회할 수 있습니다.");
+        }
+
+
+        String baseUrl = "http://localhost:8080/chat/invite/";
+        String inviteCode = chatRoom.getInviteCode();
+
+        return new InviteLinkResponseDTO(inviteCode, baseUrl + inviteCode);
+    }
+
+    // 초대 링크 정보 조회
+    @Transactional
+    public InviteCheckResponseDTO checkInviteAccess(String inviteCode, Long memberId) {
+        ChatRoom chatRoom = chatRoomRepository.findByInviteCode(inviteCode)
+                .orElseThrow(() -> new EntityNotFoundException("유효하지 않은 초대 코드입니다."));
+
+        if (chatRoom.getType() != Enum.ChatRoomType.GROUP) {
+            throw new IllegalArgumentException("초대 링크는 그룹 채팅방에서만 사용할 수 있습니다.");
+        }
+
+        // 밴 여부 확인
+        boolean isBanned = chatRoomBanRepository.existsByChatRoomIdAndBannedMemberId(chatRoom.getId(), memberId);
+        if (isBanned) {
+            throw new AccessDeniedException("이 채팅방에서 차단된 사용자입니다.");
+        }
+
+        boolean isMember = chatRoomMemberRepository.existsByChatRoomIdAndMemberId(chatRoom.getId(), memberId);
+        boolean requirePassword = (chatRoom.getPassword() != null && !chatRoom.getPassword().isBlank());
+
+
+        return new InviteCheckResponseDTO(
+                chatRoom.getChatRoomName(),
+                isMember,
+                isMember ? false : requirePassword // 이미 입장한 사람은 비밀번호 X
+        );
+    }
+
+    // 비밀번호 확인 및 멤버 등록
+    @Transactional
+    public Long enterChatRoomViaInvite(String inviteCode, Long memberId, String password) {
+        ChatRoom chatRoom = chatRoomRepository.findByInviteCode(inviteCode)
+                .orElseThrow(() -> new EntityNotFoundException("초대 코드가 유효하지 않습니다."));
+
+        if (chatRoom.getType() != Enum.ChatRoomType.GROUP) {
+            throw new IllegalArgumentException("초대 링크는 그룹 채팅방에서만 사용 가능합니다.");
+        }
+
+        // 밴 여부 확인
+        boolean isBanned = chatRoomBanRepository.existsByChatRoomIdAndBannedMemberId(chatRoom.getId(), memberId);
+        if (isBanned) {
+            throw new AccessDeniedException("이 채팅방에서 차단된 사용자입니다.");
+        }
+
+        // 이미 멤버인지 확인
+        boolean isMember = chatRoomMemberRepository.existsByChatRoomIdAndMemberId(chatRoom.getId(), memberId);
+        if (isMember) {
+            return chatRoom.getId(); // 이미 입장 완료 → 바로 채팅방 ID 반환
+        }
+
+        // 비밀번호 검증 (null-safe)
+        String actualPassword = chatRoom.getPassword();
+        if (actualPassword != null && !actualPassword.isBlank()) {
+            if (!actualPassword.equals(password)) {
+                throw new AccessDeniedException("비밀번호가 일치하지 않습니다.");
+            }
+        }
+
+        // ChatRoomMember 등록
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원 정보를 찾을 수 없습니다."));
+
+        ChatRoomMember newMember = ChatRoomMember.builder()
+                .chatRoom(chatRoom)
+                .member(member)
+                .isAdmin(false)
+                .build();
+
+        chatRoomMemberRepository.save(newMember);
+
+        return chatRoom.getId();
+    }
 }

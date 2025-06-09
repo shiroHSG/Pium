@@ -38,6 +38,8 @@ public class ChatRoom {
     private String password;
     @Column(name = "image_url")
     private String imageUrl;
+    @Column(name = "invite_code", unique = true, length = 12)
+    private String inviteCode;
 
     @Column(name = "last_message", columnDefinition = "TEXT")
     private String lastMessageContent;

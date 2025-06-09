@@ -25,7 +25,7 @@ public class ChatRoomBan {
     private ChatRoom chatRoom;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="Member", nullable = false)
+    @JoinColumn(name="member_id", nullable = false)
     private Member bannedMember;
 
     @CreatedDate
