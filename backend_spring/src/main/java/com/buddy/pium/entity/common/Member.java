@@ -1,10 +1,19 @@
 package com.buddy.pium.entity.common;
 
+import com.buddy.pium.entity.chat.ChatRoomBan;
+import com.buddy.pium.entity.chat.ChatRoomMember;
+import com.buddy.pium.entity.chat.Message;
+import com.buddy.pium.entity.calender.Calender;
 import jakarta.persistence.*;
-        import lombok.*;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-        import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -12,6 +21,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "member")
 public class Member {
 
@@ -31,7 +41,7 @@ public class Member {
     @Column(nullable = false, length = 100)
     private String password;
 
-    @Column(length = 15)
+    @Column(nullable = false, length = 15)
     private String phoneNumber;
 
     @Column(length = 100)
@@ -42,29 +52,54 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 1)
-    private Enum.Gender gender; // 성별 ('M', 'F')
+    private Enum.Gender gender;
 
-    @Column
+    @Column(length = 255)
     private String profileImage;
 
     @Column
     private Long mateInfo;
 
+    @Column(length = 255)
+    private String refreshToken;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatRoomMember> chatRoomMember = new ArrayList<>();
+
+    @OneToMany(mappedBy = "bannedMember", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatRoomBan> chatRoomBan = new ArrayList<>();
+
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Message> messages = new ArrayList<>();
+
+    @CreatedDate
     @Column(nullable = false)
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
 
+    @LastModifiedDate
     @Column(nullable = false)
-    private Timestamp updatedAt;
+    private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        Timestamp now = new Timestamp(System.currentTimeMillis());
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = new Timestamp(System.currentTimeMillis());
-    }
+    // ✅ 양방향 관계 설정
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Child> children = new ArrayList<>();
+
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MateRequest> memberRequests = new ArrayList<>();
+
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MateRequest> memberResponses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Calender> calenders = new ArrayList<>();
+
+    // POST, 품앗이 동일하게 추가 할 것
+    /*
+    @OneToMany(mappedBy = "Entity에서 참조하는 변수명",
+                            cascade = CascadeType.ALL,   : 000 기능을 한다
+                            orphanRemoval = true)        : 역할을 담당한다.
+    private List<Entity명> 임의의 변수명(ex. "calenders") = new ArrayList<>();
+    */
+
 }
