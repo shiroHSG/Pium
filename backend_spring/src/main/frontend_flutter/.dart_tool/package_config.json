@@ -32,12 +32,6 @@
       "languageVersion": "3.4"
     },
     {
-      "name": "crypto",
-      "rootUri": "file:///C:/Users/shiroo/AppData/Local/Pub/Cache/hosted/pub.dev/crypto-3.0.6",
-      "packageUri": "lib/",
-      "languageVersion": "3.4"
-    },
-    {
       "name": "cupertino_icons",
       "rootUri": "file:///C:/Users/shiroo/AppData/Local/Pub/Cache/hosted/pub.dev/cupertino_icons-1.0.8",
       "packageUri": "lib/",
@@ -302,12 +296,6 @@
       "languageVersion": "3.4"
     },
     {
-      "name": "stomp_dart_client",
-      "rootUri": "file:///C:/Users/shiroo/AppData/Local/Pub/Cache/hosted/pub.dev/stomp_dart_client-0.4.4",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
       "name": "stream_channel",
       "rootUri": "file:///C:/Users/shiroo/AppData/Local/Pub/Cache/hosted/pub.dev/stream_channel-2.1.4",
       "packageUri": "lib/",
@@ -356,12 +344,6 @@
       "languageVersion": "3.4"
     },
     {
-      "name": "web_socket_channel",
-      "rootUri": "file:///C:/Users/shiroo/AppData/Local/Pub/Cache/hosted/pub.dev/web_socket_channel-2.4.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.15"
-    },
-    {
       "name": "win32",
       "rootUri": "file:///C:/Users/shiroo/AppData/Local/Pub/Cache/hosted/pub.dev/win32-5.13.0",
       "packageUri": "lib/",
@@ -380,7 +362,7 @@
       "languageVersion": "3.7"
     }
   ],
-  "generated": "2025-06-10T07:40:11.460586Z",
+  "generated": "2025-06-10T08:34:57.046155Z",
   "generator": "pub",
   "generatorVersion": "3.7.2",
   "flutterRoot": "file:///D:/dev/flutter",
