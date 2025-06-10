@@ -25,7 +25,6 @@ public class PostController {
         return ResponseEntity.ok().build();
     }
 
-
     @GetMapping("/{id}")
     public ResponseEntity<PostResponse> get(@PathVariable Long id, Authentication auth) {
         return ResponseEntity.ok(postService.get(id));
@@ -53,6 +52,7 @@ public class PostController {
         return ResponseEntity.ok().build();
     }
 
+    // /search?type=자유&keyword=123
     @GetMapping("/search")
     public ResponseEntity<Page<PostResponse>> search(
             @RequestParam(required = false) String type,

@@ -3,11 +3,15 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Pium.iml" filepath="$PROJECT_DIR$/.idea/Pium.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.example.pium.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.example.pium.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.example.pium.test.iml" filepath="$PROJECT_DIR$/.idea/modules/com.example.pium.test.iml" />
+<<<<<<< Updated upstream
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/pium.iml" filepath="$PROJECT_DIR$/.idea/modules/pium.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/pium.main.iml" filepath="$PROJECT_DIR$/.idea/modules/pium.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/pium.test.iml" filepath="$PROJECT_DIR$/.idea/modules/pium.test.iml" />
+=======
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.example.pium.iml" filepath="$PROJECT_DIR$/.idea/modules/com.example.pium.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.example.pium.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.example.pium.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.example.pium.test.iml" filepath="$PROJECT_DIR$/.idea/modules/com.example.pium.test.iml" />
+>>>>>>> Stashed changes
     </modules>
   </component>
 </project>

@@ -1,15 +1,87 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
+import 'package:frontend_flutter/models/post/post_api_services.dart';
 
+import '../../models/post/post_request.dart';
+import '../../screens/community/create_post_page_ui.dart';
+
+// CreatePostPage 위젯 정의
 class CreatePostPage extends StatefulWidget {
-  const CreatePostPage({Key? key}) : super(key: key);
+  final String loggedInUserId;  // 로그인한 사용자 아이디를 받을 파라미터
+
+  const CreatePostPage({Key? key, required this.loggedInUserId}) : super(key: key);
 
   @override
   State<CreatePostPage> createState() => _CreatePostPageState();
 }
 
 class _CreatePostPageState extends State<CreatePostPage> {
+  final _titleController = TextEditingController();
+  final _contentController = TextEditingController();
+  final _postImgController = TextEditingController();
   String? _selectedCategory;
+  late final TextEditingController _writerController;
+
+  final List<String> _categories = ['자유', '팁', '질문', '모임'];
+
+  @override
+  void initState() {
+    super.initState();
+    _writerController = TextEditingController(text: widget.loggedInUserId);  // 초기값 설정
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.dispose();
+    _postImgController.dispose();
+    // _writerController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _createPost() async {
+    final title = _titleController.text.trim();
+    final content = _contentController.text.trim();
+    final category = _selectedCategory;
+    final postImg = _postImgController.text.trim().isEmpty ? null : _postImgController.text.trim();
+
+    if (title.isEmpty || content.isEmpty || category == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('제목, 내용, 카테고리는 필수 입력 항목입니다.')),
+      );
+      return;
+    }
+
+    final postRequest = PostRequest(
+      title: title,
+      content: content,
+      category: category,
+      postImg: postImg,
+    );
+
+    try {
+      await PostApiService.createPost(postRequest: postRequest); // PostApiService 사용
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('게시글이 작성되었습니다!')),
+      );
+      Navigator.pop(context, true);
+    } catch (e) {
+      print('createPost 게시글 작성 실패: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('createPost 게시글 작성에 실패했습니다: ${e.toString()}')),
+      );
+    }
+  }
+
+  void _attachPhoto() {
+    print('사진 첨부 기능 구현 필요');
+  }
+
+  void _handleCategorySelected(String? category) {
+    setState(() {
+      _selectedCategory = category;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +90,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
         backgroundColor: AppTheme.primaryPurple,
         foregroundColor: Colors.white,
         title: const Text(
-          '커뮤니티 글 쓰기',
+          '글 쓰기',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -36,132 +108,25 @@ class _CreatePostPageState extends State<CreatePostPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                '카테고리',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPurple,
-                ),
+              CategorySelection(
+                selectedCategory: _selectedCategory,
+                categories: _categories,
+                onCategorySelected: _handleCategorySelected,
               ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.grey.shade300),
-                  color: Colors.white,
-                ),
-                child: Wrap(
-                  spacing: 8.0,
-                  runSpacing: 8.0,
-                  children: [
-                    _buildCategorySelectionButton('자유'),
-                    _buildCategorySelectionButton('팁'),
-                    _buildCategorySelectionButton('질문'),
-                    _buildCategorySelectionButton('모임'),
-                  ],
-                ),
-              ),
+              TitleTextField(titleController: _titleController),
               const SizedBox(height: 16),
-              TextField(
-                decoration: InputDecoration(
-                  hintText: '제목',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                ),
-                style: const TextStyle(color: AppTheme.textPurple),
-              ),
+              ContentTextField(contentController: _contentController),
               const SizedBox(height: 16),
-              Container(
-                height: 250, // 글쓰기 영역 높이 조정
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.grey.shade300),
-                  color: Colors.white,
-                ),
-                child: const TextField(
-                  maxLines: null,
-                  expands: true,
-                  textAlignVertical: TextAlignVertical.top,
-                  decoration: InputDecoration(
-                    hintText: '글쓰기',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(16),
-                  ),
-                  style: TextStyle(color: AppTheme.textPurple),
-                ),
-              ),
+              // WriterTextField(writerController: _writerController),
               const SizedBox(height: 24),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      // 사진 첨부 기능 구현
-                      print('사진 첨부');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryPurple,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    ),
-                    icon: const Icon(Icons.photo),
-                    label: const Text('사진 첨부'),
-                  ),
-                  const SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      // 완료 버튼 기능 구현 (글 작성 완료 후 페이지 닫기 등)
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryPurple,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    ),
-                    child: const Text('완료'),
-                  ),
-                ],
+              ActionButtons(
+                onAttachPhoto: _attachPhoto,
+                onCreatePost: _createPost,
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildCategorySelectionButton(String category) {
-    bool isSelected = (_selectedCategory == category);
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          _selectedCategory = category;
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? AppTheme.primaryPurple : AppTheme.lightPink,
-        foregroundColor: isSelected ? Colors.white : AppTheme.textPurple,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: AppTheme.primaryPurple.withOpacity(isSelected ? 1.0 : 0.5)),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        elevation: 0,
-      ),
-      child: Text(category, style: const TextStyle(fontSize: 14)),
     );
   }
 }

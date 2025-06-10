@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
 
-
 class SharingDetailPage extends StatelessWidget {
   final SharingItem item;
 
