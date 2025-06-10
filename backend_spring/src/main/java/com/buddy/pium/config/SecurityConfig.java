@@ -37,10 +37,6 @@ public class SecurityConfig {
                     for (String url : ALLOWED_URLS) {
                         auth.requestMatchers(url).permitAll();
                     }
-
-                    auth.requestMatchers("/api/member/login", "/api/member/add", "/api/member").permitAll();
-                    auth.requestMatchers("/api/shares/**").authenticated();
-
                     auth.anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
