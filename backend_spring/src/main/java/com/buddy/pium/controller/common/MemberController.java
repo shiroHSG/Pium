@@ -23,7 +23,7 @@ public class MemberController {
     /**
      * 회원 가입
      */
-    @PostMapping("/register")
+    @PostMapping()
     public ResponseEntity<MemberResponseDto> create(@RequestBody MemberRegisterDto registerDto) {
         MemberResponseDto responseDto = memberService.createMember(registerDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
