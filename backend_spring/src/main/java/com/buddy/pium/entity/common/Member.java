@@ -1,26 +1,16 @@
 package com.buddy.pium.entity.common;
 
-import com.buddy.pium.entity.chat.ChatRoomBan;
-import com.buddy.pium.entity.chat.ChatRoomMember;
-import com.buddy.pium.entity.chat.Message;
 import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+        import lombok.*;
 
-import java.sql.Timestamp;
+        import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
 @Builder
 @Table(name = "member")
 public class Member {
@@ -54,30 +44,27 @@ public class Member {
     @Column(nullable = false, length = 1)
     private Enum.Gender gender; // 성별 ('M', 'F')
 
-    @Column(length = 255)
+    @Column
     private String profileImage;
 
     @Column
     private Long mateInfo;
 
-    @Column(length = 255)
-    private String refreshToken;
-
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ChatRoomMember> chatRoomMember = new ArrayList<>();
-
-    @OneToMany(mappedBy = "bannedMember", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ChatRoomBan> chatRoomBan = new ArrayList<>();
-
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Message> messages = new ArrayList<>();
-
-    @CreatedDate
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private Timestamp createdAt;
 
-    @LastModifiedDate
     @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private Timestamp updatedAt;
 
+    @PrePersist
+    protected void onCreate() {
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = new Timestamp(System.currentTimeMillis());
+    }
 }

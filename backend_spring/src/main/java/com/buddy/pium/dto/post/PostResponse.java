@@ -1,12 +1,15 @@
 package com.buddy.pium.dto.post;
 
+import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.Post;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
+@Builder
+@NoArgsConstructor
 @AllArgsConstructor
 public class PostResponse {
     private Long id;

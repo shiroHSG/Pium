@@ -2,8 +2,12 @@ package com.buddy.pium.entity.common;
 
 import jakarta.persistence.*;
         import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
-        import java.time.LocalDate;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,21 +48,12 @@ public class Child {
 
     private String sensitiveInfo;
 
-    @Column(nullable = false, updatable = false)
-    private java.sql.Timestamp createdAt;
-
+    @CreatedDate
     @Column(nullable = false)
-    private java.sql.Timestamp updatedAt;
+    private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
+    @LastModifiedDate
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = new java.sql.Timestamp(System.currentTimeMillis());
-    }
 }

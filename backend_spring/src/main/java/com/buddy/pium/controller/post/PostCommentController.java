@@ -17,7 +17,7 @@ public class PostCommentController {
 
     private final PostCommentService postCommentService;
 
-    @PostMapping("/{postId}/comments")
+    @PostMapping("/{postId}/comments/")
     public ResponseEntity<Void> create(@PathVariable Long postId,
                                        @RequestBody PostCommentRequest dto,
                                        Authentication auth) {

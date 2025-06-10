@@ -2,15 +2,22 @@ package com.buddy.pium.config;
 
 import com.buddy.pium.util.JwtUtil;
 import io.jsonwebtoken.Claims;
-import jakarta.servlet.*;
-        import jakarta.servlet.http.*;
-        import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+
+// 유연한 경로 매칭 도구 ex) /{id} -> /**
+import org.springframework.util.AntPathMatcher;
+// 예외 경로 모음
+import static com.buddy.pium.config.SecurityConstants.ALLOWED_URLS;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -25,14 +32,25 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String header = request.getHeader("Authorization");
 
         String uri = request.getRequestURI();
-        // ✅ 로그인, 회원가입 요청은 필터 통과시킴
-        if (uri.equals("/api/member/login") || uri.equals("/api/member/add")) {
+        System.out.println("[JwtFilter] 요청 URI: " + uri);
+
+        // ✅ 유연한 경로 검사 도구
+        AntPathMatcher pathMatcher = new AntPathMatcher();
+
+        // ✅ 인증 제외 URL 처리
+        boolean isAllowed = ALLOWED_URLS.stream()
+                .anyMatch(pattern -> pathMatcher.match(pattern, uri));
+
+        if (isAllowed) {
+            System.out.println("[JwtFilter] 인증 제외 경로 → 필터 통과");
             filterChain.doFilter(request, response);
             return;
         }
+
+        String header = request.getHeader("Authorization");
+        System.out.println("[JwtFilter] Authorization 헤더: " + header);
 
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
@@ -40,15 +58,34 @@ public class JwtFilter extends OncePerRequestFilter {
                 Claims claims = jwtUtil.validateTokenAndGetClaims(token);
                 Long userId = Long.parseLong(claims.getSubject());
 
+                // ✅ mateInfo 추출 (nullable)
+                Object mateInfoRaw = claims.get("mateInfo");
+                Long mateInfo = (mateInfoRaw != null) ? Long.parseLong(mateInfoRaw.toString()) : null;
+
+                // ✅ Authentication 구성
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
 
+                authentication.setDetails(mateInfo); // mateInfo를 details에 저장
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                System.out.println("[JwtFilter] 토큰 유효 → SecurityContext 등록 (memberId=" + userId + ", mateInfo=" + mateInfo + ")");
+
             } catch (RuntimeException e) {
+                System.out.println("[JwtFilter] 토큰 검증 실패 → 예외: " + e.getMessage());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Unauthorized: " + e.getMessage());
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"" + e.getMessage() + "\"}");
                 return;
             }
+        } else {
+            System.out.println("[JwtFilter] 토큰 없음 또는 잘못된 형식 → 401 응답");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Missing or invalid token\"}");
+            return;
         }
 
         filterChain.doFilter(request, response);
