@@ -10,7 +10,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/chatRoom/{chatRoomId}/member/{memberId}")
+@RequestMapping("/api/chatroom/{chatRoomId}/member/{memberId}")
 public class ChatRoomBanController {
 
     private final ChatRoomBanService chatRoomBanService;

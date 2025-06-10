@@ -18,14 +18,12 @@ import com.buddy.pium.repository.post.SharePostRepository;
 import com.buddy.pium.service.FileUploadService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import lombok.Locked;
 import org.apache.commons.lang3.RandomStringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -58,7 +56,7 @@ public class ChatRoomService {
         Long receiverId = dto.getReceiverId();
         Long sharePostId = dto.getSharePostId();
 
-        // 🔐 자기 자신에게 메시지 보낼 수 없음
+        // 자기 자신에게 메세지 전달 불가
         if (currentUserId.equals(receiverId)) {
             throw new IllegalArgumentException("자기 자신과는 채팅할 수 없습니다.");
         }
@@ -193,12 +191,13 @@ public class ChatRoomService {
 
         if (chatRoom.getType() == Enum.ChatRoomType.DIRECT || chatRoom.getType() == Enum.ChatRoomType.SHARE) {
             // 채팅방의 모든 멤버 중 나와 다른 사람 찾기
-            Member other = chatRoom.getChatRoomMembers().stream()
+            Member other = chatRoomMemberRepository.findByChatRoom(chatRoom).stream()
                     .map(ChatRoomMember::getMember)
                     .filter(member -> !member.getId().equals(currentUserId))
                     .findFirst()
                     .orElse(null);
 
+            System.out.println("other : " + other);
             if (other != null) {
                 otherNickname = other.getNickname();
                 otherProfileImageUrl = other.getProfileImage();
@@ -215,6 +214,7 @@ public class ChatRoomService {
                 .sharePostId(chatRoom.getSharePost() != null ? chatRoom.getSharePost().getId() : null)
                 .otherNickname(otherNickname)                 // DIRECT, SHARE만 사용
                 .otherProfileImageUrl(otherProfileImageUrl)   // DIRECT, SHARE만 사용
+                .unreadCount(unreadCount)
                 .build();
     }
 
@@ -406,5 +406,11 @@ public class ChatRoomService {
         chatRoomMemberRepository.save(newMember);
 
         return chatRoom.getId();
+    }
+
+    // 유효 유저 확인
+    private Member validateMember(Long memberId, String error) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("보내는 유저가 존재하지 않습니다."));
     }
 }

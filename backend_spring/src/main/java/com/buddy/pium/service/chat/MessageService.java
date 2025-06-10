@@ -30,6 +30,7 @@ public class MessageService {
     private final ChatRoomMemberRepository chatRoomMemberRepository;
 
     // 메세지 전송
+    @Transactional
     public MessageResponseDTO sendMessage(Long chatRoomId, Long senderId, String content) {
         // 채팅방 조회
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
@@ -49,6 +50,17 @@ public class MessageService {
         // 채팅방 최신 메시지 갱신
         chatRoom.setLastMessageContent(content);
         chatRoom.setLastMessageSentAt(LocalDateTime.now());
+
+        chatRoomRepository.save(chatRoom);
+
+        // 본인의 ChatRoomMember 조회
+        ChatRoomMember senderMember = chatRoomMemberRepository
+                .findByChatRoomAndMember(chatRoom, sender)
+                .orElseThrow(() -> new IllegalStateException("채팅방 멤버가 아닙니다."));
+
+        // 마지막으로 읽은 메시지를 현재 메시지로 갱신
+        senderMember.setLastReadMessageId(message.getId());
+        chatRoomMemberRepository.save(senderMember);
 
         return toDTO(message, senderId);
     }

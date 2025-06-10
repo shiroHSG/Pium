@@ -63,10 +63,6 @@ public class Member {
     @Column(length = 255)
     private String refreshToken;
 
-//    @Builder.Default
-//    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<MemberChild> childrenLinks = new ArrayList<>();
-
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatRoomMember> chatRoomMember = new ArrayList<>();
 
