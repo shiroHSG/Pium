@@ -180,7 +180,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold(  // 화면의 전체 구조
       key: _scaffoldKey,
       appBar: CustomAppBar(
         onMenuPressed: () {
@@ -191,18 +191,12 @@ class _MyHomePageState extends State<MyHomePage> {
         onItemSelected: _onItemTapped,
         onLoginStatusChanged: _onLoginStatusChanged,
       ),
-      body: _getPageContent(_selectedIndex),
+      body: _getPageContent(_selectedIndex),  // 선택된 탭(인덱스)에 따라 화면을 바꿔줌
       bottomNavigationBar: CustomBottomNavigationBar(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
       ),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
-        onPressed: _showAddSchedulePopup,
-        backgroundColor: AppTheme.primaryPurple,
-        child: const Icon(Icons.add, color: Colors.white),
-      )
-          : null,
+      floatingActionButton: null,
     );
   }
 
