@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:frontend_flutter/models/calendar/schedule.dart';
+import '../../models/calendar/calendar_api.dart';
 import '../../pages/calendar_page/add_schedule.dart';
 
 class CalendarHeader extends StatelessWidget {
@@ -209,11 +210,17 @@ class CalendarDaysGrid extends StatelessWidget {
 class SelectedDaySchedules extends StatelessWidget {
   final DateTime? selectedDay;
   final Map<DateTime, List<Schedule>> schedules;
+  final Function(Schedule) onScheduleAdded;  // 일정 추가
+  final Function(Schedule) onScheduleDeleted;  // 일정 삭제
+  final Function(Schedule) onScheduleEdited; // 일정 수정
 
   const SelectedDaySchedules({
     Key? key,
     required this.selectedDay,
     required this.schedules,
+    required this.onScheduleAdded,
+    required this.onScheduleDeleted,
+    required this.onScheduleEdited,
   }) : super(key: key);
 
   List<Schedule> _getSchedulesForDay(DateTime day) {
@@ -266,8 +273,10 @@ class SelectedDaySchedules extends StatelessWidget {
                         ),
                       );
                       if (newSchedule != null) {
+                        onScheduleAdded(newSchedule); // 상위에서 상태 반영하도록 콜백 호출
+
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('일정이 추가되었습니다. 새로고침해주세요.')),
+                          const SnackBar(content: Text('일정이 추가되었습니다.')),
                         );
                       }
                     },
@@ -320,14 +329,17 @@ class SelectedDaySchedules extends StatelessWidget {
                                   minWidth: 10,
                                   minHeight: 30,
                                 ),
-                                onPressed: () {
-                                  showDialog(
+                                onPressed: () async {
+                                  final editedSchedule = await showDialog<Schedule>(
                                     context: context,
                                     builder: (_) => AddSchedulePopup(
                                       initialDate: selectedDay!,
                                       existingSchedule: schedule,
                                     ),
                                   );
+
+                                  if (editedSchedule != null) {
+                                    onScheduleEdited(editedSchedule);                                  }
                                 },
                               ),
                               // 삭제 버튼
@@ -338,11 +350,26 @@ class SelectedDaySchedules extends StatelessWidget {
                                   minWidth: 10,
                                   minHeight: 30,
                                 ),
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('삭제 기능은 아직 연결되지 않았어요')),
-                                  );
-                                },
+                                  onPressed: () async {
+                                    if (schedule.id == null) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('삭제할 수 없는 일정입니다 (id가 없음)')),
+                                      );
+                                      return;
+                                    }
+
+                                    try {
+                                      await CalendarApi.deleteSchedule(schedule.id!);
+                                      onScheduleDeleted(schedule);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('일정이 삭제되었습니다.')),
+                                      );
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('삭제 실패: $e')),
+                                      );
+                                    }
+                                  },
                               ),
                             ],
                           ),

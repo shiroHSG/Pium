@@ -3,6 +3,7 @@ import 'package:frontend_flutter/models/calendar/schedule.dart';
 import 'package:intl/intl.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 
+import '../../models/calendar/calendar_api.dart';
 import '../../screens/calendar/add_schedule_ui.dart';
 
 class AddSchedulePopup extends StatefulWidget {
@@ -25,7 +26,21 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
   @override
   void initState() {
     super.initState();
-    _dateController.text = DateFormat('yyyy-MM-dd').format(widget.initialDate);
+
+    final existing = widget.existingSchedule;
+
+    _titleController.text = existing?.title ?? '';
+    _memoController.text = existing?.content ?? '';
+    _dateController.text = DateFormat('yyyy-MM-dd')
+        .format(existing?.startTime ?? widget.initialDate);
+
+    _timeController.text = existing != null
+        ? DateFormat('HH:mm').format(existing.startTime)
+        : '';
+
+    _selectedColor = existing != null
+        ? Color(int.parse('FF${existing.colorTag.replaceAll('#', '')}', radix: 16))
+        : AppTheme.primaryPurple;
   }
 
   @override
@@ -43,7 +58,7 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
     });
   }
 
-  void _saveSchedule() {
+  void _saveSchedule() async {
     if (_titleController.text.isEmpty || _dateController.text.isEmpty || _timeController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('제목, 날짜, 시간은 필수 입력 항목입니다.')),
@@ -58,8 +73,8 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
     final startTime = DateTime(date.year, date.month, date.day, hour, minute);
     final endTime = startTime.add(const Duration(hours: 1));
 
-    final newSchedule = Schedule(
-      id: null,
+    final Schedule newSchedule = Schedule(
+      id: widget.existingSchedule?.id, // 수정 시 id 유지
       title: _titleController.text,
       content: _memoController.text.isEmpty ? '' : _memoController.text,
       startTime: startTime,
@@ -67,8 +82,26 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
       colorTag: '#${(_selectedColor ?? AppTheme.primaryPurple).value.toRadixString(16).padLeft(8, '0').substring(2)}',
     );
 
-    Navigator.of(context).pop(newSchedule);
+    try {
+      if (widget.existingSchedule != null) {
+        // ✅ 수정
+        await CalendarApi.updateSchedule(newSchedule);
+      } else {
+        // ✅ 추가
+        final saved = await CalendarApi.postSchedule(newSchedule);
+        Navigator.of(context).pop(saved);
+        return;
+      }
+
+      // ✅ 수정된 일정 반환
+      Navigator.of(context).pop(newSchedule);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('일정 저장 실패: $e')),
+      );
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {

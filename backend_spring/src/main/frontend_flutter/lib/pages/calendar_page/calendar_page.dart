@@ -69,9 +69,12 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
+  // 일정 추가 핸들러 함수
   void _handleScheduleAdded(Schedule newSchedule) async {
+    Schedule savedSchedule;
+
     try {
-      await CalendarApi.postSchedule(newSchedule);
+      savedSchedule = await CalendarApi.postSchedule(newSchedule); // id 포함된 객체
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('일정 저장 실패')),
@@ -79,22 +82,66 @@ class _CalendarPageState extends State<CalendarPage> {
       return;
     }
 
-    final dateKey = DateTime(newSchedule.date.year, newSchedule.date.month, newSchedule.date.day);
+    final dateKey = DateTime(
+      savedSchedule.date.year,
+      savedSchedule.date.month,
+      savedSchedule.date.day,
+    );
+
     final updatedSchedules = Map<DateTime, List<Schedule>>.from(_schedules);
     updatedSchedules.update(
       dateKey,
           (existing) {
-        existing.add(newSchedule);
+        existing.add(savedSchedule);
         existing.sort((a, b) => a.startTime.compareTo(b.startTime));
         return existing;
       },
-      ifAbsent: () => [newSchedule],
+      ifAbsent: () => [savedSchedule],
     );
 
     setState(() {
       _schedules = updatedSchedules;
       _selectedDay = dateKey;
       _focusedDay = dateKey;
+    });
+  }
+
+
+  // 일정 삭제 핸들러 함수
+  void _handleScheduleDeleted(Schedule deletedSchedule) {
+    final dateKey = DateTime(
+      deletedSchedule.date.year,
+      deletedSchedule.date.month,
+      deletedSchedule.date.day,
+    );
+
+    final updatedSchedules = Map<DateTime, List<Schedule>>.from(_schedules);
+    updatedSchedules[dateKey]?.removeWhere((s) => s.id == deletedSchedule.id);
+
+    setState(() {
+      _schedules = updatedSchedules;
+    });
+  }
+
+  void _handleScheduleEdited(Schedule updatedSchedule) {
+    final dateKey = DateTime(
+      updatedSchedule.date.year,
+      updatedSchedule.date.month,
+      updatedSchedule.date.day,
+    );
+
+    final updatedSchedules = Map<DateTime, List<Schedule>>.from(_schedules);
+
+    if (updatedSchedules.containsKey(dateKey)) {
+      final index = updatedSchedules[dateKey]!
+          .indexWhere((s) => s.id == updatedSchedule.id);
+      if (index != -1) {
+        updatedSchedules[dateKey]![index] = updatedSchedule;
+      }
+    }
+
+    setState(() {
+      _schedules = updatedSchedules;
     });
   }
 
@@ -134,7 +181,11 @@ class _CalendarPageState extends State<CalendarPage> {
           SelectedDaySchedules(
             selectedDay: _selectedDay,
             schedules: _schedules,
+            onScheduleDeleted: _handleScheduleDeleted,
+            onScheduleAdded: _handleScheduleAdded,
+            onScheduleEdited: _handleScheduleEdited,
           ),
+
         ],
       ),
     );

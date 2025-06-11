@@ -5,7 +5,7 @@ import 'package:frontend_flutter/models/calendar/schedule.dart';
 
 class CalendarApi {
   // 일정 등록
-  static Future<void> postSchedule(Schedule schedule) async {
+  static Future<Schedule> postSchedule(Schedule schedule) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
 
@@ -18,7 +18,10 @@ class CalendarApi {
       body: jsonEncode(schedule.toJson()),
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      return Schedule.fromJson(data); // 서버 응답으로부터 id가 포함된 Schedule 생성
+    } else {
       throw Exception('일정 추가 실패: ${response.body}');
     }
   }
@@ -52,7 +55,7 @@ class CalendarApi {
       throw Exception('수정할 일정의 ID가 없습니다.');
     }
 
-    final response = await http.put(
+    final response = await http.patch(
       Uri.parse('http://10.0.2.2:8080/api/calendar/${schedule.id}'),  // schedule 객체 전체를 전달
       headers: {
         'Content-Type': 'application/json',
@@ -78,7 +81,7 @@ class CalendarApi {
       },
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception('일정 삭제 실패: ${response.body}');
     }
   }
