@@ -14,9 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
-// 유연한 경로 매칭 도구 ex) /{id} -> /**
 import org.springframework.util.AntPathMatcher;
-// 예외 경로 모음
 import static com.buddy.pium.config.SecurityConstants.ALLOWED_URLS;
 
 @Component
@@ -36,10 +34,8 @@ public class JwtFilter extends OncePerRequestFilter {
         String uri = request.getRequestURI();
         System.out.println("[JwtFilter] 요청 URI: " + uri);
 
-        // ✅ 유연한 경로 검사 도구
         AntPathMatcher pathMatcher = new AntPathMatcher();
 
-        // ✅ 인증 제외 URL 처리
         boolean isAllowed = ALLOWED_URLS.stream()
                 .anyMatch(pattern -> pathMatcher.match(pattern, uri));
 
@@ -58,15 +54,13 @@ public class JwtFilter extends OncePerRequestFilter {
                 Claims claims = jwtUtil.validateTokenAndGetClaims(token);
                 Long userId = Long.parseLong(claims.getSubject());
 
-                // ✅ mateInfo 추출 (nullable)
                 Object mateInfoRaw = claims.get("mateInfo");
                 Long mateInfo = (mateInfoRaw != null) ? Long.parseLong(mateInfoRaw.toString()) : null;
 
-                // ✅ Authentication 구성
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
 
-                authentication.setDetails(mateInfo); // mateInfo를 details에 저장
+                authentication.setDetails(mateInfo);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 System.out.println("[JwtFilter] 토큰 유효 → SecurityContext 등록 (memberId=" + userId + ", mateInfo=" + mateInfo + ")");
