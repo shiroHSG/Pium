@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:intl/intl.dart';
-import 'package:frontend_flutter/models/schedule.dart';
-
+import 'package:frontend_flutter/models/calendar/schedule.dart';
 import '../../pages/calendar_page/add_schedule.dart';
 
 class CalendarHeader extends StatelessWidget {
@@ -303,59 +302,42 @@ class SelectedDaySchedules extends StatelessWidget {
 
 class AddScheduleButton extends StatelessWidget {
   final DateTime? selectedDay;
-  final Map<DateTime, List<Schedule>> schedules;
-  final Function(Map<DateTime, List<Schedule>>) onScheduleAdded;
+  final Function(Schedule) onScheduleAdded;
 
   const AddScheduleButton({
     Key? key,
     required this.selectedDay,
-    required this.schedules,
     required this.onScheduleAdded,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Padding(
-        padding: const EdgeInsets.only(right: 15.0, bottom: 20.0),
-        child: Align(
-          alignment: Alignment.bottomRight,
-          child: ElevatedButton(
-            onPressed: () async {
-              final initialDateForPopup = selectedDay ?? DateTime.now();
+      padding: const EdgeInsets.only(right: 15.0, bottom: 20.0),
+      child: Align(
+        alignment: Alignment.bottomRight,
+        child: ElevatedButton(
+          onPressed: () async {
+            final initialDateForPopup = selectedDay ?? DateTime.now();
+            final newSchedule = await showDialog<Schedule>(
+              context: context,
+              builder: (BuildContext context) {
+                return AddSchedulePopup(initialDate: initialDateForPopup);
+              },
+            );
 
-              final newSchedule = await showDialog<Schedule>(
-                context: context,
-                builder: (BuildContext context) {
-                  return AddSchedulePopup(initialDate: initialDateForPopup);
-                },
-              );
-
-              if (newSchedule != null) {
-                final dateKey = DateTime(newSchedule.date.year, newSchedule.date.month, newSchedule.date.day);
-                final updatedSchedules = Map<DateTime, List<Schedule>>.from(schedules);
-                updatedSchedules.update(
-                  dateKey,
-                      (existingSchedules) {
-                    existingSchedules.add(newSchedule);
-                    existingSchedules.sort((a, b) => DateFormat('HH:mm').parse(a.time).compareTo(DateFormat('HH:mm').parse(b.time)));
-                    return existingSchedules;
-                  },
-                  ifAbsent: () => [newSchedule],
-                );
-                onScheduleAdded(updatedSchedules);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryPurple,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
+            if (newSchedule != null) {
+              onScheduleAdded(newSchedule);
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.primaryPurple,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
             ),
-            child: const Text('일정 추가'),
           ),
+          child: const Text('일정 추가'),
         ),
       ),
     );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:intl/intl.dart';
-import 'package:frontend_flutter/models/schedule.dart';
+import 'package:frontend_flutter/models/calendar/schedule.dart';
 import 'package:frontend_flutter/screens/calendar/add_calendar_ui.dart';
 
 class AddSchedulePopup extends StatefulWidget {
@@ -104,15 +104,26 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
       return;
     }
 
+    // 날짜 + 시간 조합
+    final date = DateFormat('yyyy-MM-dd').parse(_dateController.text);
+    final timeParts = _timeController.text.split(':');
+    final hour = int.tryParse(timeParts[0]) ?? 0;
+    final minute = int.tryParse(timeParts[1]) ?? 0;
+    final startTime = DateTime(date.year, date.month, date.day, hour, minute);
+    final endTime = startTime.add(const Duration(hours: 1));
+
     final newSchedule = Schedule(
+      id: null,
       title: _titleController.text,
-      date: DateFormat('yyyy-MM-dd').parse(_dateController.text),
-      time: _timeController.text,
-      memo: _memoController.text.isEmpty ? null : _memoController.text,
-      color: _selectedColor ?? AppTheme.primaryPurple,
+      content: _memoController.text.isEmpty ? '' : _memoController.text,
+      startTime: startTime,
+      endTime: endTime,
+      colorTag: '#${(_selectedColor ?? AppTheme.primaryPurple).value.toRadixString(16).padLeft(8, '0').substring(2)}',
     );
+
     Navigator.of(context).pop(newSchedule);
   }
+
 
   void _onColorSelected(Color color) {
     setState(() {
