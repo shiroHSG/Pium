@@ -4,6 +4,12 @@ server:
 spring:
   profiles:
     active: local
+# 강제로 UTF-8 인코딩
+http:
+  encoding:
+    charset: UTF-8
+    enabled: true
+    force: true
 
   jpa:
     hibernate:

@@ -18,7 +18,7 @@ class ProfileEditPage extends StatelessWidget {
           },
         ),
         title: const Text(
-          '프로필 수정',
+          '프로필',
           style: TextStyle(
             color: Colors.white,
           ),

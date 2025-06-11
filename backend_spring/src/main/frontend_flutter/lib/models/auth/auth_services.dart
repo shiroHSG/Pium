@@ -115,4 +115,31 @@ class AuthService {
       return false;
     }
   }
+
+  // 내 정보 조회
+  Future<Map<String, dynamic>?> fetchMemberInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken') ?? '';
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/member'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return data;
+      } else {
+        print('회원 정보 조회 실패: ${response.statusCode}, ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('회원 정보 조회 에러: $e');
+      return null;
+    }
+  }
 }
