@@ -228,72 +228,120 @@ class SelectedDaySchedules extends StatelessWidget {
 
     final schedulesForSelectedDay = _getSchedulesForDay(selectedDay!);
 
-    return Container(
-      height: 170,
-      padding: const EdgeInsets.all(16.0),
-      margin: const EdgeInsets.fromLTRB(30.0, 0, 30.0, 15.0),
-      decoration: BoxDecoration(
-        color: AppTheme.lightPink,
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 5.0, top: 5.0, right: 5.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${DateFormat('d일').format(selectedDay!)}',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPurple,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: schedulesForSelectedDay.isEmpty
-                  ? Center(
-                child: Text(
-                  '선택된 날짜에 일정이 없습니다.',
-                  style: TextStyle(color: Colors.grey[600]),
-                ),
-              )
-                  : ListView.builder(
-                shrinkWrap: true,
-                physics: const ClampingScrollPhysics(),
-                itemCount: schedulesForSelectedDay.length,
-                itemBuilder: (context, index) {
-                  final schedule = schedulesForSelectedDay[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(top: 6, right: 8),
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: schedule.color,
-                            shape: BoxShape.circle,
-                          ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 50.0),
+      child: Container(
+        height: 230, // 높이 조금 늘림
+        padding: const EdgeInsets.all(16.0),
+        margin: const EdgeInsets.fromLTRB(30.0, 0, 30.0, 15.0),
+        decoration: BoxDecoration(
+          color: AppTheme.lightPink,
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 5.0, top: 5.0, right: 5.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 상단에 날짜 + 추가 아이콘 정렬
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${DateFormat('d일').format(selectedDay!)}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPurple,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline),
+                    color: AppTheme.textPurple,
+                    onPressed: () async {
+                      final newSchedule = await showDialog<Schedule>(
+                        context: context,
+                        builder: (_) => AddSchedulePopup(
+                          initialDate: selectedDay!,
                         ),
-                        Expanded(
-                          child: Text(
-                            '${schedule.title} - ${schedule.time}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: AppTheme.textPurple,
+                      );
+                      if (newSchedule != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('일정이 추가되었습니다. 새로고침해주세요.')),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: schedulesForSelectedDay.isEmpty
+                    ? Center(
+                  child: Text(
+                    '선택된 날짜에 일정이 없습니다.',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                )
+                    : ListView.builder(
+                  itemCount: schedulesForSelectedDay.length,
+                  itemBuilder: (context, index) {
+                    final schedule = schedulesForSelectedDay[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(top: 6, right: 8),
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: schedule.color,
+                              shape: BoxShape.circle,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                          Expanded(
+                            child: Text(
+                              '${schedule.title} - ${schedule.time}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: AppTheme.textPurple,
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, size: 18),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => AddSchedulePopup(
+                                      initialDate: selectedDay!,
+                                      existingSchedule: schedule,
+                                    ),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete, size: 18),
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('삭제 기능은 아직 연결되지 않았어요')),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

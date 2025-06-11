@@ -7,8 +7,9 @@ import '../../screens/calendar/add_schedule_ui.dart';
 
 class AddSchedulePopup extends StatefulWidget {
   final DateTime initialDate;
+  final Schedule? existingSchedule;
 
-  const AddSchedulePopup({Key? key, required this.initialDate}) : super(key: key);
+  const AddSchedulePopup({Key? key, required this.initialDate,this.existingSchedule}) : super(key: key);
 
   @override
   State<AddSchedulePopup> createState() => _AddSchedulePopupState();

@@ -135,10 +135,6 @@ class _CalendarPageState extends State<CalendarPage> {
             selectedDay: _selectedDay,
             schedules: _schedules,
           ),
-          AddScheduleButton(
-            selectedDay: _selectedDay,
-            onScheduleAdded: _handleScheduleAdded,
-          ),
         ],
       ),
     );
