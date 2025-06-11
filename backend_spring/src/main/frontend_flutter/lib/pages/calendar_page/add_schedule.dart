@@ -3,7 +3,7 @@ import 'package:frontend_flutter/models/calendar/schedule.dart';
 import 'package:intl/intl.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 
-import '../../screens/calendar/add_calendar_ui.dart';
+import '../../screens/calendar/add_schedule_ui.dart';
 
 class AddSchedulePopup extends StatefulWidget {
   final DateTime initialDate;
