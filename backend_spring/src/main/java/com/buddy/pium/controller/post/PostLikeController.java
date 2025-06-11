@@ -14,13 +14,10 @@ public class PostLikeController {
     private final PostLikeService postLikeService;
 
     @PostMapping
-    public ResponseEntity<String> toggleLike(@PathVariable Long postId,
-                                             Authentication auth) {
+    public ResponseEntity<String> toggleLike(@PathVariable Long postId, Authentication auth) {
         Long memberId = (Long) auth.getPrincipal();
         boolean liked = postLikeService.toggleLike(postId, memberId);
-        return liked
-                ? ResponseEntity.ok("좋아요 추가됨")
-                : ResponseEntity.ok("좋아요 취소됨");
+        return liked ? ResponseEntity.ok("좋아요 추가됨") : ResponseEntity.ok("좋아요 취소됨");
     }
 
     @GetMapping

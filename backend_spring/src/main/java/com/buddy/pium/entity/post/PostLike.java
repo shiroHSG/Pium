@@ -25,4 +25,3 @@ public class PostLike {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 }
-

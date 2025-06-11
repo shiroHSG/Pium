@@ -38,8 +38,7 @@ public class Post {
     @Column(nullable = false)
     private String content;
 
-    @Builder.Default
-    private Long viewCount = 0L;
+    private Long viewCount;
 
     private String postImg;
 
@@ -51,9 +50,7 @@ public class Post {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @Builder.Default
-    @Column(nullable = false)
-    private Long likeCount = 0L;
+    private Long likeCount;
 
     @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)

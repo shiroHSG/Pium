@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/posts")
+@RequestMapping("/posts")
 public class PostController {
 
     private final PostService postService;
@@ -26,12 +26,12 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PostResponse> get(@PathVariable Long id, Authentication auth) {
+    public ResponseEntity<PostResponse> get(@PathVariable Long id) {
         return ResponseEntity.ok(postService.get(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<PostResponse>> getAll(@RequestParam String category, Authentication auth) {
+    public ResponseEntity<List<PostResponse>> getAll(@RequestParam String category) {
         return ResponseEntity.ok(postService.getAll(category));
     }
 
@@ -45,21 +45,18 @@ public class PostController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id,
-                                       Authentication auth) {
+    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication auth) {
         Long memberId = (Long) auth.getPrincipal();
         postService.delete(id, memberId);
         return ResponseEntity.ok().build();
     }
 
-    // /search?type=자유&keyword=123
     @GetMapping("/search")
     public ResponseEntity<Page<PostResponse>> search(
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String sort,
-            Pageable pageable,
-            Authentication auth
+            Pageable pageable
     ) {
         if ("likes".equals(sort)) {
             return ResponseEntity.ok(postService.searchByLikes(pageable));
