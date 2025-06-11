@@ -25,7 +25,7 @@ class _CalendarPageState extends State<CalendarPage> {
     _selectedDay = _focusedDay;
     _currentMonthIndex = 0;
     _pageController = PageController(initialPage: _currentMonthIndex);
-    _loadSchedules(); // ✅ 일정 불러오기
+    _loadSchedules(); // 일정 불러오기
   }
 
   Future<void> _loadSchedules() async {
