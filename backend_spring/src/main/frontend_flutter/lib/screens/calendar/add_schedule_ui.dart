@@ -165,7 +165,7 @@ class _ColorPaletteState extends State<_ColorPalette> {
           _buildColorOption(Colors.orange),
           _buildColorOption(Colors.lightGreen),
           _buildColorOption(Colors.lightBlueAccent),
-          _buildColorOption(AppTheme.primaryPurple),
+          _buildColorOption(AppTheme.textPurple),
         ],
       ),
     );

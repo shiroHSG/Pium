@@ -256,7 +256,7 @@ class SelectedDaySchedules extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.add_circle_outline),
+                    icon: const Icon(Icons.add_circle_outline, size: 25,),
                     color: AppTheme.textPurple,
                     onPressed: () async {
                       final newSchedule = await showDialog<Schedule>(
@@ -313,7 +313,7 @@ class SelectedDaySchedules extends StatelessWidget {
                           Row(
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.edit, size: 18),
+                                icon: const Icon(Icons.edit, size: 20),
                                 onPressed: () {
                                   showDialog(
                                     context: context,
@@ -325,7 +325,7 @@ class SelectedDaySchedules extends StatelessWidget {
                                 },
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete, size: 18),
+                                icon: const Icon(Icons.delete, size: 20, color: Colors.redAccent,),
                                 onPressed: () {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('삭제 기능은 아직 연결되지 않았어요')),
