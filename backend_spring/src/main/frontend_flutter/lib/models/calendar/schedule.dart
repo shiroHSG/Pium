@@ -19,17 +19,24 @@ class Schedule {
 
   // JSON -> Schedule
   factory Schedule.fromJson(Map<String, dynamic> json) {
+    final startTimeStr = json['start_time'];
+    final endTimeStr = json['end_time'];
+
+    if (startTimeStr == null || endTimeStr == null) {
+      throw Exception('start_time 또는 end_time이 null입니다.');
+    }
+
     return Schedule(
-      id: json['id'],
-      title: json['title'],
-      content: json['content'],
-      startTime: DateTime.parse(json['start_time']),
-      endTime: DateTime.parse(json['end_time']),
-      colorTag: json['color_tag'],
+      id: json['id'] as int?,
+      title: json['title'] as String? ?? '',
+      content: json['content'] as String? ?? '',
+      startTime: DateTime.parse(startTimeStr),
+      endTime: DateTime.parse(endTimeStr),
+      colorTag: json['color_tag'] as String? ?? '#FFFFFF',
     );
   }
 
-  // Schedule -> JSON (POST용)
+  // Schedule -> JSON
   Map<String, dynamic> toJson() {
     return {
       "title": title,

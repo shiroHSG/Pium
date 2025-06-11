@@ -42,4 +42,44 @@ class CalendarApi {
       throw Exception('일정 목록 불러오기 실패: ${response.body}');
     }
   }
+
+  // 일정 수정
+  static Future<void> updateSchedule(Schedule schedule) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    if (schedule.id == null) {
+      throw Exception('수정할 일정의 ID가 없습니다.');
+    }
+
+    final response = await http.put(
+      Uri.parse('http://10.0.2.2:8080/api/calendar/${schedule.id}'),  // schedule 객체 전체를 전달
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(schedule.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('일정 수정 실패: ${response.body}');
+    }
+  }
+
+  // 일정 삭제
+  static Future<void> deleteSchedule(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    final response = await http.delete(
+      Uri.parse('http://10.0.2.2:8080/api/calendar/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('일정 삭제 실패: ${response.body}');
+    }
+  }
 }
