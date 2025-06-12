@@ -28,8 +28,11 @@ public class PolicyService {
     public PolicyResponseDto getPolicyById(Long id) {
         Policy policy = policyRepository.findById(id)
                 .orElseThrow(() -> new PolicyNotFoundException(id));
-
-        policy.setViewCount(policy.getViewCount() + 1);
+        if(policy.getViewCount()== null)
+            policy.setViewCount(1L);
+        else {
+            policy.setViewCount(policy.getViewCount() + 1);
+        }
         policyRepository.save(policy);
 
         return PolicyResponseDto.fromEntity(policy);
