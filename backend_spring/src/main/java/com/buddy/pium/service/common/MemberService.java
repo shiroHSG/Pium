@@ -39,7 +39,7 @@ public class MemberService {
                 .address(dto.getAddress())
                 .birth(dto.getBirth())
                 .gender(dto.getGender())
-                .profileImage(dto.getProfileImage())
+                .profileImageUrl(dto.getProfileImageUrl())
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .build();
 
@@ -60,7 +60,7 @@ public class MemberService {
         if (dto.getAddress() != null) member.setAddress(dto.getAddress());
         if (dto.getBirth() != null) member.setBirth(dto.getBirth());
         if (dto.getGender() != null) member.setGender(dto.getGender());
-        if (dto.getProfileImage() != null) member.setProfileImage(dto.getProfileImage());
+        if (dto.getProfileImageUrl() != null) member.setProfileImageUrl(dto.getProfileImageUrl());
 
         // 변경 감지를 통해 자동으로 DB 반영됨 (save 호출 불필요)
         return toResponseDto(member);
@@ -142,7 +142,7 @@ public class MemberService {
                 .address(member.getAddress())
                 .birth(member.getBirth())
                 .gender(member.getGender())
-                .profileImage(member.getProfileImage())
+                .profileImageUrl(member.getProfileImageUrl())
                 .mateInfo(member.getMateInfo())
                 .refreshToken("****")  // 🔐 마스킹 또는 null
                 .createdAt(member.getCreatedAt())  // 🔄 변환

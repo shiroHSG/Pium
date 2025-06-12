@@ -13,18 +13,17 @@ public class PostLikeController {
 
     private final PostLikeService postLikeService;
 
+    // 좋아요 토글 API
     @PostMapping
-    public ResponseEntity<String> toggleLike(@PathVariable Long postId,
-                                             Authentication auth) {
+    public ResponseEntity<String> toggleLike(@PathVariable Long postId, Authentication auth) {
         Long memberId = (Long) auth.getPrincipal();
         boolean liked = postLikeService.toggleLike(postId, memberId);
-        return liked
-                ? ResponseEntity.ok("좋아요 추가됨")
-                : ResponseEntity.ok("좋아요 취소됨");
+        return liked ? ResponseEntity.ok("좋아요 추가됨") : ResponseEntity.ok("좋아요 취소됨");
     }
 
+    // 좋아유 수 반환
     @GetMapping
-    public ResponseEntity<Long> countLikes(@PathVariable Long postId) {
+    public ResponseEntity<?> countLikes(@PathVariable Long postId, Authentication auth) {
         long count = postLikeService.countLikes(postId);
         return ResponseEntity.ok(count);
     }

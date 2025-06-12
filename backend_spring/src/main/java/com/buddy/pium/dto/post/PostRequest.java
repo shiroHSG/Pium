@@ -8,6 +8,6 @@ public class PostRequest {
     private String category;
     private String title;
     private String content;
-    private String postImg;
+    private String imgUrl;
 }
 // 글 작성

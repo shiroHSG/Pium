@@ -1,6 +1,5 @@
 package com.buddy.pium.dto.post;
 
-import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.Post;
 import lombok.*;
 
@@ -16,9 +15,9 @@ public class PostResponse {
     private String title;
     private String content;
     private String category;
-    private String postImg;
+    private String imgUrl;
     private String author;
-    private int viewCount;
+    private Long viewCount;
     private LocalDateTime createdAt;
 
     public static PostResponse from(Post post) {
@@ -27,11 +26,10 @@ public class PostResponse {
                 post.getTitle(),
                 post.getContent(),
                 post.getCategory(),
-                post.getPostImg(),
+                post.getImgUrl(),
                 post.getMember().getNickname(),
-                post.getViewCount(),
+                post.getViewCount() != null ? post.getViewCount() : 0,
                 post.getCreatedAt()
         );
     }
 }
-// 글 조회

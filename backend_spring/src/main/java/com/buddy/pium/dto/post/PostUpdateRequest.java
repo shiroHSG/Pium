@@ -7,6 +7,6 @@ import lombok.Setter;
 public class PostUpdateRequest {
     private String title;
     private String content;
-    private String postImg;
+    private String imgUrl;
 }
 // 글 수정

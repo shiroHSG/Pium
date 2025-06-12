@@ -8,9 +8,8 @@ public class CalendarResponseDto {
     private Long id;
     private String title;
     private String content;
-    private LocalDateTime start_time;
-    private LocalDateTime end_time;
-    private String color_tag;
+    private LocalDateTime startTime;
+    private String colorTag;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -30,7 +30,7 @@ public class ChildService {
                 .gender(dto.getGender())
                 .height(dto.getHeight())
                 .weight(dto.getWeight())
-                .profileImg(dto.getProfileImg())
+                .profileImgUrl(dto.getProfileImgUrl())
                 .sensitiveInfo(dto.getSensitiveInfo())
                 .build();
 
@@ -60,7 +60,7 @@ public class ChildService {
         if (dto.getGender() != null) child.setGender(dto.getGender());
         if (dto.getHeight() != null) child.setHeight(dto.getHeight());
         if (dto.getWeight() != null) child.setWeight(dto.getWeight());
-        if (dto.getProfileImg() != null) child.setProfileImg(dto.getProfileImg());
+        if (dto.getProfileImgUrl() != null) child.setProfileImgUrl(dto.getProfileImgUrl());
         if (dto.getSensitiveInfo() != null) child.setSensitiveInfo(dto.getSensitiveInfo());
     }
 

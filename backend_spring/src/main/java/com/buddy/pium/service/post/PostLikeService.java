@@ -8,6 +8,7 @@ import com.buddy.pium.repository.post.PostLikeRepository;
 import com.buddy.pium.repository.post.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -19,6 +20,7 @@ public class PostLikeService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
 
+    @Transactional
     public boolean toggleLike(Long postId, Long memberId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("게시글 없음"));
@@ -30,13 +32,15 @@ public class PostLikeService {
 
         if (existing.isPresent()) {
             postLikeRepository.delete(existing.get());
-            return false; // 좋아요 취소
+//            post.setLikeCount(post.getLikeCount() - 1);
+            return false;
         } else {
             postLikeRepository.save(PostLike.builder()
                     .post(post)
                     .member(member)
                     .build());
-            return true; // 좋아요 추가
+//            post.setLikeCount(post.getLikeCount() + 1);
+            return true;
         }
     }
 

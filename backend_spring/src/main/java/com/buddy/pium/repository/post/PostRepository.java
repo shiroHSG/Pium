@@ -12,8 +12,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     List<Post> findAllByCategory(String category);
 
-    // List<Post> findAllPosts();
-
     Page<Post> findByTitleContaining(String keyword, Pageable pageable);
 
     Page<Post> findByContentContaining(String keyword, Pageable pageable);
@@ -21,5 +19,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE p.member.nickname LIKE %:keyword%")
     Page<Post> findByWriterNickname(String keyword, Pageable pageable);
 
-    Page<Post> findAllByOrderByLikeCountDesc(Pageable pageable);
+    @Query(
+            value = "SELECT p FROM PostLike pl JOIN pl.post p GROUP BY p ORDER BY COUNT(pl) DESC",
+            countQuery = "SELECT COUNT(DISTINCT p) FROM Post p"
+    )
+    Page<Post> findAllOrderByLikeCountDesc(Pageable pageable);
+
 }

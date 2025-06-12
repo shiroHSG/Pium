@@ -27,13 +27,14 @@ public class PostService {
                 .title(dto.getTitle())
                 .content(dto.getContent())
                 .category(dto.getCategory())
-                .postImg(dto.getPostImg())
+                .imgUrl(dto.getImgUrl())
                 .member(member)
+                .viewCount(0L)
                 .build();
 
         postRepository.save(post);
 
-        return toResponse(post);
+        return PostResponse.from(post);
     }
 
     public PostResponse get(Long id) {
@@ -43,12 +44,12 @@ public class PostService {
         post.setViewCount(post.getViewCount() + 1);
         postRepository.save(post);
 
-        return toResponse(post);
+        return PostResponse.from(post);
     }
 
     public List<PostResponse> getAll(String category) {
         return postRepository.findAllByCategory(category).stream()
-                .map(this::toResponse)
+                .map(PostResponse::from)
                 .toList();
     }
 
@@ -62,7 +63,7 @@ public class PostService {
 
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
-        post.setPostImg(dto.getPostImg());
+        post.setImgUrl(dto.getImgUrl());
     }
 
     public void delete(Long postId, Long memberId) {
@@ -90,24 +91,11 @@ public class PostService {
             }
         }
 
-        return posts.map(this::toResponse);
+        return posts.map(PostResponse::from);
     }
 
     public Page<PostResponse> searchByLikes(Pageable pageable) {
-        return postRepository.findAllByOrderByLikeCountDesc(pageable)
-                .map(this::toResponse);
-    }
-
-    private PostResponse toResponse(Post post) {
-        return new PostResponse(
-                post.getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getCategory(),
-                post.getPostImg(),
-                post.getMember().getNickname(),
-                post.getViewCount() != null ? post.getViewCount() : 0,
-                post.getCreatedAt()
-        );
+        return postRepository.findAllOrderByLikeCountDesc(pageable)
+                .map(PostResponse::from);
     }
 }
