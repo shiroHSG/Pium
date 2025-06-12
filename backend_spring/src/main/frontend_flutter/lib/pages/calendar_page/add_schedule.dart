@@ -67,7 +67,7 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
     }
 
     try {
-      final date = DateFormat('yyyy년 MM월 dd').parse(_dateController.text);
+      final date = DateFormat('yyyy년 MM월 dd일').parse(_dateController.text);
 
       // "00시 00분" → 시간/분 정수로 추출
       final timeRegex = RegExp(r'(\d+)시\s*(\d+)?분?');
@@ -92,8 +92,8 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
       if (widget.existingSchedule != null) {
         await CalendarApi.updateSchedule(newSchedule);
       } else {
-        final saved = await CalendarApi.postSchedule(newSchedule);
-        Navigator.of(context).pop(saved);
+        final saved = await CalendarApi.updateSchedule(newSchedule);
+        Navigator.of(context).pop(newSchedule);
         return;
       }
 
@@ -104,7 +104,6 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
