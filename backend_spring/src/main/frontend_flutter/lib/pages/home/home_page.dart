@@ -28,17 +28,18 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Schedule> _schedules = [];
   BabyProfile _babyProfile = BabyProfile(
     name: '아이',
-    dob: 'YY-MM-DD',
-    height: '00',
-    weight: '00',
-    development: '00이는 생후 4개월이에요. 팔을 뻗어서 물체를 잡으려고 해요.',
+    birthDate: DateTime(2024, 1, 1),
+    gender: Gender.MALE,
+    height: 0,
+    weight: 0,
+    developmentStep: '00이는 생후 4개월이에요. 팔을 뻗어서 물체를 잡으려고 해요.',
   );
   ImageProvider? _babyImage;
 
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus(); // 로그인 상태 체크
+    _checkLoginStatus();
     _loadBabyProfile();
   }
 
@@ -46,7 +47,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final prefs = await SharedPreferences.getInstance();
     final String? accessToken = prefs.getString('accessToken');
     if (accessToken == null) {
-      print('토큰 없음: 로그인 페이지로 리다이렉트');
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => Login()),
@@ -116,11 +116,10 @@ class _MyHomePageState extends State<MyHomePage> {
       context: context,
       builder: (BuildContext context) {
         final _nameController = TextEditingController(text: _babyProfile.name);
-        final _birthDateController = TextEditingController(text: _babyProfile.dob);
-        final _heightController = TextEditingController(text: _babyProfile.height ?? '');
-        final _weightController = TextEditingController(text: _babyProfile.weight ?? '');
-        final _developmentController =
-        TextEditingController(text: _babyProfile.development ?? '');
+        final _birthDateController = TextEditingController(text: _babyProfile.birthDate.toIso8601String().split('T').first);
+        final _heightController = TextEditingController(text: _babyProfile.height?.toString() ?? '');
+        final _weightController = TextEditingController(text: _babyProfile.weight?.toString() ?? '');
+        final _developmentController = TextEditingController(text: _babyProfile.developmentStep ?? '');
 
         return AlertDialog(
           title: const Text('아이 정보 수정'),
@@ -162,10 +161,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 setState(() {
                   _babyProfile = BabyProfile(
                     name: _nameController.text,
-                    dob: _birthDateController.text,
-                    height: _heightController.text.isEmpty ? null : _heightController.text,
-                    weight: _weightController.text.isEmpty ? null : _weightController.text,
-                    development: _developmentController.text.isEmpty ? null : _developmentController.text,
+                    birthDate: DateTime.tryParse(_birthDateController.text) ?? DateTime(2024, 1, 1),
+                    gender: _babyProfile.gender,
+                    height: double.tryParse(_heightController.text),
+                    weight: double.tryParse(_weightController.text),
+                    developmentStep: _developmentController.text.isEmpty ? null : _developmentController.text,
                   );
                 });
                 Navigator.of(context).pop();
@@ -179,7 +179,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(  // 화면의 전체 구조
+    return Scaffold(
       key: _scaffoldKey,
       appBar: CustomAppBar(
         onMenuPressed: () {
@@ -190,7 +190,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onItemSelected: _onItemTapped,
         onLoginStatusChanged: _onLoginStatusChanged,
       ),
-      body: _getPageContent(_selectedIndex),  // 선택된 탭(인덱스)에 따라 화면을 바꿔줌
+      body: _getPageContent(_selectedIndex),
       bottomNavigationBar: CustomBottomNavigationBar(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
@@ -218,11 +218,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 babyImage: _babyImage,
                 onEditPressed: _showEditBabyProfileDialog,
               ),
-              TodayScheduleCard(
-                todaySchedules: todaySchedules,
-                onCalendarTap: _navigateToCalendarPage,
-              ),
-              const PopularPostsSection(),
+              // TodayScheduleCard(
+              //   todaySchedules: todaySchedules,
+              //   onCalendarTap: _navigateToCalendarPage,
+              // ),
+              // const PopularPostsSection(),
             ],
           ),
         );

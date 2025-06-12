@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/baby_profile.dart';
+import 'package:intl/intl.dart';
 import '../../screens/my_page/babyProfile_edit_page_ui.dart';
 
 class BabyProfileEditPage extends StatefulWidget {
   final BabyProfile babyProfile;
+
   const BabyProfileEditPage({Key? key, required this.babyProfile}) : super(key: key);
 
   @override
@@ -16,43 +18,62 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _nameController;
-  late TextEditingController _dobController;
   late TextEditingController _heightController;
   late TextEditingController _weightController;
-  late TextEditingController _allergiesController;
-
-  String? _selectedGender;
+  late TextEditingController _allergyController;
+  late DateTime _selectedDate;
+  Gender? _selectedGender; // ✅ nullable 처리
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.babyProfile.name);
-    _dobController = TextEditingController(text: widget.babyProfile.dob);
-    _heightController = TextEditingController(text: widget.babyProfile.height ?? '');
-    _weightController = TextEditingController(text: widget.babyProfile.weight ?? '');
-    _allergiesController = TextEditingController(text: widget.babyProfile.allergies ?? '');
-    _selectedGender = widget.babyProfile.gender;
+    _selectedDate = widget.babyProfile.birthDate;
+    _selectedGender = widget.babyProfile.gender; // nullable
+    _heightController = TextEditingController(
+        text: widget.babyProfile.height?.toStringAsFixed(1) ?? '');
+    _weightController = TextEditingController(
+        text: widget.babyProfile.weight?.toStringAsFixed(1) ?? '');
+    _allergyController = TextEditingController(
+        text: widget.babyProfile.allergy ?? '');
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _dobController.dispose();
     _heightController.dispose();
     _weightController.dispose();
-    _allergiesController.dispose();
+    _allergyController.dispose();
     super.dispose();
+  }
+
+  void _pickBirthDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
   }
 
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
       final updated = widget.babyProfile.copyWith(
         name: _nameController.text,
-        dob: _dobController.text,
-        gender: _selectedGender,
-        height: _heightController.text.isEmpty ? null : _heightController.text,
-        weight: _weightController.text.isEmpty ? null : _weightController.text,
-        allergies: _allergiesController.text.isEmpty ? null : _allergiesController.text,
+        birthDate: _selectedDate,
+        gender: _selectedGender, // nullable 그대로 넘김
+        height: _heightController.text.isEmpty
+            ? null
+            : double.tryParse(_heightController.text),
+        weight: _weightController.text.isEmpty
+            ? null
+            : double.tryParse(_weightController.text),
+        allergy: _allergyController.text.isEmpty ? null : _allergyController.text,
       );
       Navigator.pop(context, updated);
     }
@@ -66,9 +87,7 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: AppTheme.textPurple),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           '아이정보 수정 페이지',
@@ -86,7 +105,6 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
                 Container(
@@ -104,37 +122,35 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                 EditInputField(
                   controller: _nameController,
                   labelText: '이름',
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '이름을 입력해주세요.';
-                    }
-                    return null;
-                  },
+                  validator: (v) =>
+                  v == null || v.isEmpty ? '이름을 입력해주세요.' : null,
                 ),
                 const SizedBox(height: 20),
-                EditInputField(
-                  controller: _dobController,
-                  labelText: '생년월일',
-                  keyboardType: TextInputType.datetime,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-                  ],
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '생년월일을 입력해주세요.';
-                    }
-                    if (!RegExp(r'^\d{4}\.\d{2}\.\d{2}$').hasMatch(value)) {
-                      return 'YYYY.MM.DD 형식으로 입력해주세요.';
-                    }
-                    return null;
-                  },
+                GestureDetector(
+                  onTap: _pickBirthDate,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 14, horizontal: 15),
+                    decoration: BoxDecoration(
+                      color: AppTheme.lightPink,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      DateFormat('yyyy.MM.dd').format(_selectedDate),
+                      style: const TextStyle(
+                          fontSize: 16, color: AppTheme.textPurple),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 GenderSelectionForEdit(
-                  selectedGender: _selectedGender,
-                  onChanged: (gender) {
+                  selectedGender: _selectedGender?.name ?? '', // ✅ null safe
+                  onChanged: (genderStr) {
                     setState(() {
-                      _selectedGender = gender;
+                      _selectedGender = genderStr == '남아'
+                          ? Gender.MALE
+                          : Gender.FEMALE;
                     });
                   },
                 ),
@@ -142,39 +158,27 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                 EditInputField(
                   controller: _heightController,
                   labelText: '키',
-                  hintText: '예: 110cm',
+                  hintText: '예: 110',
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                   ],
-                  validator: (value) {
-                    if (value != null && value.isNotEmpty && int.tryParse(value) == null) {
-                      return '숫자만 입력해주세요.';
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 20),
                 EditInputField(
                   controller: _weightController,
                   labelText: '몸무게',
-                  hintText: '예: 18kg',
+                  hintText: '예: 18',
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                   ],
-                  validator: (value) {
-                    if (value != null && value.isNotEmpty && int.tryParse(value) == null) {
-                      return '숫자만 입력해주세요.';
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 20),
                 EditInputField(
-                  controller: _allergiesController,
+                  controller: _allergyController,
                   labelText: '알러지',
-                  hintText: '예: 우유, 땅콩',
+                  hintText: '없으면 "없음"',
                 ),
                 const SizedBox(height: 40),
                 ElevatedButton(
