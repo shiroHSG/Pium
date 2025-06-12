@@ -1,6 +1,87 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 
+Future<void> onDateTap(BuildContext context, TextEditingController dateController) async {
+  final DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(2000),
+    lastDate: DateTime(2100),
+    locale: const Locale('ko', 'KR'),
+  );
+  if (picked != null) {
+    dateController.text = '${picked.year}년 ${picked.month}월 ${picked.day}일';
+  }
+}
+
+void showCustomTimePicker(BuildContext context, TextEditingController timeController) {
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (BuildContext context) {
+      int selectedHour = DateTime.now().hour;
+      int selectedMinute = DateTime.now().minute;
+
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            height: 250,
+            child: Column(
+              children: [
+                const Text('시간 선택', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    DropdownButton<int>(
+                      value: selectedHour,
+                      items: List.generate(
+                        24,
+                            (index) => DropdownMenuItem(
+                          value: index,
+                          child: Text('$index시'),
+                        ),
+                      ),
+                      onChanged: (value) => setState(() => selectedHour = value!),
+                    ),
+                    const SizedBox(width: 16),
+                    DropdownButton<int>(
+                      value: selectedMinute,
+                      items: List.generate(
+                        60,
+                            (index) => DropdownMenuItem(
+                          value: index,
+                          child: Text('$index분'),
+                        ),
+                      ),
+                      onChanged: (value) => setState(() => selectedMinute = value!),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    timeController.text = '$selectedHour시 $selectedMinute분';
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryPurple,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('확인'),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
 Widget buildScheduleDialog(
     BuildContext context,
     TextEditingController titleController,
@@ -10,8 +91,6 @@ Widget buildScheduleDialog(
     Color? selectedColor,
     ValueChanged<Color> onColorSelected,
     VoidCallback onSave,
-    Future<void> Function(BuildContext) onDateTap,
-    Future<void> Function(BuildContext) onTimeTap,
     ) {
   return AlertDialog(
     contentPadding: EdgeInsets.zero,
@@ -30,9 +109,17 @@ Widget buildScheduleDialog(
           _AddScheduleHeader(onClose: () => Navigator.of(context).pop()),
           _ScheduleInputField(hint: '일정 제목', controller: titleController),
           const SizedBox(height: 15),
-          _ScheduleInputField(hint: '날짜', controller: dateController, onTap: () => onDateTap(context)),
+          _ScheduleInputField(
+            hint: '날짜',
+            controller: dateController,
+            onTap: () => onDateTap(context, dateController),
+          ),
           const SizedBox(height: 15),
-          _ScheduleInputField(hint: '시간', controller: timeController, onTap: () => onTimeTap(context)),
+          _ScheduleInputField(
+            hint: '시간',
+            controller: timeController,
+            onTap: () => showCustomTimePicker(context, timeController),
+          ),
           const SizedBox(height: 15),
           _ScheduleInputField(hint: '메모(선택)', controller: memoController, maxLines: 3),
           const SizedBox(height: 20),

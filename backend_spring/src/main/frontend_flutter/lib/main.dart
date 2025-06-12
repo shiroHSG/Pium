@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/pages/auth/login.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -18,6 +19,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: '피움 앱',
       theme: AppTheme.lightTheme,
+      locale: const Locale('ko', 'KR'), // 앱 기본설정 한국어
+      supportedLocales: const [
+        Locale('ko', 'KR'),
+        Locale('en', 'US'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+
       home: const SplashScreen(),
       routes: {
         '/home': (context) => const MyHomePage(),

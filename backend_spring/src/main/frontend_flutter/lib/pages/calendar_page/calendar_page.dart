@@ -155,7 +155,7 @@ class _CalendarPageState extends State<CalendarPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppTheme.primaryPurple,
-        title: const Text('일정'),
+        title: const Text('캘린더'),
         centerTitle: true,
         actions: [
           IconButton(

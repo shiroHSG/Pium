@@ -84,16 +84,16 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
 
     try {
       if (widget.existingSchedule != null) {
-        // ✅ 수정
+        // 수정
         await CalendarApi.updateSchedule(newSchedule);
       } else {
-        // ✅ 추가
+        // 추가
         final saved = await CalendarApi.postSchedule(newSchedule);
         Navigator.of(context).pop(saved);
         return;
       }
 
-      // ✅ 수정된 일정 반환
+      // 수정된 일정 반환
       Navigator.of(context).pop(newSchedule);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -114,8 +114,6 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
       _selectedColor,
       _onColorSelected,
       _saveSchedule,
-      _selectDate,
-      _selectTime,
     );
   }
 

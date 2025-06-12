@@ -4,12 +4,6 @@ server:
 spring:
   profiles:
     active: local
-# 강제로 UTF-8 인코딩
-http:
-  encoding:
-    charset: UTF-8
-    enabled: true
-    force: true
 
   datasource:
     url: jdbc:mysql://localhost:3306/pium
@@ -31,3 +25,10 @@ logging:
 # backend_spring/src/main/resources/application.yml
 jwt:
   secret: ${JWT_SECRET}
+
+# 강제로 UTF-8 인코딩
+http:
+  encoding:
+    charset: UTF-8
+    enabled: true
+    force: true
