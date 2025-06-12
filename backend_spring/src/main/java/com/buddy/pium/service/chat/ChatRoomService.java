@@ -391,7 +391,7 @@ public class ChatRoomService {
     }
 
     // 유효 유저 확인
-    private Member validateMember(Long memberId, String error) {
+    private Member validateMember(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("보내는 유저가 존재하지 않습니다."));
     }
