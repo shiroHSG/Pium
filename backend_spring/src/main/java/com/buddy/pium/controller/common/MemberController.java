@@ -23,7 +23,7 @@ public class MemberController {
     /**
      * 회원 가입
      */
-    @PostMapping("/register")
+    @PostMapping
     public ResponseEntity<MemberResponseDto> create(@RequestBody MemberRegisterDto registerDto) {
         MemberResponseDto responseDto = memberService.createMember(registerDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
@@ -32,7 +32,7 @@ public class MemberController {
     /**
      * 회원 정보 수정
      */
-    @PatchMapping("/edit")
+    @PatchMapping
     public ResponseEntity<MemberResponseDto> update(@RequestBody MemberUpdateDto updateDto,
                                                     @CurrentMemberId Long memberId) {
         MemberResponseDto responseDto = memberService.updateMember(memberId, updateDto);

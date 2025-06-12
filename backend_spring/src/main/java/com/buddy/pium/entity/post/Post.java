@@ -3,13 +3,21 @@ package com.buddy.pium.entity.post;
 import com.buddy.pium.entity.common.Member;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EntityListeners(AuditingEntityListener.class)
 public class Post {
 
     @Id
@@ -17,7 +25,7 @@ public class Post {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @Column(nullable = false)
@@ -30,25 +38,21 @@ public class Post {
     @Column(nullable = false)
     private String content;
 
-    private Integer viewCount = 0;
+    private Long viewCount;
+
     private String postImg;
 
+    @CreatedDate
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    private Integer likeCount;
+    private Long likeCount;
 
-    @PrePersist
-    public void prePersist() {
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
+    @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostLike> likes = new ArrayList<>();
 }

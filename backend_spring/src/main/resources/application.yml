@@ -11,6 +11,9 @@ http:
     enabled: true
     force: true
 
+  datasource:
+    url: jdbc:mysql://localhost:3306/pium
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -28,4 +31,3 @@ logging:
 # backend_spring/src/main/resources/application.yml
 jwt:
   secret: ${JWT_SECRET}
-

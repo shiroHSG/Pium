@@ -29,11 +29,13 @@ public class PostService {
                 .category(dto.getCategory())
                 .postImg(dto.getPostImg())
                 .member(member)
+                .viewCount(0L)
+                .likeCount(0L)
                 .build();
 
         postRepository.save(post);
 
-        return toResponse(post);
+        return PostResponse.from(post);
     }
 
     public PostResponse get(Long id) {
@@ -43,12 +45,12 @@ public class PostService {
         post.setViewCount(post.getViewCount() + 1);
         postRepository.save(post);
 
-        return toResponse(post);
+        return PostResponse.from(post);
     }
 
     public List<PostResponse> getAll(String category) {
         return postRepository.findAllByCategory(category).stream()
-                .map(this::toResponse)
+                .map(PostResponse::from)
                 .toList();
     }
 
@@ -90,24 +92,11 @@ public class PostService {
             }
         }
 
-        return posts.map(this::toResponse);
+        return posts.map(PostResponse::from);
     }
 
     public Page<PostResponse> searchByLikes(Pageable pageable) {
         return postRepository.findAllByOrderByLikeCountDesc(pageable)
-                .map(this::toResponse);
-    }
-
-    private PostResponse toResponse(Post post) {
-        return new PostResponse(
-                post.getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getCategory(),
-                post.getPostImg(),
-                post.getMember().getNickname(),
-                post.getViewCount() != null ? post.getViewCount() : 0,
-                post.getCreatedAt()
-        );
+                .map(PostResponse::from);
     }
 }

@@ -1,7 +1,9 @@
 package com.buddy.pium.entity.common;
 
+import com.buddy.pium.entity.chat.ChatRoomBan;
+import com.buddy.pium.entity.chat.ChatRoomMember;
+import com.buddy.pium.entity.chat.Message;
 import com.buddy.pium.entity.calender.Calender;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -52,11 +54,23 @@ public class Member {
     @Column(nullable = false, length = 1)
     private Enum.Gender gender;
 
-    @Column
+    @Column(length = 255)
     private String profileImage;
 
     @Column
     private Long mateInfo;
+
+    @Column(length = 255)
+    private String refreshToken;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatRoomMember> chatRoomMember = new ArrayList<>();
+
+    @OneToMany(mappedBy = "bannedMember", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatRoomBan> chatRoomBan = new ArrayList<>();
+
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Message> messages = new ArrayList<>();
 
     @CreatedDate
     @Column(nullable = false)
@@ -66,8 +80,6 @@ public class Member {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(length = 500)
-    private String refreshToken;
 
     // ✅ 양방향 관계 설정
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
