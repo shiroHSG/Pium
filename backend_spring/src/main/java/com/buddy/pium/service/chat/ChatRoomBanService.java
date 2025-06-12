@@ -22,7 +22,7 @@ public class ChatRoomBanService {
     private final ChatRoomBanRepository chatRoomBanRepository;
 
     @Transactional
-    public void banMember(Long chatRoomId, Long currentMemberId, Long targetMemberId) {
+    public void banMember(Long chatRoomId, Member member, Long targetMemberId) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new EntityNotFoundException("채팅방이 존재하지 않습니다"));
 
@@ -30,7 +30,7 @@ public class ChatRoomBanService {
             throw new IllegalArgumentException("밴 기능은 그룹 채팅방에서만 사용할 수 있습니다");
         }
 
-        ChatRoomMember requester = chatRoomMemberRepository.findByChatRoomIdAndMemberId(chatRoomId, currentMemberId)
+        ChatRoomMember requester = chatRoomMemberRepository.findByChatRoomIdAndMemberId(chatRoomId, member.getId())
                 .orElseThrow(() -> new IllegalArgumentException("요청자가 채팅방에 참여하고 있지 않습니다"));
 
         if (!requester.isAdmin()) {

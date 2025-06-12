@@ -5,15 +5,12 @@ import com.buddy.pium.dto.chat.ChatRoomRequestDTO;
 import com.buddy.pium.dto.chat.ChatRoomResponseDTO;
 import com.buddy.pium.dto.chat.InviteCheckResponseDTO;
 import com.buddy.pium.dto.chat.InviteLinkResponseDTO;
-import com.buddy.pium.dto.common.ChildResponseDto;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.chat.ChatRoomService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,7 +43,7 @@ public class ChatRoomController {
             return ResponseEntity.ok(responseDTO);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -76,7 +73,7 @@ public class ChatRoomController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -92,7 +89,7 @@ public class ChatRoomController {
             return ResponseEntity.ok(Map.of("message", "채팅방을 나갔습니다."));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -106,7 +103,7 @@ public class ChatRoomController {
             chatRoomService.deleteGroupChatRoom(chatRoomId, member);
             return ResponseEntity.ok(Map.of("message", "채팅방이 성공적으로 삭제되었습니다."));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
 
