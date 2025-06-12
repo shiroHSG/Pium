@@ -50,7 +50,7 @@ class Schedule {
   // Getter
   DateTime get date => DateTime(startTime.year, startTime.month, startTime.day);
 
-  String get time => '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}';
+  String get time => '${startTime.hour.toString().padLeft(2, '0')}시 ${startTime.minute.toString().padLeft(2, '0')}분';
 
   Color get color => Color(int.parse(colorTag.replaceFirst('#', '0xFF')));
 }

@@ -31,11 +31,11 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
 
     _titleController.text = existing?.title ?? '';
     _memoController.text = existing?.content ?? '';
-    _dateController.text = DateFormat('yyyy-MM-dd')
+    _dateController.text = DateFormat('yyyy년 MM월 dd일')
         .format(existing?.startTime ?? widget.initialDate);
 
     _timeController.text = existing != null
-        ? DateFormat('HH:mm').format(existing.startTime)
+        ? DateFormat('HH시 mm분').format(existing.startTime)
         : '';
 
     _selectedColor = existing != null
@@ -66,34 +66,37 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
       return;
     }
 
-    final date = DateFormat('yyyy-MM-dd').parse(_dateController.text);
-    final timeParts = _timeController.text.split(':');
-    final hour = int.tryParse(timeParts[0]) ?? 0;
-    final minute = int.tryParse(timeParts[1]) ?? 0;
-    final startTime = DateTime(date.year, date.month, date.day, hour, minute);
-    final endTime = startTime.add(const Duration(hours: 1));
-
-    final Schedule newSchedule = Schedule(
-      id: widget.existingSchedule?.id, // 수정 시 id 유지
-      title: _titleController.text,
-      content: _memoController.text.isEmpty ? '' : _memoController.text,
-      startTime: startTime,
-      endTime: endTime,
-      colorTag: '#${(_selectedColor ?? AppTheme.primaryPurple).value.toRadixString(16).padLeft(8, '0').substring(2)}',
-    );
-
     try {
+      final date = DateFormat('yyyy년 MM월 dd').parse(_dateController.text);
+
+      // "00시 00분" → 시간/분 정수로 추출
+      final timeRegex = RegExp(r'(\d+)시\s*(\d+)?분?');
+      final match = timeRegex.firstMatch(_timeController.text);
+      if (match == null) throw FormatException('시간 형식이 올바르지 않습니다.');
+
+      final hour = int.parse(match.group(1)!);
+      final minute = int.tryParse(match.group(2) ?? '0') ?? 0;
+
+      final startTime = DateTime(date.year, date.month, date.day, hour, minute);
+      final endTime = startTime.add(const Duration(hours: 1));
+
+      final Schedule newSchedule = Schedule(
+        id: widget.existingSchedule?.id,
+        title: _titleController.text,
+        content: _memoController.text.isEmpty ? '' : _memoController.text,
+        startTime: startTime,
+        endTime: endTime,
+        colorTag: '#${(_selectedColor ?? AppTheme.primaryPurple).value.toRadixString(16).padLeft(8, '0').substring(2)}',
+      );
+
       if (widget.existingSchedule != null) {
-        // 수정
         await CalendarApi.updateSchedule(newSchedule);
       } else {
-        // 추가
         final saved = await CalendarApi.postSchedule(newSchedule);
         Navigator.of(context).pop(saved);
         return;
       }
 
-      // 수정된 일정 반환
       Navigator.of(context).pop(newSchedule);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -120,7 +123,7 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: DateFormat('yyyy-MM-dd').parse(_dateController.text),
+      initialDate: DateFormat('yyyy년 MM월 dd일').parse(_dateController.text),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
       builder: (context, child) {
@@ -143,7 +146,7 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
     );
     if (pickedDate != null) {
       setState(() {
-        _dateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+        _dateController.text = DateFormat('yyyy년 MM월 dd일').format(pickedDate);
       });
     }
   }
