@@ -43,7 +43,7 @@ public class ChatRoomMemberService {
                 .map(m -> new ChatRoomMemberResponseDTO(
                         m.getMember().getId(),
                         m.getMember().getNickname(),
-                        m.getMember().getProfileImage(),
+                        m.getMember().getProfileImageUrl(),
                         m.isAdmin()
                 ))
                 .collect(Collectors.toList());

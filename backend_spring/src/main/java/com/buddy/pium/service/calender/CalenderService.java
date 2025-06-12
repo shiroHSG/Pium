@@ -42,9 +42,8 @@ public class CalenderService {
                 .member(member)
                 .title(dto.getTitle())
                 .content(dto.getContent())
-                .start_time(dto.getStart_time())
-                .end_time(dto.getEnd_time())
-                .color_tag(dto.getColor_tag())
+                .startTime(dto.getStartTime())
+                .colorTag(dto.getColorTag())
                 .createdAt(LocalDateTime.now())  // ✅ 수정
                 .updatedAt(LocalDateTime.now())  // ✅ 수정
                 .build();
@@ -63,9 +62,8 @@ public class CalenderService {
 
         if (dto.getTitle() != null) calender.setTitle(dto.getTitle());
         if (dto.getContent() != null) calender.setContent(dto.getContent());
-        if (dto.getStart_time() != null) calender.setStart_time(dto.getStart_time());
-        if (dto.getEnd_time() != null) calender.setEnd_time(dto.getEnd_time());
-        if (dto.getColor_tag() != null) calender.setColor_tag(dto.getColor_tag());
+        if (dto.getStartTime() != null) calender.setStartTime(dto.getStartTime());
+        if (dto.getColorTag() != null) calender.setColorTag(dto.getColorTag());
 
         calender.setUpdatedAt(LocalDateTime.now());  // ✅ 수정
 
@@ -88,9 +86,8 @@ public class CalenderService {
         dto.setId(cal.getId());
         dto.setTitle(cal.getTitle());
         dto.setContent(cal.getContent());
-        dto.setStart_time(cal.getStart_time());
-        dto.setEnd_time(cal.getEnd_time());
-        dto.setColor_tag(cal.getColor_tag());
+        dto.setStartTime(cal.getStartTime());
+        dto.setColorTag(cal.getColorTag());
         dto.setCreatedAt(cal.getCreatedAt());  // ✅ 수정: toLocalDateTime 제거
         dto.setUpdatedAt(cal.getUpdatedAt());  // ✅ 수정: toLocalDateTime 제거
         return dto;

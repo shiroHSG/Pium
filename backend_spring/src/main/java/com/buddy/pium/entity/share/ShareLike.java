@@ -5,8 +5,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"member_id", "share_id"})})
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Table(name = "share_likes",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"member_id", "share_id"})})
 public class ShareLike {
 
     @Id

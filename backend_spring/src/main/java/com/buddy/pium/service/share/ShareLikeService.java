@@ -49,7 +49,7 @@ public class ShareLikeService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("회원 없음"));
 
-        return shareLikeRepository.countByShareAndMember(share, member);
+        return shareLikeRepository.countByShare(share);
     }
 
 }

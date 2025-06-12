@@ -15,10 +15,9 @@ public class PostResponse {
     private String title;
     private String content;
     private String category;
-    private String postImg;
+    private String imgUrl;
     private String author;
     private Long viewCount;
-    private Long likeCount;
     private LocalDateTime createdAt;
 
     public static PostResponse from(Post post) {
@@ -27,10 +26,9 @@ public class PostResponse {
                 post.getTitle(),
                 post.getContent(),
                 post.getCategory(),
-                post.getPostImg(),
+                post.getImgUrl(),
                 post.getMember().getNickname(),
                 post.getViewCount() != null ? post.getViewCount() : 0,
-                post.getLikeCount() != null ? post.getLikeCount() : 0,
                 post.getCreatedAt()
         );
     }

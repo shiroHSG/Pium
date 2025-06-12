@@ -12,7 +12,7 @@ public class ShareResponse {
     private Long id;
     private String title;
     private String content;
-    private String postImg;
+    private String imgUrl;
     private String author;
     private Long viewCount;
     private LocalDateTime createdAt;
@@ -22,7 +22,7 @@ public class ShareResponse {
                 share.getId(),
                 share.getTitle(),
                 share.getContent(),
-                share.getPostImg(),
+                share.getImgUrl(),
                 share.getMember().getNickname(),
                 share.getViewCount(),
                 share.getCreatedAt()

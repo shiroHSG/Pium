@@ -32,14 +32,14 @@ public class PostLikeService {
 
         if (existing.isPresent()) {
             postLikeRepository.delete(existing.get());
-            post.setLikeCount(post.getLikeCount() - 1);
+//            post.setLikeCount(post.getLikeCount() - 1);
             return false;
         } else {
             postLikeRepository.save(PostLike.builder()
                     .post(post)
                     .member(member)
                     .build());
-            post.setLikeCount(post.getLikeCount() + 1);
+//            post.setLikeCount(post.getLikeCount() + 1);
             return true;
         }
     }

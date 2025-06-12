@@ -1,9 +1,12 @@
 package com.buddy.pium.controller.chat;
 
+import com.buddy.pium.annotation.CurrentMember;
 import com.buddy.pium.dto.chat.ChatRoomRequestDTO;
 import com.buddy.pium.dto.chat.ChatRoomResponseDTO;
 import com.buddy.pium.dto.chat.InviteCheckResponseDTO;
 import com.buddy.pium.dto.chat.InviteLinkResponseDTO;
+import com.buddy.pium.dto.common.ChildResponseDto;
+import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.chat.ChatRoomService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -32,16 +35,13 @@ public class ChatRoomController {
     public ResponseEntity<?> getOrCreateChatRoom(
             @RequestPart("chatRoomData") String chatRoomDataJson,
             @RequestPart(value = "image", required = false) MultipartFile image,
-            Authentication authentication   //임시
-//            @AuthenticationPrincipal CustomUserDetails userDetails
+            @CurrentMember Member member
     ) {
         try {
-            Long memberId = (Long) authentication.getPrincipal();
-
             ObjectMapper mapper = new ObjectMapper();
             ChatRoomRequestDTO dto = mapper.readValue(chatRoomDataJson, ChatRoomRequestDTO.class);
 
-            ChatRoomResponseDTO responseDTO = chatRoomService.getOrCreateChatRoom(dto, image, memberId);
+            ChatRoomResponseDTO responseDTO = chatRoomService.getOrCreateChatRoom(dto, image, member);
 
             return ResponseEntity.ok(responseDTO);
         } catch (Exception e) {
@@ -53,11 +53,9 @@ public class ChatRoomController {
     // 채팅방 리스트 조회
     @GetMapping
     public ResponseEntity<List<ChatRoomResponseDTO>> getMyChatRooms(
-//            @AuthenticationPrincipal CustomUserDetails userDetails
-            Authentication authentication   //임시
+            @CurrentMember Member member
     ) {
-        Long memberId = (Long) authentication.getPrincipal();
-        List<ChatRoomResponseDTO> chatRooms = chatRoomService.getChatRoomsForMember(memberId);
+        List<ChatRoomResponseDTO> chatRooms = chatRoomService.getChatRoomsForMember(member);
         return ResponseEntity.ok(chatRooms);
     }
 
@@ -67,15 +65,13 @@ public class ChatRoomController {
             @PathVariable Long chatRoomId,
             @RequestPart("chatRoomData") String chatRoomDataJson,
             @RequestPart(value = "image", required = false) MultipartFile image,
-            Authentication authentication   // 임시
+            @CurrentMember Member member
     ) {
         try {
-            Long memberId = (Long) authentication.getPrincipal();
-
             ObjectMapper mapper = new ObjectMapper();
             ChatRoomRequestDTO dto = mapper.readValue(chatRoomDataJson, ChatRoomRequestDTO.class);
 
-            chatRoomService.updateGroupChatRoom(chatRoomId, dto, image, memberId);
+            chatRoomService.updateGroupChatRoom(chatRoomId, dto, image, member);
             return ResponseEntity.ok(Map.of("message", "채팅방 수정 완료"));
 
         } catch (Exception e) {
@@ -88,12 +84,10 @@ public class ChatRoomController {
     @DeleteMapping("{chatRoomId}/leave")
     public ResponseEntity<?> leaveChatRoom(
             @PathVariable Long chatRoomId,
-            Authentication authentication // 임시
+            @CurrentMember Member member
     ) {
         try {
-            Long memberId = (Long) authentication.getPrincipal();
-
-            chatRoomService.leaveChatRoom(chatRoomId, memberId);
+            chatRoomService.leaveChatRoom(chatRoomId, member);
 
             return ResponseEntity.ok(Map.of("message", "채팅방을 나갔습니다."));
         } catch (Exception e) {
@@ -106,11 +100,10 @@ public class ChatRoomController {
     @DeleteMapping("/{chatRoomId}")
     public ResponseEntity<?> deleteGroupChatRoom(
             @PathVariable Long chatRoomId,
-            Authentication authentication
+            @CurrentMember Member member
     ) {
         try {
-            Long memberId = (Long) authentication.getPrincipal(); // JWT 인증 기반
-            chatRoomService.deleteGroupChatRoom(chatRoomId, memberId);
+            chatRoomService.deleteGroupChatRoom(chatRoomId, member);
             return ResponseEntity.ok(Map.of("message", "채팅방이 성공적으로 삭제되었습니다."));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
@@ -121,9 +114,8 @@ public class ChatRoomController {
     @GetMapping("{chatRoomId}/invite-link")
     public ResponseEntity<?> getInviteLink(
             @PathVariable Long chatRoomId,
-            Authentication authentication) {
-        Long memberId = (Long) authentication.getPrincipal();
-        InviteLinkResponseDTO response = chatRoomService.getInviteLink(chatRoomId, memberId);
+            @CurrentMember Member member) {
+        InviteLinkResponseDTO response = chatRoomService.getInviteLink(chatRoomId, member);
         return ResponseEntity.ok(response);
     }
 
@@ -132,22 +124,20 @@ public class ChatRoomController {
     @GetMapping("/invite/{inviteCode}")
     public ResponseEntity<InviteCheckResponseDTO> checkInvite(
             @PathVariable String inviteCode,
-            Authentication authentication) {
-        Long memberId = (Long) authentication.getPrincipal();
-        InviteCheckResponseDTO response = chatRoomService.checkInviteAccess(inviteCode, memberId);
+            @CurrentMember Member member) {
+        InviteCheckResponseDTO response = chatRoomService.checkInviteAccess(inviteCode, member);
         return ResponseEntity.ok(response);
     }
 
     // 초대 링크 검증 및 입장 처리
-    //alreadyJoined == 비밀번호 있을경우 체크 및 false일 경우 멤버 등록
     @PostMapping("invite/{inviteCode}")
     public ResponseEntity<Long> enterChatRoomViaInvite(
             @PathVariable String inviteCode,
             @RequestParam(required = false) String password,
-            Authentication authentication) {
+            @CurrentMember Member member) {
 
-        Long memberId = (Long) authentication.getPrincipal();
-        Long chatRoomId = chatRoomService.enterChatRoomViaInvite(inviteCode, memberId, password);
+        Long chatRoomId = chatRoomService.enterChatRoomViaInvite(inviteCode, member, password);
         return ResponseEntity.ok(chatRoomId);
     }
+
 }

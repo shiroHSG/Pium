@@ -27,10 +27,9 @@ public class PostService {
                 .title(dto.getTitle())
                 .content(dto.getContent())
                 .category(dto.getCategory())
-                .postImg(dto.getPostImg())
+                .imgUrl(dto.getImgUrl())
                 .member(member)
                 .viewCount(0L)
-                .likeCount(0L)
                 .build();
 
         postRepository.save(post);
@@ -64,7 +63,7 @@ public class PostService {
 
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
-        post.setPostImg(dto.getPostImg());
+        post.setImgUrl(dto.getImgUrl());
     }
 
     public void delete(Long postId, Long memberId) {
@@ -96,7 +95,7 @@ public class PostService {
     }
 
     public Page<PostResponse> searchByLikes(Pageable pageable) {
-        return postRepository.findAllByOrderByLikeCountDesc(pageable)
+        return postRepository.findAllOrderByLikeCountDesc(pageable)
                 .map(PostResponse::from);
     }
 }

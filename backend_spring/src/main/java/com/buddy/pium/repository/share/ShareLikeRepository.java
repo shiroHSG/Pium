@@ -14,4 +14,6 @@ public interface ShareLikeRepository extends JpaRepository<ShareLike, Long> {
 
     @Query("SELECT COUNT(sl) FROM ShareLike sl WHERE sl.share = :share AND sl.member = :member")
     Long countByShareAndMember(@Param("share") Share share, @Param("member") Member member);
+
+    Long countByShare(Share share);
 }

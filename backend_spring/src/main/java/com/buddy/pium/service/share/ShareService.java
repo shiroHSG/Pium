@@ -30,7 +30,7 @@ public class ShareService {
         Share share = Share.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
-                .postImg(dto.getPostImg())
+                .imgUrl(dto.getImgUrl())
                 .member(member)
                 .viewCount(0L)
 //                .likeCount(0L)
@@ -65,7 +65,7 @@ public class ShareService {
 
         share.setTitle(dto.getTitle());
         share.setContent(dto.getContent());
-        share.setPostImg(dto.getPostImg());
+        share.setImgUrl(dto.getImgUrl());
     }
 
     public void delete(Long shareId, Long memberId) {

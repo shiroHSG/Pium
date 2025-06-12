@@ -18,7 +18,7 @@ public class ChildResponseDto {
     private String gender;
     private Double height;
     private Double weight;
-    private String profileImg;
+    private String profileImgUrl;
     private String sensitiveInfo;
     private LocalDateTime createdAt;  // ✅ 추가
     private LocalDateTime updatedAt;  // ✅ 추가
@@ -31,7 +31,7 @@ public class ChildResponseDto {
                 .gender(child.getGender().name())
                 .height(child.getHeight())
                 .weight(child.getWeight())
-                .profileImg(child.getProfileImg())
+                .profileImgUrl(child.getProfileImgUrl())
                 .sensitiveInfo(child.getSensitiveInfo())
                 .createdAt(child.getCreatedAt())  // ✅ 추가
                 .updatedAt(child.getUpdatedAt())  // ✅ 추가

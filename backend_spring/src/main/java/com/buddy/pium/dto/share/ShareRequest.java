@@ -7,5 +7,5 @@ import lombok.Setter;
 public class ShareRequest {
     private String title;
     private String content;
-    private String postImg;
+    private String imgUrl;
 }

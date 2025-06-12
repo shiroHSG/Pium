@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -13,12 +14,11 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@Table(name = "calender")
+@EntityListeners(AuditingEntityListener.class)
 public class Calender {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,23 +27,23 @@ public class Calender {
     @JoinColumn(name = "member_id")
     private Member member;
 
+    @Column(nullable = false)
     private String title;
 
     @Lob
-    @Column(nullable = false)
     private String content;
 
-    private LocalDateTime start_time;
-    private LocalDateTime end_time;
+    @Column(nullable = false)
+    private LocalDateTime startTime;
 
-    private String color_tag;
+    private String colorTag;
 
     @CreatedDate
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
-    @Column(nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
 }

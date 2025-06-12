@@ -21,5 +21,5 @@ public class MemberRequestDto {
     private String address;         // length: 100
     private LocalDate birth;        //
     private Enum.Gender gender;          // 성병: 'F', 'M' 두가지로만 사용
-    private String profileImage;    // 개인 사진 저장 경로
+    private String profileImageUrl;    // 개인 사진 저장 경로
 }

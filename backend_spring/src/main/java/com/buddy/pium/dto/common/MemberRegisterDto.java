@@ -20,5 +20,5 @@ public class MemberRegisterDto {
     private String address;
     private LocalDate birth;
     private Enum.Gender gender;
-    private String profileImage;
+    private String profileImageUrl;
 }

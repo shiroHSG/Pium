@@ -16,6 +16,6 @@ public class ChildRegisterDto {
     private Enum.Gender gender;
     private Double height;
     private Double weight;
-    private String profileImg;
+    private String profileImgUrl;
     private String sensitiveInfo;
 }
