@@ -1,10 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 
-class AddScheduleHeader extends StatelessWidget {
-  final VoidCallback onClose;
+Widget buildScheduleDialog(
+    BuildContext context,
+    TextEditingController titleController,
+    TextEditingController dateController,
+    TextEditingController timeController,
+    TextEditingController memoController,
+    Color? selectedColor,
+    ValueChanged<Color> onColorSelected,
+    VoidCallback onSave,
+    Future<void> Function(BuildContext) onDateTap,
+    Future<void> Function(BuildContext) onTimeTap,
+    ) {
+  return AlertDialog(
+    contentPadding: EdgeInsets.zero,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+    content: Container(
+      width: MediaQuery.of(context).size.width * 0.8,
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: AppTheme.lightPink,
+        borderRadius: BorderRadius.circular(20.0),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _AddScheduleHeader(onClose: () => Navigator.of(context).pop()),
+          _ScheduleInputField(hint: '일정 제목', controller: titleController),
+          const SizedBox(height: 15),
+          _ScheduleInputField(hint: '날짜', controller: dateController, onTap: () => onDateTap(context)),
+          const SizedBox(height: 15),
+          _ScheduleInputField(hint: '시간', controller: timeController, onTap: () => onTimeTap(context)),
+          const SizedBox(height: 15),
+          _ScheduleInputField(hint: '메모(선택)', controller: memoController, maxLines: 3),
+          const SizedBox(height: 20),
+          _ColorPalette(initialColor: selectedColor, onColorSelected: onColorSelected),
+          const SizedBox(height: 30),
+          _SaveButton(onSave: onSave),
+        ],
+      ),
+    ),
+  );
+}
 
-  const AddScheduleHeader({Key? key, required this.onClose}) : super(key: key);
+class _AddScheduleHeader extends StatelessWidget {
+  final VoidCallback onClose;
+  const _AddScheduleHeader({required this.onClose});
 
   @override
   Widget build(BuildContext context) {
@@ -21,11 +64,7 @@ class AddScheduleHeader extends StatelessWidget {
         const Center(
           child: Text(
             '일정 추가',
-            style: TextStyle(
-              fontSize: 23,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textPurple,
-            ),
+            style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold, color: AppTheme.textPurple),
           ),
         ),
         const SizedBox(height: 15),
@@ -34,19 +73,18 @@ class AddScheduleHeader extends StatelessWidget {
   }
 }
 
-class ScheduleInputField extends StatelessWidget {
+class _ScheduleInputField extends StatelessWidget {
   final String hint;
   final TextEditingController controller;
   final int maxLines;
   final VoidCallback? onTap;
 
-  const ScheduleInputField({
-    Key? key,
+  const _ScheduleInputField({
     required this.hint,
     required this.controller,
     this.maxLines = 1,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -76,17 +114,17 @@ class ScheduleInputField extends StatelessWidget {
   }
 }
 
-class ColorPalette extends StatefulWidget {
+class _ColorPalette extends StatefulWidget {
   final Color? initialColor;
   final ValueChanged<Color> onColorSelected;
 
-  const ColorPalette({Key? key, this.initialColor, required this.onColorSelected}) : super(key: key);
+  const _ColorPalette({this.initialColor, required this.onColorSelected});
 
   @override
-  State<ColorPalette> createState() => _ColorPaletteState();
+  State<_ColorPalette> createState() => _ColorPaletteState();
 }
 
-class _ColorPaletteState extends State<ColorPalette> {
+class _ColorPaletteState extends State<_ColorPalette> {
   Color? _selectedColor;
 
   @override
@@ -110,9 +148,7 @@ class _ColorPaletteState extends State<ColorPalette> {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: color,
-          border: isSelected
-              ? Border.all(color: AppTheme.textPurple, width: 2)
-              : null,
+          border: isSelected ? Border.all(color: AppTheme.textPurple, width: 2) : null,
         ),
       ),
     );
@@ -136,10 +172,9 @@ class _ColorPaletteState extends State<ColorPalette> {
   }
 }
 
-class AddScheduleButton extends StatelessWidget {
+class _SaveButton extends StatelessWidget {
   final VoidCallback onSave;
-
-  const AddScheduleButton({Key? key, required this.onSave}) : super(key: key);
+  const _SaveButton({required this.onSave});
 
   @override
   Widget build(BuildContext context) {

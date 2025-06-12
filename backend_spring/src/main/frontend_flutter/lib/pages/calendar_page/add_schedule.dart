@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_flutter/theme/app_theme.dart';
+import 'package:frontend_flutter/models/calendar/schedule.dart';
 import 'package:intl/intl.dart';
-import 'package:frontend_flutter/models/schedule.dart';
-import 'package:frontend_flutter/screens/calendar/add_calendar_ui.dart';
+import 'package:frontend_flutter/theme/app_theme.dart';
+
+import '../../models/calendar/calendar_api.dart';
+import '../../screens/calendar/add_schedule_ui.dart';
 
 class AddSchedulePopup extends StatefulWidget {
   final DateTime initialDate;
+  final Schedule? existingSchedule;
 
-  const AddSchedulePopup({Key? key, required this.initialDate}) : super(key: key);
+  const AddSchedulePopup({Key? key, required this.initialDate,this.existingSchedule}) : super(key: key);
 
   @override
   State<AddSchedulePopup> createState() => _AddSchedulePopupState();
@@ -23,7 +26,21 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
   @override
   void initState() {
     super.initState();
-    _dateController.text = DateFormat('yyyy-MM-dd').format(widget.initialDate);
+
+    final existing = widget.existingSchedule;
+
+    _titleController.text = existing?.title ?? '';
+    _memoController.text = existing?.content ?? '';
+    _dateController.text = DateFormat('yyyy-MM-dd')
+        .format(existing?.startTime ?? widget.initialDate);
+
+    _timeController.text = existing != null
+        ? DateFormat('HH:mm').format(existing.startTime)
+        : '';
+
+    _selectedColor = existing != null
+        ? Color(int.parse('FF${existing.colorTag.replaceAll('#', '')}', radix: 16))
+        : AppTheme.primaryPurple;
   }
 
   @override
@@ -33,6 +50,73 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
     _timeController.dispose();
     _memoController.dispose();
     super.dispose();
+  }
+
+  void _onColorSelected(Color color) {
+    setState(() {
+      _selectedColor = color;
+    });
+  }
+
+  void _saveSchedule() async {
+    if (_titleController.text.isEmpty || _dateController.text.isEmpty || _timeController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('제목, 날짜, 시간은 필수 입력 항목입니다.')),
+      );
+      return;
+    }
+
+    final date = DateFormat('yyyy-MM-dd').parse(_dateController.text);
+    final timeParts = _timeController.text.split(':');
+    final hour = int.tryParse(timeParts[0]) ?? 0;
+    final minute = int.tryParse(timeParts[1]) ?? 0;
+    final startTime = DateTime(date.year, date.month, date.day, hour, minute);
+    final endTime = startTime.add(const Duration(hours: 1));
+
+    final Schedule newSchedule = Schedule(
+      id: widget.existingSchedule?.id, // 수정 시 id 유지
+      title: _titleController.text,
+      content: _memoController.text.isEmpty ? '' : _memoController.text,
+      startTime: startTime,
+      endTime: endTime,
+      colorTag: '#${(_selectedColor ?? AppTheme.primaryPurple).value.toRadixString(16).padLeft(8, '0').substring(2)}',
+    );
+
+    try {
+      if (widget.existingSchedule != null) {
+        // ✅ 수정
+        await CalendarApi.updateSchedule(newSchedule);
+      } else {
+        // ✅ 추가
+        final saved = await CalendarApi.postSchedule(newSchedule);
+        Navigator.of(context).pop(saved);
+        return;
+      }
+
+      // ✅ 수정된 일정 반환
+      Navigator.of(context).pop(newSchedule);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('일정 저장 실패: $e')),
+      );
+    }
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return buildScheduleDialog(
+      context,
+      _titleController,
+      _dateController,
+      _timeController,
+      _memoController,
+      _selectedColor,
+      _onColorSelected,
+      _saveSchedule,
+      _selectDate,
+      _selectTime,
+    );
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -60,9 +144,8 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
       },
     );
     if (pickedDate != null) {
-      String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
       setState(() {
-        _dateController.text = formattedDate;
+        _dateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
       });
     }
   }
@@ -94,80 +177,5 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
         _timeController.text = pickedTime.format(context);
       });
     }
-  }
-
-  void _saveSchedule() {
-    if (_titleController.text.isEmpty || _dateController.text.isEmpty || _timeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('제목, 날짜, 시간은 필수 입력 항목입니다.')),
-      );
-      return;
-    }
-
-    final newSchedule = Schedule(
-      title: _titleController.text,
-      date: DateFormat('yyyy-MM-dd').parse(_dateController.text),
-      time: _timeController.text,
-      memo: _memoController.text.isEmpty ? null : _memoController.text,
-      color: _selectedColor ?? AppTheme.primaryPurple,
-    );
-    Navigator.of(context).pop(newSchedule);
-  }
-
-  void _onColorSelected(Color color) {
-    setState(() {
-      _selectedColor = color;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      contentPadding: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.0),
-      ),
-      content: Container(
-        width: MediaQuery.of(context).size.width * 0.8,
-        padding: const EdgeInsets.all(20.0),
-        decoration: BoxDecoration(
-          color: AppTheme.lightPink,
-          borderRadius: BorderRadius.circular(20.0),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AddScheduleHeader(onClose: () => Navigator.of(context).pop()),
-            ScheduleInputField(hint: '일정 제목', controller: _titleController),
-            const SizedBox(height: 15),
-            ScheduleInputField(
-              hint: '날짜',
-              controller: _dateController,
-              onTap: () => _selectDate(context),
-            ),
-            const SizedBox(height: 15),
-            ScheduleInputField(
-              hint: '시간',
-              controller: _timeController,
-              onTap: () => _selectTime(context),
-            ),
-            const SizedBox(height: 15),
-            ScheduleInputField(
-              hint: '메모(선택)',
-              controller: _memoController,
-              maxLines: 3,
-            ),
-            const SizedBox(height: 20),
-            ColorPalette(
-              initialColor: _selectedColor,
-              onColorSelected: _onColorSelected,
-            ),
-            const SizedBox(height: 30),
-            AddScheduleButton(onSave: _saveSchedule),
-          ],
-        ),
-      ),
-    );
   }
 }

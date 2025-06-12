@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/models/baby_profile.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:frontend_flutter/models/schedule.dart';
-import 'package:frontend_flutter/pages/calendar_page/calendar_page.dart';
+import 'package:frontend_flutter/models/calendar/schedule.dart';
 
 class BabyProfileHeader extends StatelessWidget {
   final BabyProfile babyProfile;

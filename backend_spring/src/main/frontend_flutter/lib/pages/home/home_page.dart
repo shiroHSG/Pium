@@ -5,10 +5,9 @@ import 'package:frontend_flutter/pages/search/people_search_page.dart';
 import 'package:frontend_flutter/pages/my_page/my_page.dart';
 import 'package:frontend_flutter/widgets/custom_app_bar.dart';
 import 'package:frontend_flutter/widgets/custom_bottom_bar.dart';
-import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/widgets/custom_drawer.dart';
 import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
-import 'package:frontend_flutter/models/schedule.dart';
+import 'package:frontend_flutter/models/calendar/schedule.dart';
 import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart';
 import 'package:frontend_flutter/pages/calendar_page/calendar_page.dart';
 import 'package:frontend_flutter/pages/chatting/chatting_page.dart';
@@ -99,7 +98,7 @@ class _MyHomePageState extends State<MyHomePage> {
           if (dateComparison != 0) {
             return dateComparison;
           }
-          return a.time.compareTo(b.time);
+          return a.startTime.compareTo(b.startTime);
         });
       });
     }
@@ -180,7 +179,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold(  // 화면의 전체 구조
       key: _scaffoldKey,
       appBar: CustomAppBar(
         onMenuPressed: () {
@@ -191,18 +190,12 @@ class _MyHomePageState extends State<MyHomePage> {
         onItemSelected: _onItemTapped,
         onLoginStatusChanged: _onLoginStatusChanged,
       ),
-      body: _getPageContent(_selectedIndex),
+      body: _getPageContent(_selectedIndex),  // 선택된 탭(인덱스)에 따라 화면을 바꿔줌
       bottomNavigationBar: CustomBottomNavigationBar(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
       ),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
-        onPressed: _showAddSchedulePopup,
-        backgroundColor: AppTheme.primaryPurple,
-        child: const Icon(Icons.add, color: Colors.white),
-      )
-          : null,
+      floatingActionButton: null,
     );
   }
 
