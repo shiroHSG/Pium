@@ -1,98 +1,80 @@
 package com.buddy.pium.service.common;
 
+import com.buddy.pium.dto.common.*;
 import com.buddy.pium.entity.common.Child;
 import com.buddy.pium.entity.common.Member;
-import com.buddy.pium.entity.common.MemberChild;
 import com.buddy.pium.repository.common.ChildRepository;
-import com.buddy.pium.repository.common.MemberChildRepository;
 import com.buddy.pium.repository.common.MemberRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class ChildService {
 
     private final ChildRepository childRepository;
-    private final MemberChildRepository memberChildRepository;
     private final MemberRepository memberRepository;
 
-    // 단독 자녀 저장 (Mate 자동 공유 없음)
-    public Child save(Child child) {
-        return childRepository.save(child);
-    }
+    public void addChild(ChildRegisterDto dto, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("Member not found"));
 
-    // 자녀 저장 + 배우자 양방향 설정 확인 후 자동 공유
-    public Child saveChildWithSpouseLink(Member member, Child child) {
-        Child saved = childRepository.save(child);
-
-        // 본인과 연결
-        MemberChild link = MemberChild.builder()
+        Child child = Child.builder()
                 .member(member)
-                .child(saved)
-                .relationType(null)
+                .name(dto.getName())
+                .birth(dto.getBirth())
+                .gender(dto.getGender())
+                .height(dto.getHeight())
+                .weight(dto.getWeight())
+                .profileImgUrl(dto.getProfileImgUrl())
+                .sensitiveInfo(dto.getSensitiveInfo())
                 .build();
-        memberChildRepository.save(link);
 
-        // 양방향 mateInfo 연결된 경우 배우자도 자동 연결
-        getMateIfMutuallyConnected(member).ifPresent(mate -> {
-            boolean alreadyLinked = memberChildRepository
-                    .findByMemberAndChild(mate, saved)
-                    .isPresent();
-            if (!alreadyLinked) {
-                MemberChild mateLink = MemberChild.builder()
-                        .member(mate)
-                        .child(saved)
-                        .relationType(null)
-                        .build();
-                memberChildRepository.save(mateLink);
-            }
-        });
-
-        return saved;
+        childRepository.save(child);
     }
 
-    // 본인 + 배우자 자녀 목록 (양방향 mateInfo 연결 시만 공유)
-    public List<Child> findAllChildrenForMember(Member member) {
-        Set<Child> result = new HashSet<>();
-
-        memberChildRepository.findByMember(member)
-                .forEach(mc -> result.add(mc.getChild()));
-
-        getMateIfMutuallyConnected(member).ifPresent(mate -> {
-            memberChildRepository.findByMember(mate)
-                    .forEach(mc -> result.add(mc.getChild()));
-        });
-
-        return new ArrayList<>(result);
+    public void deleteChild(Long childId, Long memberId) {
+        Child child = childRepository.findById(childId)
+                .orElseThrow(() -> new RuntimeException("Child not found"));
+        if (!child.getMember().getId().equals(memberId)) {
+            throw new RuntimeException("권한이 없습니다.");
+        }
+        childRepository.delete(child);
     }
 
-    // 자녀 이름으로 검색
-    public List<Child> searchByName(String keyword) {
-        return childRepository.findByNameContaining(keyword);
+    @Transactional
+    public void updateChild(Long childId, ChildUpdateDto dto, Long memberId) {
+        Child child = childRepository.findById(childId)
+                .orElseThrow(() -> new RuntimeException("Child not found"));
+
+        if (!child.getMember().getId().equals(memberId)) {
+            throw new RuntimeException("권한이 없습니다.");
+        }
+
+        if (dto.getName() != null) child.setName(dto.getName());
+        if (dto.getBirth() != null) child.setBirth(dto.getBirth());
+        if (dto.getGender() != null) child.setGender(dto.getGender());
+        if (dto.getHeight() != null) child.setHeight(dto.getHeight());
+        if (dto.getWeight() != null) child.setWeight(dto.getWeight());
+        if (dto.getProfileImgUrl() != null) child.setProfileImgUrl(dto.getProfileImgUrl());
+        if (dto.getSensitiveInfo() != null) child.setSensitiveInfo(dto.getSensitiveInfo());
     }
 
-    public Optional<Child> findById(Long id) {
-        return childRepository.findById(id);
-    }
-
-    public List<Child> findAll() {
-        return childRepository.findAll();
-    }
-
-    public void delete(Long id) {
-        childRepository.deleteById(id);
-    }
-
-    // 양방향 mateInfo 연결 여부 확인
-    private Optional<Member> getMateIfMutuallyConnected(Member member) {
-        if (member.getMateInfo() == null) return Optional.empty();
-
-        return memberRepository.findById(Long.valueOf(member.getMateInfo()))
-                .filter(mate -> String.valueOf(member.getId()).equals(mate.getMateInfo()));
+    public List<ChildResponseDto> getChildren(Long memberId, Long mateId) {
+        if (mateId != null) {
+            return childRepository.findByMemberIdIn(List.of(memberId, mateId))
+                    .stream()
+                    .map(ChildResponseDto::from)
+                    .collect(Collectors.toList());
+        } else {
+            return childRepository.findByMemberId(memberId)
+                    .stream()
+                    .map(ChildResponseDto::from)
+                    .collect(Collectors.toList());
+        }
     }
 }

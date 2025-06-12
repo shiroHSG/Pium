@@ -1,69 +1,72 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:frontend_flutter/theme/app_theme.dart';
+import 'package:frontend_flutter/pages/auth/login.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:frontend_flutter/pages/home/home_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();  // 플러터와 프레임워크 연결
+  await initializeDateFormatting('ko_KR', null);  // 한국어 로케일 날짜 시간 데이터 초기화
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: TestApiPage(),
+      title: '피움 앱',
+      theme: AppTheme.lightTheme,
+      home: const SplashScreen(),
+      routes: {
+        '/home': (context) => const MyHomePage(),
+        '/login': (context) => Login(),
+      },
     );
   }
 }
 
-class TestApiPage extends StatefulWidget {
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({Key? key}) : super(key: key);
+
   @override
-  State<TestApiPage> createState() => _TestApiPageState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _TestApiPageState extends State<TestApiPage> {
-  String _message = '응답 대기 중...';
-
-  Future<void> fetchMessage() async {
-    final uri = Uri.parse('http://10.0.2.2:8080/api/test'); // 안드로이드 에뮬레이터 기준
-    // final uri = Uri.parse('http://내 ip4 주소:8080/api/test');  // 실제기기 기준
-
-    try {
-      final response = await http.get(uri);
-
-      if (response.statusCode == 200) {
-        final decodedBody = utf8.decode(response.bodyBytes);
-        final jsonBody = json.decode(decodedBody);
-        setState(() {
-          _message = jsonBody['message'] ?? '응답 없음';
-        });
-      } else {
-        setState(() {
-          _message = '에러 발생: ${response.statusCode}';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _message = '요청 실패: $e';
-      });
-    }
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.pushReplacementNamed(context, '/login');
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Flutter → Spring Boot')),
+      backgroundColor: const Color(0xFFFDD9E5),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(_message),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: fetchMessage,
-              child: const Text('API 호출'),
-            )
+          children: <Widget>[
+            Image.asset('assets/logo1.png', height: 300),
+            const SizedBox(height: 16),
+            const SizedBox(height: 16),
+            const Text(
+              '부모의 마음이 피어나고, 가족이 함께 자라며,\n삶이 따뜻하게 이어지는 공간을 상상합니다.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+                fontFamily: 'Jua',
+              ),
+            ),
+            const SizedBox(height: 32),
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFC85A91)),
+            ),
           ],
         ),
       ),

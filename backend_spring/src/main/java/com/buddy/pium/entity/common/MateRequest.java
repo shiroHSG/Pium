@@ -2,8 +2,11 @@ package com.buddy.pium.entity.common;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -11,9 +14,8 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "mate_request")
+@EntityListeners(AuditingEntityListener.class)
 public class MateRequest {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,16 +28,16 @@ public class MateRequest {
     @JoinColumn(name = "receiver_id", nullable = false)
     private Member receiver;
 
+    // PENDING, ACCEPTED, REJECTED
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Enum.MateRequestStatus status;
 
-    @Column(nullable = false)
-    private Timestamp createdAt;
+    @CreatedDate
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = new Timestamp(System.currentTimeMillis());
-        this.status = Enum.MateRequestStatus.PENDING;
-    }
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 }

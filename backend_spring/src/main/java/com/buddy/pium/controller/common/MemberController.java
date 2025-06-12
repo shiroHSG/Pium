@@ -1,13 +1,16 @@
 package com.buddy.pium.controller.common;
 
-import com.buddy.pium.entity.common.Member;
+import com.buddy.pium.annotation.CurrentMemberId;
+import com.buddy.pium.dto.common.*;
 import com.buddy.pium.service.common.MemberService;
+import com.buddy.pium.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/member")
@@ -15,51 +18,108 @@ import java.util.Optional;
 public class MemberController {
 
     private final MemberService memberService;
+    private final JwtUtil jwtUtil;
 
-    @GetMapping("/get/{id}")
-    public ResponseEntity<Member> getById(@PathVariable Long id) {
-        System.out.println(id);
-        return memberService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    /**
+     * 회원 가입
+     */
+    @PostMapping("/register")
+    public ResponseEntity<MemberResponseDto> create(@RequestBody MemberRegisterDto registerDto) {
+        MemberResponseDto responseDto = memberService.createMember(registerDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<Member> create(@RequestBody Member member) {
-        return ResponseEntity.ok(memberService.save(member));
+    /**
+     * 회원 정보 수정
+     */
+    @PatchMapping
+    public ResponseEntity<MemberResponseDto> update(@RequestBody MemberUpdateDto updateDto,
+                                                    @CurrentMemberId Long memberId) {
+        MemberResponseDto responseDto = memberService.updateMember(memberId, updateDto);
+        return ResponseEntity.ok(responseDto);
     }
 
-    @GetMapping
-    public ResponseEntity<List<Member>> getAll() {
-        return ResponseEntity.ok(memberService.findAll());
+    /**
+     * ID로 회원 조회
+     */
+    @GetMapping("/users/{id}")
+    public ResponseEntity<MemberResponseDto> getById(@PathVariable Long id) {
+        MemberResponseDto responseDto = memberService.getMemberById(id);
+        return ResponseEntity.ok(responseDto);
     }
 
-    @DeleteMapping("/delete/{id}")
+    /**
+     * 전체 회원 조회
+     */
+    @GetMapping("/users")
+    public ResponseEntity<List<MemberResponseDto>> getAll() {
+        List<MemberResponseDto> responseList = memberService.getAllMembers();
+        return ResponseEntity.ok(responseList);
+    }
+
+    /**
+     * 회원 삭제
+     */
+    @DeleteMapping("/delete/users/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        memberService.delete(id);
+        memberService.deleteMember(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/edit/{id}")
-    public ResponseEntity<Member> updateMember(@PathVariable Long id, @RequestBody Member updatedMember) {
-        Optional<Member> memberOptional = memberService.findById(id);
-        if (memberOptional.isPresent()) {
-            Member member = memberOptional.get();
+    /**
+     * 내 정보 조회 (/me)
+     */
+    @GetMapping
+    public ResponseEntity<MemberResponseDto> getMe(@CurrentMemberId Long memberId) {
+        MemberResponseDto responseDto = memberService.getMemberById(memberId);
+        return ResponseEntity.ok(responseDto);
+    }
 
-            if (updatedMember.getUsername() != null) member.setUsername(updatedMember.getUsername());
-            if (updatedMember.getNickname() != null) member.setNickname(updatedMember.getNickname());
-            if (updatedMember.getEmail() != null) member.setEmail(updatedMember.getEmail());
-            if (updatedMember.getPassword() != null) member.setPassword(updatedMember.getPassword());
-            if (updatedMember.getAddress() != null) member.setAddress(updatedMember.getAddress());
-            if (updatedMember.getBirth() != null) member.setBirth(updatedMember.getBirth());
-            if (updatedMember.getPhoneNumber() != null) member.setPhoneNumber(updatedMember.getPhoneNumber());
-            if (updatedMember.getProfileImage() != null) member.setProfileImage(updatedMember.getProfileImage());
-            if (updatedMember.getMateInfo() != null) member.setMateInfo(updatedMember.getMateInfo());
+    /**
+     * 로그인 → AccessToken + RefreshToken 반환
+     */
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
 
-            return ResponseEntity.ok(memberService.save(member));
-        } else {
-            return ResponseEntity.notFound().build();
+        // 로그 출력용
+        System.out.println("[Controller] 로그인 요청 들어옴");
+        System.out.println("[Controller] 이메일: " + loginRequest.getEmail());
+        System.out.println("[Controller] 비밀번호: " + loginRequest.getPassword());
+
+        LoginResponseDto loginResponse = memberService.login(loginRequest);
+        return ResponseEntity.ok(loginResponse);
+    }
+
+    /**
+     * AccessToken 재발급
+     */
+    @PostMapping("/reissue")
+    public ResponseEntity<?> reissueAccessToken(@RequestHeader("Authorization") String bearerToken) {
+        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body("Refresh Token이 필요합니다.");
         }
+
+        String refreshToken = bearerToken.substring(7);
+
+        try {
+            String newAccessToken = memberService.reissueAccessToken(refreshToken);
+            return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+    }
+
+    /**
+     * 로그아웃
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@CurrentMemberId Long memberId) {
+
+        // 로그 출력용
+        System.out.println("[Controller] 로그아웃 요청 - memberId: " + memberId);
+
+        memberService.logout(memberId);
+        return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));
     }
 
 }

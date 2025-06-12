@@ -4,17 +4,11 @@ public class Enum {
     public enum Gender {
         M, F
     }
-    public enum RelationType {
-        MOTHER,
-        FATHER,
-        GUARDIAN,
-        GRANDPARENT
-    }
 
     public enum MateRequestStatus {
-        PENDING,
-        ACCEPTED,
-        REJECTED
+        PENDING,    // 대기
+        ACCEPTED,   // 수락
+        REJECTED    // 거절
     }
 
 }

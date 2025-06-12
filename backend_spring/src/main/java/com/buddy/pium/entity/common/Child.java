@@ -1,9 +1,15 @@
 package com.buddy.pium.entity.common;
 
+import com.buddy.pium.entity.diary.Diary;
 import jakarta.persistence.*;
-import lombok.*;
+        import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,12 +19,15 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "child")
+@EntityListeners(AuditingEntityListener.class)
 public class Child {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long childId;
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
     @Column(length = 20, nullable = false)
     private String name;
@@ -26,6 +35,7 @@ public class Child {
     @Column(nullable = false)
     private LocalDate birth;
 
+    // M, F
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 1)
     private Enum.Gender gender;
@@ -36,29 +46,18 @@ public class Child {
     @Column(nullable = false)
     private Double weight;
 
-    private String profileImg;
+    private String profileImgUrl;
 
     private String sensitiveInfo;
 
-    @Builder.Default
     @OneToMany(mappedBy = "child", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MemberChild> memberLinks = new ArrayList<>();
+    private List<Diary> diaries = new ArrayList<>();
 
-    @Column(nullable = false, updatable = false)
-    private java.sql.Timestamp createdAt;
+    @CreatedDate
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
 
-    @Column(nullable = false)
-    private java.sql.Timestamp updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = new java.sql.Timestamp(System.currentTimeMillis());
-    }
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 }
