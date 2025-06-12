@@ -1,6 +1,8 @@
 package com.buddy.pium.controller.chat;
 
+import com.buddy.pium.annotation.CurrentMember;
 import com.buddy.pium.dto.chat.ChatRoomMemberResponseDTO;
+import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.chat.ChatRoomMemberService;
 import com.buddy.pium.service.chat.ChatRoomService;
 import lombok.RequiredArgsConstructor;
@@ -19,17 +21,17 @@ public class ChatRoomMemberController {
 
     private final ChatRoomMemberService chatRoomMemberService;
 
+    // 채팅방 멤버 조회
     @GetMapping("/{chatRoomId}/members")
     public ResponseEntity<?> getChatRoomMembers(
             @PathVariable Long chatRoomId,
-            Authentication authentication
+            @CurrentMember Member member
     ) {
         try {
-            Long currentMemberId = (Long) authentication.getPrincipal();
-            List<ChatRoomMemberResponseDTO> members = chatRoomMemberService.getChatRoomMembers(chatRoomId, currentMemberId);
+            List<ChatRoomMemberResponseDTO> members = chatRoomMemberService.getChatRoomMembers(chatRoomId, member);
             return ResponseEntity.ok(members);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -38,12 +40,9 @@ public class ChatRoomMemberController {
     public ResponseEntity<?> delegateAdmin(
             @PathVariable Long chatRoomId,
             @PathVariable Long newAdminId,
-            Authentication authentication
+            @CurrentMember Member member
     ) {
-        Long currentUserId = (Long) authentication.getPrincipal();
-
-        chatRoomMemberService.delegateAdmin(chatRoomId, currentUserId, newAdminId);
-
+        chatRoomMemberService.delegateAdmin(chatRoomId, member, newAdminId);
         return ResponseEntity.ok(Map.of("message", "관리자 권한이 성공적으로 위임되었습니다."));
     }
 

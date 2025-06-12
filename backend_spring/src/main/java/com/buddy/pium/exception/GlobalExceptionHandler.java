@@ -31,6 +31,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
     }
 
+    // 400 - 그룹 채팅방 유효성 검증 실패
+    @ExceptionHandler(InvalidChatRoomOperationException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidChatRoomOperation(InvalidChatRoomOperationException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", e.getMessage()));
+    }
+
     // 400 - 유효성 검증 실패
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException e) {
@@ -62,6 +70,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleUsernameNotFoundException(UsernameNotFoundException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "해당 이메일의 사용자가 존재하지 않습니다."));
+    }
+
+    // 403 - 채팅방 password 불일치
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidPassword(InvalidPasswordException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
     }
 
     // 403 - 권한 없음
