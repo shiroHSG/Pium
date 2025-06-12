@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/auth/auth_services.dart';
+import '../pages/calendar_page/add_schedule.dart';
 import '../pages/sharing_page/sharing_page.dart';
 import '../pages/calendar_page/calendar_page.dart';
 import '../pages/community/community_page.dart';

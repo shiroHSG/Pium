@@ -1,193 +1,179 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/calendar/schedule.dart';
-import 'package:frontend_flutter/models/calendar/calendar_api.dart';
-import 'package:frontend_flutter/screens/calendar/calendar_page_ui.dart';
+import 'package:intl/intl.dart';
+import 'package:frontend_flutter/theme/app_theme.dart';
 
-class CalendarPage extends StatefulWidget {
-  const CalendarPage({Key? key}) : super(key: key);
+import '../../models/calendar/calendar_api.dart';
+import '../../screens/calendar/add_schedule_ui.dart';
+
+class AddSchedulePopup extends StatefulWidget {
+  final DateTime initialDate;
+  final Schedule? existingSchedule;
+
+  const AddSchedulePopup({Key? key, required this.initialDate,this.existingSchedule}) : super(key: key);
 
   @override
-  State<CalendarPage> createState() => _CalendarPageState();
+  State<AddSchedulePopup> createState() => _AddSchedulePopupState();
 }
 
-class _CalendarPageState extends State<CalendarPage> {
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
-  late PageController _pageController;
-  late int _currentMonthIndex;
-
-  Map<DateTime, List<Schedule>> _schedules = {};
+class _AddSchedulePopupState extends State<AddSchedulePopup> {
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _timeController = TextEditingController();
+  final TextEditingController _memoController = TextEditingController();
+  Color? _selectedColor = AppTheme.primaryPurple;
 
   @override
   void initState() {
     super.initState();
-    _selectedDay = _focusedDay;
-    _currentMonthIndex = 0;
-    _pageController = PageController(initialPage: _currentMonthIndex);
-    _loadSchedules(); // 일정 불러오기
+
+    final existing = widget.existingSchedule;
+
+    _titleController.text = existing?.title ?? '';
+    _memoController.text = existing?.content ?? '';
+    _dateController.text = DateFormat('yyyy년 MM월 dd일')
+        .format(existing?.startTime ?? widget.initialDate);
+
+    _timeController.text = existing != null
+        ? DateFormat('HH시 mm분').format(existing.startTime)
+        : '';
+
+    _selectedColor = existing != null
+        ? Color(int.parse('FF${existing.colorTag.replaceAll('#', '')}', radix: 16))
+        : AppTheme.primaryPurple;
   }
 
-  Future<void> _loadSchedules() async {
-    try {
-      final fetched = await CalendarApi.fetchSchedules();
-      final Map<DateTime, List<Schedule>> grouped = {};
-
-      for (var s in fetched) {
-        final key = DateTime(s.date.year, s.date.month, s.date.day);
-        grouped.putIfAbsent(key, () => []).add(s);
-      }
-
-      setState(() {
-        _schedules = grouped;
-      });
-    } catch (e) {
-      print('일정 불러오기 실패: \$e');
-    }
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _dateController.dispose();
+    _timeController.dispose();
+    _memoController.dispose();
+    super.dispose();
   }
 
-  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
-    if (!isSameDay(_selectedDay, selectedDay)) {
-      setState(() {
-        _selectedDay = selectedDay;
-        _focusedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-      });
-    }
-  }
-
-  void _goToPreviousMonth() {
+  void _onColorSelected(Color color) {
     setState(() {
-      _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1);
-      _selectedDay = null;
+      _selectedColor = color;
     });
   }
 
-  void _goToNextMonth() {
-    setState(() {
-      _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1);
-      _selectedDay = null;
-    });
-  }
-
-  // 일정 추가 핸들러 함수
-  void _handleScheduleAdded(Schedule newSchedule) async {
-    Schedule savedSchedule;
-
-    try {
-      savedSchedule = await CalendarApi.postSchedule(newSchedule); // id 포함된 객체
-    } catch (e) {
+  void _saveSchedule() async {
+    if (_titleController.text.isEmpty || _dateController.text.isEmpty || _timeController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('일정 저장 실패')),
+        const SnackBar(content: Text('제목, 날짜, 시간은 필수 입력 항목입니다.')),
       );
       return;
     }
 
-    final dateKey = DateTime(
-      savedSchedule.date.year,
-      savedSchedule.date.month,
-      savedSchedule.date.day,
-    );
+    try {
+      final date = DateFormat('yyyy년 MM월 dd일').parse(_dateController.text);
 
-    final updatedSchedules = Map<DateTime, List<Schedule>>.from(_schedules);
-    updatedSchedules.update(
-      dateKey,
-          (existing) {
-        existing.add(savedSchedule);
-        existing.sort((a, b) => a.startTime.compareTo(b.startTime));
-        return existing;
-      },
-      ifAbsent: () => [savedSchedule],
-    );
+      // 시간 파싱
+      final timeRegex = RegExp(r'(\d+)시\s*(\d+)?분?');
+      final match = timeRegex.firstMatch(_timeController.text);
+      if (match == null) throw FormatException('시간 형식이 올바르지 않습니다.');
 
-    setState(() {
-      _schedules = updatedSchedules;
-      _selectedDay = dateKey;
-      _focusedDay = dateKey;
-    });
-  }
+      final hour = int.parse(match.group(1)!);
+      final minute = int.tryParse(match.group(2) ?? '0') ?? 0;
 
+      final startTime = DateTime(date.year, date.month, date.day, hour, minute);
+      final endTime = startTime.add(const Duration(hours: 1));
 
-  // 일정 삭제 핸들러 함수
-  void _handleScheduleDeleted(Schedule deletedSchedule) {
-    final dateKey = DateTime(
-      deletedSchedule.date.year,
-      deletedSchedule.date.month,
-      deletedSchedule.date.day,
-    );
+      final Schedule newSchedule = Schedule(
+        id: widget.existingSchedule?.id,
+        title: _titleController.text,
+        content: _memoController.text,
+        startTime: startTime,
+        endTime: endTime,
+        colorTag: '#${(_selectedColor ?? AppTheme.primaryPurple).value.toRadixString(16).padLeft(8, '0').substring(2)}',
+      );
 
-    final updatedSchedules = Map<DateTime, List<Schedule>>.from(_schedules);
-    updatedSchedules[dateKey]?.removeWhere((s) => s.id == deletedSchedule.id);
-
-    setState(() {
-      _schedules = updatedSchedules;
-    });
-  }
-
-  void _handleScheduleEdited(Schedule updatedSchedule) {
-    final dateKey = DateTime(
-      updatedSchedule.date.year,
-      updatedSchedule.date.month,
-      updatedSchedule.date.day,
-    );
-
-    final updatedSchedules = Map<DateTime, List<Schedule>>.from(_schedules);
-
-    if (updatedSchedules.containsKey(dateKey)) {
-      final index = updatedSchedules[dateKey]!
-          .indexWhere((s) => s.id == updatedSchedule.id);
-      if (index != -1) {
-        updatedSchedules[dateKey]![index] = updatedSchedule;
+      if (widget.existingSchedule != null) {
+        await CalendarApi.updateSchedule(newSchedule);
+        Navigator.of(context).pop(newSchedule); // 수정된 일정 반환
+      } else {
+        final saved = await CalendarApi.postSchedule(newSchedule);
+        Navigator.of(context).pop(saved); // 새로 저장된 일정 반환
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('일정 저장 실패: $e')),
+      );
     }
-
-    setState(() {
-      _schedules = updatedSchedules;
-    });
-  }
-
-  bool isSameDay(DateTime? a, DateTime? b) {
-    if (a == null || b == null) return false;
-    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryPurple,
-        title: const Text('캘린더'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          CalendarHeader(
-            focusedDay: _focusedDay,
-            onPreviousMonth: _goToPreviousMonth,
-            onNextMonth: _goToNextMonth,
-          ),
-          const WeekdayLabels(),
-          CalendarDaysGrid(
-            focusedDay: _focusedDay,
-            selectedDay: _selectedDay,
-            onDaySelected: _onDaySelected,
-            schedules: _schedules,
-          ),
-          SelectedDaySchedules(
-            selectedDay: _selectedDay,
-            schedules: _schedules,
-            onScheduleDeleted: _handleScheduleDeleted,
-            onScheduleAdded: _handleScheduleAdded,
-            onScheduleEdited: _handleScheduleEdited,
-          ),
-
-        ],
-      ),
+    return buildScheduleDialog(
+      context,
+      _titleController,
+      _dateController,
+      _timeController,
+      _memoController,
+      _selectedColor,
+      _onColorSelected,
+      _saveSchedule,
     );
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateFormat('yyyy년 MM월 dd일').parse(_dateController.text),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppTheme.primaryPurple,
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.primaryPurple,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (pickedDate != null) {
+      setState(() {
+        _dateController.text = DateFormat('yyyy년 MM월 dd일').format(pickedDate);
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppTheme.primaryPurple,
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.primaryPurple,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (pickedTime != null) {
+      setState(() {
+        _timeController.text = pickedTime.format(context);
+      });
+    }
   }
 }
