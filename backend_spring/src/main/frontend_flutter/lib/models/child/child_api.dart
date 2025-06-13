@@ -8,6 +8,7 @@ import 'package:frontend_flutter/models/baby_profile.dart';
 class ChildApi {
   static const String baseUrl = 'http://10.0.2.2:8080';
 
+
   // ✅ 아이 정보 전체 조회 (리스트 형태)
   static Future<List<BabyProfile>> fetchMyChildren() async {
     final prefs = await SharedPreferences.getInstance();
@@ -21,6 +22,8 @@ class ChildApi {
     );
 
     if (response.statusCode == 200) {
+      final responseBody = utf8.decode(response.bodyBytes);
+      print('[DEBUG] 응답 JSON: ${utf8.decode(response.bodyBytes)}');
       final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
       return data.map((e) => BabyProfile.fromJson(e)).toList();
     } else {
@@ -29,20 +32,44 @@ class ChildApi {
     }
   }
 
-  // 아이 정보 수정
-  static Future<bool> updateMyChild(BabyProfile updatedChild) async {
+  // 아이 단건 조회
+  static Future<BabyProfile?> fetchChildById(int childId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
 
-    if (token == null) return false;
+    if (token == null) return null;
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/child/$childId'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      return BabyProfile.fromJson(data);
+    } else {
+      print('아이 단건 조회 실패: ${response.statusCode} - ${response.body}');
+      return null;
+    }
+  }
+
+  // 아이 정보 수정
+  static Future<bool> updateMyChild(BabyProfile updatedChild) async {
+    final url = '$baseUrl/api/child/${updatedChild.childId}';
+    print('[PATCH] URL: $url');
+    print('[BODY] ${jsonEncode(updatedChild.toJson())}');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    if (token == null || updatedChild.childId == null) return false;
 
     final response = await http.patch(
-      Uri.parse('$baseUrl/api/child'),
+      Uri.parse('$baseUrl/api/child/${updatedChild.childId}'),
       headers: {
         'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8', // ✅ charset 명시
       },
-      body: jsonEncode(updatedChild.toJson()),
+      body: utf8.encode(jsonEncode(updatedChild.toJson())), // ✅ UTF-8 인코딩
     );
 
     if (response.statusCode == 200) {
@@ -52,6 +79,7 @@ class ChildApi {
       return false;
     }
   }
+
 
   // 아이 추가
   static Future<bool> addMyChild(BabyProfile newChild) async {

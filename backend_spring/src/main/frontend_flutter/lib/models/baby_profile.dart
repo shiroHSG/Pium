@@ -27,7 +27,7 @@ class BabyProfile {
 
   factory BabyProfile.fromJson(Map<String, dynamic> json) {
     return BabyProfile(
-      childId: json['childId'],
+      childId: json['childId'] ?? json['id'],
       name: json['name'] ?? '', // null이면 빈 문자열
       birthDate: json['birthDate'] != null
           ? DateTime.parse(json['birthDate'])

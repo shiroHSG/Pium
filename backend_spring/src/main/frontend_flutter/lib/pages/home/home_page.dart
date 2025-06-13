@@ -15,6 +15,8 @@ import 'package:frontend_flutter/screens/home/home_page_ui.dart';
 import 'package:frontend_flutter/pages/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../models/child/child_api.dart';
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
@@ -23,7 +25,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  List<BabyProfile> _children = [];
   int _selectedIndex = 0;
+  int _currentPage = 0;
+  final PageController _pageController = PageController();
+
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<Schedule> _schedules = [];
   BabyProfile _babyProfile = BabyProfile(
@@ -56,9 +62,23 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _loadBabyProfile() async {
-    setState(() {
-      _babyImage = const AssetImage('assets/default_baby.png');
-    });
+    final children = await ChildApi.fetchMyChildren();
+    if (children.isNotEmpty) {
+      ImageProvider? image;
+      try {
+        final assetImage = const AssetImage('assets/default_baby.png');
+        await precacheImage(assetImage, context);
+        image = assetImage;
+      } catch (e) {
+        image = null;
+      }
+
+      setState(() {
+        _children = children;
+        _babyProfile = children.first;
+        _babyImage = image;
+      });
+    }
   }
 
   void _onItemTapped(int index) {
@@ -177,14 +197,69 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Future<void> _showEditDialogForChild(BabyProfile child) async {
+    final _nameController = TextEditingController(text: child.name);
+    final _birthDateController = TextEditingController(text: child.birthDate.toIso8601String().split('T').first);
+    final _heightController = TextEditingController(text: child.height?.toString() ?? '');
+    final _weightController = TextEditingController(text: child.weight?.toString() ?? '');
+    final _developmentController = TextEditingController(text: child.developmentStep ?? '');
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('아이 정보 수정'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextField(controller: _nameController, decoration: const InputDecoration(labelText: '이름')),
+                TextField(controller: _birthDateController, decoration: const InputDecoration(labelText: '생년월일')),
+                TextField(controller: _heightController, decoration: const InputDecoration(labelText: '키(cm)')),
+                TextField(controller: _weightController, decoration: const InputDecoration(labelText: '몸무게(kg)')),
+                TextField(controller: _developmentController, decoration: const InputDecoration(labelText: '성장단계')),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(child: const Text('취소'), onPressed: () => Navigator.of(context).pop()),
+            TextButton(
+              child: const Text('저장'),
+              onPressed: () async {
+                setState(() {
+                  child.name = _nameController.text;
+                  child.birthDate = DateTime.tryParse(_birthDateController.text) ?? child.birthDate;
+                  child.height = double.tryParse(_heightController.text);
+                  child.weight = double.tryParse(_weightController.text);
+                  child.developmentStep = _developmentController.text;
+                });
+                try {
+                  await ChildApi.updateMyChild(child);
+                  await _loadBabyProfile();
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('아이 정보가 성공적으로 수정되었습니다')),
+                  );
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('아이 정보 수정에 실패했습니다')),
+                  );
+                }
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
       appBar: CustomAppBar(
-        onMenuPressed: () {
-          _scaffoldKey.currentState?.openEndDrawer();
-        },
+        onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
       ),
       endDrawer: CustomDrawer(
         onItemSelected: _onItemTapped,
@@ -195,7 +270,6 @@ class _MyHomePageState extends State<MyHomePage> {
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
       ),
-      floatingActionButton: null,
     );
   }
 
@@ -210,22 +284,85 @@ class _MyHomePageState extends State<MyHomePage> {
             schedule.date.day == today.day)
             .toList();
 
-        return SingleChildScrollView(
-          child: Column(
-            children: [
-              BabyProfileHeader(
-                babyProfile: _babyProfile,
-                babyImage: _babyImage,
-                onEditPressed: _showEditBabyProfileDialog,
+        return Column(
+          children: [
+            // 1️⃣ 아이 슬라이더 + 인디케이터 (상단 1/3)
+            Expanded(
+              flex: 1,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: PageView.builder(
+                      controller: _pageController,
+                      itemCount: _children.length,
+                      onPageChanged: (index) {
+                        setState(() => _currentPage = index);
+                      },
+                      itemBuilder: (context, index) {
+                        return BabyProfileHeader(
+                          babyProfile: _children[index],
+                          babyImage: _babyImage,
+                          onEditPressed: () =>
+                              _showEditDialogForChild(_children[index]),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(_children.length, (index) {
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _currentPage == index
+                              ? Colors.black
+                              : Colors.grey[400],
+                        ),
+                      );
+                    }),
+                  ),
+                ],
               ),
-              // TodayScheduleCard(
-              //   todaySchedules: todaySchedules,
-              //   onCalendarTap: _navigateToCalendarPage,
-              // ),
-              // const PopularPostsSection(),
-            ],
-          ),
+            ),
+
+            // 2️⃣ 일정 등록 및 이동 버튼 (중단 1/3)
+            Expanded(
+              flex: 1,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: _showAddSchedulePopup,
+                    child: const Text('일정 추가'),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: _navigateToCalendarPage,
+                    child: const Text('캘린더로 이동'),
+                  ),
+                ],
+              ),
+            ),
+
+            // 3️⃣ 정책/커뮤니티/나눔 영역 (하단 1/3)
+            Expanded(
+              flex: 1,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Text('정책 및 커뮤니티 영역 (추후 구현 예정)', style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+              ),
+            ),
+          ],
         );
+    // 나머지 탭
       case 1:
         return const BabyRecordPage();
       case 2:

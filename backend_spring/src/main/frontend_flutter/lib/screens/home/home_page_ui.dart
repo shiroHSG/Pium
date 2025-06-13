@@ -66,35 +66,39 @@ class BabyProfileHeader extends StatelessWidget {
                       : null,
                 ),
                 const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      babyProfile.name,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        color: AppTheme.textPurple,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        babyProfile.name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          color: AppTheme.textPurple,
+                        ),
+                        overflow: TextOverflow.ellipsis, // ✅ 너무 긴 텍스트 방지
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${formatDate(babyProfile.birthDate)} / '
-                          '${babyProfile.height?.toStringAsFixed(1) ?? '??'} cm / '
-                          '${babyProfile.weight?.toStringAsFixed(1) ?? '??'} kg',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: AppTheme.textPurple,
+                      const SizedBox(height: 4),
+                      Text(
+                        '${formatDate(babyProfile.birthDate)} / '
+                            '${babyProfile.height?.toStringAsFixed(1) ?? '??'} cm / '
+                            '${babyProfile.weight?.toStringAsFixed(1) ?? '??'} kg',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: AppTheme.textPurple,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      genderToKorean(babyProfile.gender),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: AppTheme.textPurple,
+                      const SizedBox(height: 4),
+                      Text(
+                        genderToKorean(babyProfile.gender),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: AppTheme.textPurple,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),

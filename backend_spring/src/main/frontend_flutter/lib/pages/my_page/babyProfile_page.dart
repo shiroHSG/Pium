@@ -19,11 +19,12 @@ class _BabyProfilePageState extends State<BabyProfilePage> {
   @override
   void initState() {
     super.initState();
-    _fetchChildProfiles();
+    _fetchChildProfiles(); // 페이지 진입 시 아이 정보 불러오기
   }
 
+  // 전체 아이 프로필 가져오기
   Future<void> _fetchChildProfiles() async {
-    final children = await ChildApi.fetchMyChildren(); // 리스트 API 호출
+    final children = await ChildApi.fetchMyChildren();
     if (children != null) {
       setState(() {
         _babyProfiles.clear();
@@ -32,6 +33,7 @@ class _BabyProfilePageState extends State<BabyProfilePage> {
     }
   }
 
+  // 아이 수정 페이지로 이동
   Future<void> _navigateToEditProfile(BabyProfile baby) async {
     final updated = await Navigator.push<BabyProfile>(
       context,
@@ -39,31 +41,30 @@ class _BabyProfilePageState extends State<BabyProfilePage> {
         builder: (_) => BabyProfileEditPage(babyProfile: baby),
       ),
     );
-
+    print('[DEBUG] 수정 진입 : ${baby.childId}');
     if (updated != null) {
       final success = await ChildApi.updateMyChild(updated);
       if (success) {
-        setState(() {
-          final idx = _babyProfiles.indexWhere((p) => p.childId == updated.childId);
-          if (idx != -1) _babyProfiles[idx] = updated;
-        });
-        _showSnack('아이 프로필이 성공적으로 수정되었습니다!');
+        await _fetchChildProfiles(); // 수정 후 최신 정보 불러오기
+        _showSnack('수정되었습니다!');
       } else {
         _showSnack('서버와 통신 중 오류가 발생했습니다.', isError: true);
       }
     }
   }
 
+  // 아이 추가 API 호출
   void _addBabyProfile(BabyProfile newProfile) async {
     final success = await ChildApi.addMyChild(newProfile);
     if (success) {
-      await _fetchChildProfiles(); // 서버에서 다시 가져와 갱신
+      await _fetchChildProfiles();
       _showSnack('새 아이 프로필이 추가되었습니다!');
     } else {
       _showSnack('아이 추가에 실패했습니다.', isError: true);
     }
   }
 
+  // 추가 다이얼로그 표시
   void _showAddDialog() {
     showDialog(
       context: context,
@@ -87,6 +88,7 @@ class _BabyProfilePageState extends State<BabyProfilePage> {
     );
   }
 
+  // 하단 스낵바 표시
   void _showSnack(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
@@ -95,6 +97,7 @@ class _BabyProfilePageState extends State<BabyProfilePage> {
   }
 }
 
+// 아이 추가 다이얼로그 위젯
 class _AddBabyProfileDialog extends StatefulWidget {
   final Function(BabyProfile) onProfileAdded;
 
@@ -122,6 +125,7 @@ class _AddBabyProfileDialogState extends State<_AddBabyProfileDialog> {
     super.dispose();
   }
 
+  // 생년월일 선택기
   Future<void> _pickBirthDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -172,6 +176,7 @@ class _AddBabyProfileDialogState extends State<_AddBabyProfileDialog> {
                 ),
               ),
               const SizedBox(height: 15),
+              // 성별 선택
               Row(
                 children: Gender.values.map((gender) {
                   final isSelected = _selectedGender == gender;
@@ -245,6 +250,7 @@ class _AddBabyProfileDialogState extends State<_AddBabyProfileDialog> {
     );
   }
 
+  // 공통 입력 필드 위젯
   Widget _textField(TextEditingController controller, String label, String hint,
       {bool isNumber = false}) {
     return Column(

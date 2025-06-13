@@ -77,4 +77,10 @@ public class ChildService {
                     .collect(Collectors.toList());
         }
     }
+    public ChildResponseDto getChildById(Long childId, Long memberId) {
+        Child child = childRepository.findByIdAndMemberId(childId, memberId)
+                .orElseThrow(() -> new RuntimeException("아이를 찾을 수 없거나 권한이 없습니다."));
+
+        return ChildResponseDto.from(child); // 정적 팩토리 메서드로 변환
+    }
 }
