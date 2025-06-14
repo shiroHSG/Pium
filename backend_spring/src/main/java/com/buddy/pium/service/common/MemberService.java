@@ -3,6 +3,7 @@ package com.buddy.pium.service.common;
 import com.buddy.pium.dto.common.*;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.repository.common.MemberRepository;
+import com.buddy.pium.service.FileUploadService;
 import com.buddy.pium.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -25,47 +27,53 @@ public class MemberService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
+    private final FileUploadService fileUploadService;
+
     // 회원 생성
-    public MemberResponseDto createMember(MemberRegisterDto dto) {
-        if (dto.getEmail() == null || dto.getPassword() == null) {
-            throw new IllegalArgumentException("이메일과 비밀번호는 필수입니다.");
+    public void signUp(MemberRequestDto dto, MultipartFile image) {
+        String imageUrl = null;
+        if (image != null && !image.isEmpty()) {
+            imageUrl = fileUploadService.upload(image, "members"); // 파일 저장 후 URL 리턴
         }
 
         Member member = Member.builder()
+                .email(dto.getEmail())
+                .password(passwordEncoder.encode(dto.getPassword()))
                 .username(dto.getUsername())
                 .nickname(dto.getNickname())
-                .email(dto.getEmail())
                 .phoneNumber(dto.getPhoneNumber())
                 .address(dto.getAddress())
                 .birth(dto.getBirth())
                 .gender(dto.getGender())
-                .profileImageUrl(dto.getProfileImageUrl())
-                .password(passwordEncoder.encode(dto.getPassword()))
+                .profileImageUrl(imageUrl)
                 .build();
 
-        Member saved = memberRepository.save(member);
-        return toResponseDto(saved);
+        memberRepository.save(member);
     }
 
     // 회원 정보 수정
     @Transactional
-    public MemberResponseDto updateMember(Long memberId, MemberUpdateDto dto) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+    public void updateMember(Member member, MemberUpdateDto dto, MultipartFile image) {
+        if (image != null && !image.isEmpty()) {
+            if (member.getProfileImageUrl() != null) {
+                fileUploadService.delete(member.getProfileImageUrl());
+            }
+            String imageUrl = fileUploadService.upload(image, "chatrooms");
+            member.setProfileImageUrl(imageUrl);
+        }
 
         if (dto.getUsername() != null) member.setUsername(dto.getUsername());
         if (dto.getNickname() != null) member.setNickname(dto.getNickname());
         if (dto.getEmail() != null) member.setEmail(dto.getEmail());
+        if (dto.getPassword() != null) member.setPassword(passwordEncoder.encode(dto.getPassword())); // 비번 변경 시 암호화 필요
         if (dto.getPhoneNumber() != null) member.setPhoneNumber(dto.getPhoneNumber());
         if (dto.getAddress() != null) member.setAddress(dto.getAddress());
         if (dto.getBirth() != null) member.setBirth(dto.getBirth());
         if (dto.getGender() != null) member.setGender(dto.getGender());
-        if (dto.getProfileImageUrl() != null) member.setProfileImageUrl(dto.getProfileImageUrl());
 
-        // 변경 감지를 통해 자동으로 DB 반영됨 (save 호출 불필요)
-        return toResponseDto(member);
+        memberRepository.save(member);
     }
-
+    //  --> 여기부터 수정
     public MemberResponseDto getMemberById(Long id) {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
@@ -176,5 +184,10 @@ public class MemberService {
 
         member.setRefreshToken(null);
         memberRepository.save(member);
+    }
+
+    public Member validateMember(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
     }
 }

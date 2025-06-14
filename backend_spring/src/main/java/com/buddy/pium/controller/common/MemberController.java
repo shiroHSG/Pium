@@ -1,13 +1,20 @@
 package com.buddy.pium.controller.common;
 
+import com.buddy.pium.annotation.CurrentMember;
 import com.buddy.pium.annotation.CurrentMemberId;
 import com.buddy.pium.dto.common.*;
+import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.common.MemberService;
 import com.buddy.pium.util.JwtUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -23,21 +30,51 @@ public class MemberController {
     /**
      * 회원 가입
      */
-    @PostMapping("/register")
-    public ResponseEntity<MemberResponseDto> create(@RequestBody MemberRegisterDto registerDto) {
-        MemberResponseDto responseDto = memberService.createMember(registerDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> create(
+            @RequestPart("memberData") String memberDataJson,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+            MemberRequestDto dto = mapper.readValue(memberDataJson, MemberRequestDto.class);
+
+            memberService.signUp(dto, image);
+
+            return ResponseEntity.ok(Map.of("message", "회원가입 성공"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("message", "회원가입 실패: " + e.getMessage()));
+        }
     }
 
     /**
      * 회원 정보 수정
      */
-    @PatchMapping
-    public ResponseEntity<MemberResponseDto> update(@RequestBody MemberUpdateDto updateDto,
-                                                    @CurrentMemberId Long memberId) {
-        MemberResponseDto responseDto = memberService.updateMember(memberId, updateDto);
-        return ResponseEntity.ok(responseDto);
+    @PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> update(
+            @RequestPart("memberData") String memberDataJson,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @CurrentMember Member member
+    ) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule()); // LocalDate 대응
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+            MemberUpdateDto updateDto = mapper.readValue(memberDataJson, MemberUpdateDto.class);
+
+            memberService.updateMember(member, updateDto, image);
+            return ResponseEntity.ok(Map.of("message", "회원 정보 수정 완료"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
+
 
     /**
      * ID로 회원 조회

@@ -50,6 +50,7 @@ public class Child {
 
     private String sensitiveInfo;
 
+    @Builder.Default
     @OneToMany(mappedBy = "child", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Diary> diaries = new ArrayList<>();
 

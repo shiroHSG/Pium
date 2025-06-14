@@ -107,7 +107,7 @@ public class ChatRoomController {
         }
     }
 
-    // 초대 링크 가져오기
+    // 초대 링크 조회
     @GetMapping("{chatRoomId}/invite-link")
     public ResponseEntity<?> getInviteLink(
             @PathVariable Long chatRoomId,

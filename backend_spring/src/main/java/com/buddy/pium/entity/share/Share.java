@@ -41,6 +41,7 @@ public class Share {
 
     private Long viewCount;
 
+    @Builder.Default
     @OneToMany(mappedBy = "share", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatRoom> chatRooms = new ArrayList<>();
 
