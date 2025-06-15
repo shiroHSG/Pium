@@ -11,7 +11,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class MemberUpdateDto {
-    private String email;
     private String password;
     private String username;
     private String nickname;

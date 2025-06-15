@@ -81,7 +81,7 @@ public class MemberController {
      */
     @GetMapping("/users/{id}")
     public ResponseEntity<MemberResponseDto> getById(@PathVariable Long id) {
-        MemberResponseDto responseDto = memberService.getMemberById(id);
+        MemberResponseDto responseDto = memberService.getMemberbyId(id);
         return ResponseEntity.ok(responseDto);
     }
 
@@ -99,7 +99,7 @@ public class MemberController {
      */
     @DeleteMapping("/delete/users/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        memberService.deleteMember(id);
+        memberService.deleteMemberById(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -107,8 +107,8 @@ public class MemberController {
      * 내 정보 조회 (/me)
      */
     @GetMapping
-    public ResponseEntity<MemberResponseDto> getMe(@CurrentMemberId Long memberId) {
-        MemberResponseDto responseDto = memberService.getMemberById(memberId);
+    public ResponseEntity<MemberResponseDto> getMe(@CurrentMember Member member) {
+        MemberResponseDto responseDto = memberService.getMember(member);
         return ResponseEntity.ok(responseDto);
     }
 
@@ -150,13 +150,23 @@ public class MemberController {
      * 로그아웃
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@CurrentMemberId Long memberId) {
+    public ResponseEntity<?> logout(@CurrentMember Member member) {
 
         // 로그 출력용
-        System.out.println("[Controller] 로그아웃 요청 - memberId: " + memberId);
+        System.out.println("[Controller] 로그아웃 요청 - member: " + member);
 
-        memberService.logout(memberId);
+        memberService.logout(member);
         return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));
     }
 
+    // 회원 탈퇴 추가
+    @DeleteMapping
+    public ResponseEntity<?> deleteMember(@CurrentMember Member member) {
+        try {
+            memberService.deleteMember(member);
+            return ResponseEntity.ok(Map.of("message", "회원 탈퇴가 완료되었습니다."));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
+        }
+    }
 }
