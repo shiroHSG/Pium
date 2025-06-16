@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 
@@ -14,69 +15,82 @@ Future<void> onDateTap(BuildContext context, TextEditingController dateControlle
   }
 }
 
-void showCustomTimePicker(BuildContext context, TextEditingController timeController) {
-  showModalBottomSheet(
-    context: context,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (BuildContext context) {
-      int selectedHour = DateTime.now().hour;
-      int selectedMinute = DateTime.now().minute;
+Future<void> showCustomTimePicker(BuildContext context, TextEditingController timeController) async {
+  DateTime now = DateTime.now();
+  int roundedMinute = (now.minute / 5).round() * 5;
+  if (roundedMinute == 60) {
+    now = now.add(const Duration(hours: 1));
+    roundedMinute = 0;
+  }
+  DateTime initialTime = DateTime(now.year, now.month, now.day, now.hour, roundedMinute);
 
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return Container(
-            padding: const EdgeInsets.all(16),
-            height: 250,
-            child: Column(
-              children: [
-                const Text('시간 선택', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    DropdownButton<int>(
-                      value: selectedHour,
-                      items: List.generate(
-                        24,
-                            (index) => DropdownMenuItem(
-                          value: index,
-                          child: Text('$index시'),
-                        ),
+  await showCupertinoModalPopup(
+    context: context,
+    builder: (BuildContext context) {
+      return Container(
+        height: 300,
+        color: Colors.white,
+        child: Column(
+          children: [
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CupertinoButton(
+                    child: const Text(
+                      '취소',
+                      style: TextStyle(
+                        fontFamily: 'Jua',
+                        color: Colors.grey,
                       ),
-                      onChanged: (value) => setState(() => selectedHour = value!),
                     ),
-                    const SizedBox(width: 16),
-                    DropdownButton<int>(
-                      value: selectedMinute,
-                      items: List.generate(
-                        60,
-                            (index) => DropdownMenuItem(
-                          value: index,
-                          child: Text('$index분'),
-                        ),
-                      ),
-                      onChanged: (value) => setState(() => selectedMinute = value!),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    timeController.text = '$selectedHour시 $selectedMinute분';
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryPurple,
-                    foregroundColor: Colors.white,
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
-                  child: const Text('확인'),
-                ),
-              ],
+                  CupertinoButton(
+                    child: const Text(
+                      '확인',
+                      style: TextStyle(
+                        fontFamily: 'Jua',
+                        color: AppTheme.primaryPurple,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      final amPm = initialTime.hour < 12 ? '오전' : '오후';
+                      final displayHour = initialTime.hour % 12 == 0 ? 12 : initialTime.hour % 12;
+                      timeController.text =
+                      '$amPm ${displayHour.toString().padLeft(2, '0')}시 ${initialTime.minute.toString().padLeft(2, '0')}분';
+                    },
+                  ),
+                ],
+              ),
             ),
-          );
-        },
+            Expanded(
+              child: CupertinoTheme(
+                data: const CupertinoThemeData(
+                  textTheme: CupertinoTextThemeData(
+                    dateTimePickerTextStyle: TextStyle(
+                      fontFamily: 'Jua',
+                      fontSize: 20,
+                      color: AppTheme.textPurple,
+                    ),
+                  ),
+                ),
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.time,
+                  initialDateTime: initialTime,
+                  use24hFormat: false,
+                  minuteInterval: 5,
+                  onDateTimeChanged: (DateTime newTime) {
+                    initialTime = newTime;
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       );
     },
   );
@@ -151,7 +165,12 @@ class _AddScheduleHeader extends StatelessWidget {
         const Center(
           child: Text(
             '일정 추가',
-            style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold, color: AppTheme.textPurple),
+            style: TextStyle(
+              fontFamily: 'Jua',
+              fontSize: 23,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPurple,
+            ),
           ),
         ),
         const SizedBox(height: 15),
@@ -185,7 +204,10 @@ class _ScheduleInputField extends StatelessWidget {
           readOnly: onTap != null,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[700]),
+            hintStyle: const TextStyle(
+              fontFamily: 'Jua',
+              color: Colors.grey,
+            ),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
@@ -194,7 +216,10 @@ class _ScheduleInputField extends StatelessWidget {
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
           ),
-          style: const TextStyle(color: Colors.black87),
+          style: const TextStyle(
+            fontFamily: 'Jua',
+            color: Colors.black87,
+          ),
         ),
       ),
     );
