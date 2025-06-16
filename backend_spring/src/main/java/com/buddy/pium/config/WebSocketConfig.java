@@ -1,5 +1,7 @@
 package com.buddy.pium.config;
 
+import com.buddy.pium.util.JwtUtil;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.DialectOverride;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -9,7 +11,10 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 @Configuration
 @EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    private final JwtUtil jwtUtil;
 
     /**
      * webSocket 연결, Endpoint 설정
@@ -18,7 +23,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/chat")   //Flutter에서 사용할 WebSocket URL
-                .setAllowedOriginPatterns("*"); //CORS(다른 서버에서 자원 접근) 허용
+                .addInterceptors(new JwtHandshakeInterceptor(jwtUtil)) // 여기에 등록!
+                .setAllowedOriginPatterns("*")  //CORS(다른 서버에서 자원 접근) 허용
+                .withSockJS();
     }
 
     /**

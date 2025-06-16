@@ -1,5 +1,6 @@
 package com.buddy.pium.service.chat;
 
+import com.buddy.pium.websocket.ChatWebSocketBroadcaster;
 import com.buddy.pium.dto.chat.MessageResponseDto;
 import com.buddy.pium.entity.chat.ChatRoom;
 import com.buddy.pium.entity.chat.ChatRoomMember;
@@ -32,6 +33,7 @@ public class MessageService {
     private final ChatRoomService chatRoomService;
     private final ChatRoomMemberService chatRoomMemberService;
     private final MemberService memberService;
+    private final ChatWebSocketBroadcaster chatWebSocketBroadcaster;
 
     // 메세지 전송
     @Transactional
@@ -96,6 +98,8 @@ public class MessageService {
 
                 if (chatRoomMember.getLastReadMessageId() == null || chatRoomMember.getLastReadMessageId() < newLastReadMessageId) {
                     chatRoomMember.setLastReadMessageId(newLastReadMessageId);
+
+                    //messageBroadcaster.broadcastReadStatus(chatRoomId, sender.getId(), newLastReadMessageId);
                 }
             }
 
@@ -124,6 +128,7 @@ public class MessageService {
                 .messageId(message.getId())
                 .senderId(message.getSender().getId())
                 .senderNickname(message.getSender().getNickname())
+                .senderProfileImageUrl(message.getSender().getProfileImageUrl())
                 .content(message.getContent())
                 .sentAt(message.getSentAt())
                 .unreadCount(unreadCount)
