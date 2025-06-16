@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:frontend_flutter/pages/baby_record/baby_record_detail_page.dart';
 
+import '../../models/baby_profile.dart';
+import '../../models/child/child_api.dart';
 import 'add_baby_record_page.dart';
 
 class BabyRecordPage extends StatefulWidget {
@@ -15,28 +17,42 @@ class BabyRecordPage extends StatefulWidget {
 }
 
 class _BabyRecordPageState extends State<BabyRecordPage> {
+  List<BabyProfile> children = [];
+  BabyProfile? selectedChild;
   List<BabyRecordEntry> babyRecords = [];
 
   @override
   void initState() {
     super.initState();
-    _loadBabyRecords();
+    _loadChildren();
   }
 
-  Future<void> _loadBabyRecords() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? recordsJson = prefs.getString('babyRecords');
-    if (recordsJson != null) {
-      final List<dynamic> jsonList = jsonDecode(recordsJson);
+  Future<void> _loadChildren() async {
+    final result = await ChildApi.fetchMyChildren();
+    if (result.isNotEmpty) {
+      result.sort((a, b) => a.birthDate!.compareTo(b.birthDate!)); // 나이순
       setState(() {
-        babyRecords = jsonList.map((json) => BabyRecordEntry.fromJson(json)).toList();
-        babyRecords.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        children = result;
+        selectedChild = result.first;
       });
-    } else {
-      setState(() {
-        babyRecords = [];
-      });
+      _loadBabyRecords(result.first.childId!); // 초기 선택된 아이 기준 일지 로드
     }
+  }
+
+  Future<void> _loadBabyRecords(int childId) async {
+    // TODO: childId 기준으로 육아일지 조회 API 호출
+    // 임시: 빈 리스트로 설정
+    setState(() {
+      babyRecords = []; // 여기에 fetch 로직 넣기
+    });
+  }
+
+  void _onChildChanged(BabyProfile? newChild) {
+    if (newChild == null) return;
+    setState(() {
+      selectedChild = newChild;
+    });
+    _loadBabyRecords(newChild.childId!);
   }
 
   Future<void> _deleteBabyRecord(int index) async {
@@ -56,14 +72,23 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
     return Scaffold(
       body: Column(
         children: [
-          const BabyRecordHeader(),
+          BabyRecordHeader(
+            children: children,
+            selectedChild: selectedChild,
+            onChildChanged: _onChildChanged,
+          ),
           BabyRecordFilterAndAdd(
+            selectedChild: selectedChild,
+            children: children,
+            onChildChanged: _onChildChanged,
             onAddPressed: () async {
               await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const AddBabyRecordPage()),
               );
-              _loadBabyRecords();
+              if (selectedChild != null) {
+                _loadBabyRecords(selectedChild!.childId!);
+              }
             },
           ),
           Expanded(

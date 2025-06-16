@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+
 import 'package:frontend_flutter/models/baby_record_entry.dart';
+import 'package:frontend_flutter/models/baby_profile.dart';
 import 'package:frontend_flutter/screens/baby_record/add_baby_record_page_ui.dart';
+
+import '../../models/child/child_api.dart';
 
 class AddBabyRecordPage extends StatefulWidget {
   const AddBabyRecordPage({super.key});
@@ -16,6 +20,32 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _publicContentController = TextEditingController();
   final TextEditingController _privateContentController = TextEditingController();
+
+  List<BabyProfile> children = [];
+  BabyProfile? selectedChild;
+  bool _isLoading = true; // ✅ 로딩 상태
+
+  @override
+  void initState() {
+    super.initState();
+    _loadChildren();
+  }
+
+  Future<void> _loadChildren() async {
+    final result = await ChildApi.fetchMyChildren();
+    if (result.isNotEmpty) {
+      result.sort((a, b) => a.birthDate!.compareTo(b.birthDate!));
+      setState(() {
+        children = result;
+        selectedChild = result.first;
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -35,6 +65,7 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
     }
 
     final newEntry = BabyRecordEntry(
+      childId: selectedChild?.childId,
       title: _titleController.text.trim().isEmpty ? '(제목 없음)' : _titleController.text.trim(),
       publicContent: _publicContentController.text,
       privateContent: _privateContentController.text,
@@ -54,17 +85,19 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AddBabyRecordAppBar(
         onCancel: () {
           Navigator.pop(context);
         },
-        onNotification: () {
-          // 알림 버튼 액션
-        },
-        onMenu: () {
-          // 메뉴 버튼 액션
-        },
+        onNotification: () {},
+        onMenu: () {},
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -75,7 +108,15 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const BabyNameDropdown(),
+                BabyNameDropdown(
+                  selectedChild: selectedChild,
+                  children: children,
+                  onChanged: (child) {
+                    setState(() {
+                      selectedChild = child;
+                    });
+                  },
+                ),
                 PublicPrivateSwitch(
                   isPublic: _isPublic,
                   onSwitchChanged: (newValue) {
@@ -95,7 +136,7 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
             const SizedBox(height: 20),
             ActionButtons(
               onAttachPhoto: () {
-                // 사진 첨부 로직
+                // TODO: 사진 첨부 로직 구현
               },
               onComplete: () async {
                 await _saveBabyRecord();

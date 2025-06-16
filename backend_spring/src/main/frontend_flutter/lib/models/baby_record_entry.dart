@@ -1,4 +1,5 @@
 class BabyRecordEntry {
+  final int? childId;
   final String title;
   final String publicContent;
   final String privateContent;
@@ -6,6 +7,7 @@ class BabyRecordEntry {
   final DateTime createdAt;
 
   BabyRecordEntry({
+    this.childId,
     required this.title,
     required this.publicContent,
     required this.privateContent,
@@ -15,6 +17,7 @@ class BabyRecordEntry {
 
   // BabyRecordEntry 객체를 JSON 형태로 변환
   Map<String, dynamic> toJson() => {
+    'childId': childId,
     'title': title,
     'publicContent': publicContent,
     'privateContent': privateContent,
@@ -25,6 +28,7 @@ class BabyRecordEntry {
   // JSON 데이터로부터 BabyRecordEntry 객체 생성
   factory BabyRecordEntry.fromJson(Map<String, dynamic> json) {
     return BabyRecordEntry(
+      childId: json['childId'],
       title: json['title'] as String,
       publicContent: json['publicContent'] as String,
       privateContent: json['privateContent'] as String,

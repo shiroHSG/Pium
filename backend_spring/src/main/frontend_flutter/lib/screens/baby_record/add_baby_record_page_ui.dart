@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 
+import '../../models/baby_profile.dart';
+
 class AddBabyRecordAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onCancel;
   final VoidCallback onNotification;
@@ -48,26 +50,45 @@ class AddBabyRecordAppBar extends StatelessWidget implements PreferredSizeWidget
 }
 
 class BabyNameDropdown extends StatelessWidget {
-  const BabyNameDropdown({super.key});
+  final BabyProfile? selectedChild;
+  final List<BabyProfile> children;
+  final void Function(BabyProfile?) onChanged;
+
+  const BabyNameDropdown({
+    super.key,
+    required this.selectedChild,
+    required this.children,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 36,
+      width: MediaQuery.of(context).size.width * 0.3,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         color: AppTheme.primaryPurple,
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: const [
-          Text(
-            '이름',
-            style: TextStyle(color: Colors.white),
-          ),
-          Icon(Icons.keyboard_arrow_down, color: Colors.white),
-        ],
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<BabyProfile>(
+          isDense: true, // 옵션 (텍스트 높이도 조금 줄어듦)
+          isExpanded: true, // ✅ 텍스트가 Container 너비에 맞게 감싸지도록 유지
+          value: selectedChild,
+          onChanged: onChanged,
+          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+          dropdownColor: AppTheme.primaryPurple,
+          style: const TextStyle(color: Colors.white),
+          items: children.map((child) {
+            return DropdownMenuItem<BabyProfile>(
+              value: child,
+              child: Text(child.name ?? '이름 없음',
+                overflow: TextOverflow.ellipsis, // ✅ 말줄임표 처리
+                maxLines: 1,
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }

@@ -3,8 +3,20 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:frontend_flutter/models/baby_record_entry.dart';
 
+import '../../models/baby_profile.dart';
+
 class BabyRecordHeader extends StatelessWidget {
-  const BabyRecordHeader({super.key});
+  final List<BabyProfile> children;
+  final BabyProfile? selectedChild;
+  final void Function(BabyProfile?) onChildChanged;
+
+
+  const BabyRecordHeader({
+    super.key,
+    required this.children,
+    required this.selectedChild,
+    required this.onChildChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,22 +46,24 @@ class BabyRecordHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          const Padding(
-            padding: EdgeInsets.only(left: 20.0),
+          Padding(
+            padding: const EdgeInsets.only(left: 20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '이름',
-                  style: TextStyle(
+                  selectedChild?.name ?? '이름 없음',
+                  style: const TextStyle(
                     fontSize: 18,
                     color: AppTheme.textPurple,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  '생년월일',
-                  style: TextStyle(
+                  selectedChild?.birthDate != null
+                      ? DateFormat('yyyy.MM.dd').format(selectedChild!.birthDate!)
+                      : '생년월일 없음',
+                  style: const TextStyle(
                     fontSize: 14,
                     color: AppTheme.textPurple,
                   ),
@@ -64,9 +78,18 @@ class BabyRecordHeader extends StatelessWidget {
 }
 
 class BabyRecordFilterAndAdd extends StatelessWidget {
+  final BabyProfile? selectedChild;
+  final List<BabyProfile> children;
+  final void Function(BabyProfile?) onChildChanged;
   final VoidCallback onAddPressed;
 
-  const BabyRecordFilterAndAdd({super.key, required this.onAddPressed});
+  const BabyRecordFilterAndAdd({
+    super.key,
+    required this.selectedChild,
+    required this.children,
+    required this.onChildChanged,
+    required this.onAddPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +98,7 @@ class BabyRecordFilterAndAdd extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // ✅ 드롭다운 실제 구현
           Container(
             height: 36,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -82,17 +106,26 @@ class BabyRecordFilterAndAdd extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
               color: AppTheme.primaryPurple,
             ),
-            child: Row(
-              children: const [
-                Text(
-                  '이름',
-                  style: TextStyle(color: Colors.white),
-                ),
-                Icon(Icons.keyboard_arrow_down, color: Colors.white),
-              ],
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<BabyProfile>(
+                value: selectedChild,
+                onChanged: onChildChanged,
+                icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                dropdownColor: AppTheme.primaryPurple,
+                style: const TextStyle(color: Colors.white),
+                items: children.map((child) {
+                  return DropdownMenuItem<BabyProfile>(
+                    value: child,
+                    child: Text(child.name ?? '이름 없음'),
+                  );
+                }).toList(),
+              ),
             ),
           ),
+
           const SizedBox(width: 10),
+
+          // ➕ 버튼
           GestureDetector(
             onTap: onAddPressed,
             child: Container(
