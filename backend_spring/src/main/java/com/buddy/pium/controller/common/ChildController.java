@@ -1,7 +1,6 @@
 package com.buddy.pium.controller.common;
 
 import com.buddy.pium.annotation.CurrentMember;
-import com.buddy.pium.dto.chat.ChatRoomRequestDTO;
 import com.buddy.pium.dto.common.ChildRequestDto;
 import com.buddy.pium.dto.common.ChildResponseDto;
 import com.buddy.pium.dto.common.ChildUpdateDto;

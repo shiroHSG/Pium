@@ -188,8 +188,7 @@ public class MemberService {
         Claims claims = jwtUtil.validateTokenAndGetClaims(refreshToken);
         Long memberId = Long.parseLong(claims.getSubject());
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 사용자입니다."));
+        Member member = validateMember(memberId);
 
         if (!refreshToken.equals(member.getRefreshToken())) {
             throw new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다.");

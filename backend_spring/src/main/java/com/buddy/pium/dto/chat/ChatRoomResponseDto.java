@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChatRoomResponseDTO {
+public class ChatRoomResponseDto {
 
     private Long chatRoomId;
     private Enum.ChatRoomType type;

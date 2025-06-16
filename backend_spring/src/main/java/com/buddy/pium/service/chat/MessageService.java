@@ -1,6 +1,6 @@
 package com.buddy.pium.service.chat;
 
-import com.buddy.pium.dto.chat.MessageResponseDTO;
+import com.buddy.pium.dto.chat.MessageResponseDto;
 import com.buddy.pium.entity.chat.ChatRoom;
 import com.buddy.pium.entity.chat.ChatRoomMember;
 import com.buddy.pium.entity.chat.Message;
@@ -12,7 +12,6 @@ import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.service.common.MemberService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -36,7 +35,7 @@ public class MessageService {
 
     // 메세지 전송
     @Transactional
-    public MessageResponseDTO sendMessage(Long chatRoomId, Member sender, String content) {
+    public MessageResponseDto sendMessage(Long chatRoomId, Member sender, String content) {
         ChatRoom chatRoom = chatRoomService.validateChatRoom(chatRoomId);
         ChatRoomMember senderMember = chatRoomMemberService.validateChatRoomMember(chatRoom, sender);
 
@@ -62,7 +61,7 @@ public class MessageService {
 
     // 메세지 조회
     @Transactional
-    public List<MessageResponseDTO> getMessages(Long chatRoomId, Member sender, Long pivotId, String direction) {
+    public List<MessageResponseDto> getMessages(Long chatRoomId, Member sender, Long pivotId, String direction) {
         ChatRoom chatRoom = chatRoomService.validateChatRoom(chatRoomId);
         ChatRoomMember chatRoomMember = chatRoomMemberService.validateChatRoomMember(chatRoom, sender);
         LocalDateTime joinedAt = chatRoomMember.getJoinedAt();
@@ -114,14 +113,14 @@ public class MessageService {
                 .collect(Collectors.toList());
     }
 
-    private MessageResponseDTO toDTO(Message message, Member sender) {
+    private MessageResponseDto toDTO(Message message, Member sender) {
         int unreadCount = chatRoomMemberRepository.countUnreadMembers(
                 message.getChatRoom().getId(),
                 message.getId(),
                 sender.getId()  // 👈 이건 쿼리에서 본인 제외에 필요
         );
 
-        return MessageResponseDTO.builder()
+        return MessageResponseDto.builder()
                 .messageId(message.getId())
                 .senderId(message.getSender().getId())
                 .senderNickname(message.getSender().getNickname())

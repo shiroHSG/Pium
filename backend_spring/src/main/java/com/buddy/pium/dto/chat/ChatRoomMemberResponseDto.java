@@ -8,14 +8,14 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChatRoomMemberResponseDTO {
+public class ChatRoomMemberResponseDto {
     private Long memberId;
     private String nickname;
     private String profileImageUrl;
     private boolean isAdmin;
 
-    public static ChatRoomMemberResponseDTO from(ChatRoomMember chatRoomMember) {
-        return ChatRoomMemberResponseDTO.builder()
+    public static ChatRoomMemberResponseDto from(ChatRoomMember chatRoomMember) {
+        return ChatRoomMemberResponseDto.builder()
                 .memberId(chatRoomMember.getMember().getId())
                 .nickname(chatRoomMember.getMember().getNickname())
                 .profileImageUrl(chatRoomMember.getMember().getProfileImageUrl())

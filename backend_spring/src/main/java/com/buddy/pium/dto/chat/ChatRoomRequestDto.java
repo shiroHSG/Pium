@@ -9,7 +9,7 @@ import org.antlr.v4.runtime.misc.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChatRoomRequestDTO {
+public class ChatRoomRequestDto {
 
     @NotNull
     private Enum.ChatRoomType type; //DIRECT, SHARE, GROUP

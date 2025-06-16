@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatRoomSummaryDTO {
+public class ChatRoomSummaryDto {
     private Long roomId;
     private String lastMessage;
     private int unreadCount;
