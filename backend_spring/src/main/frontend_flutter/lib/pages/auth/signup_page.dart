@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:frontend_flutter/pages/auth/login.dart';
 import 'package:http/http.dart' as http;
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../models/auth/auth_services.dart';
 import '../../screens/auth/address_search/address_search_page.dart';
 import '../../screens/auth/signup_page_ui.dart';
 
@@ -27,8 +29,11 @@ class _SignupPageState extends State<SignupPage> {
 
   String? _selectedGender;
   File? _selectedImage;
+  String? _emailError;
+  String? _nicknameError;
 
-  // 이미지 선택
+  final AuthService _authService = AuthService();
+
   Future<void> pickImage() async {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -38,11 +43,18 @@ class _SignupPageState extends State<SignupPage> {
     }
   }
 
-  // 회원가입 요청
-  Future<String?> signup(File? imageFile) async {
-    final url = Uri.parse('http://10.0.2.2:8080/api/member/register');
+  void _signup() async {
+    setState(() {
+      _emailError = null;
+      _nicknameError = null;
+    });
 
-    final Map<String, dynamic> memberData = {
+    if (_passwordController.text != _confirmPasswordController.text) {
+      _showDialog('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    final memberData = {
       'username': _emailController.text,
       'email': _emailController.text,
       'password': _passwordController.text,
@@ -53,50 +65,34 @@ class _SignupPageState extends State<SignupPage> {
       'gender': _selectedGender == '남성' ? 'M' : 'F',
     };
 
-    final request = http.MultipartRequest('POST', url);
-    request.fields['memberData'] = jsonEncode(memberData);
-
-    if (imageFile != null) {
-      request.files.add(await http.MultipartFile.fromPath(
+    http.MultipartFile? imageFile;
+    if (_selectedImage != null) {
+      imageFile = await http.MultipartFile.fromPath(
         'image',
-        imageFile.path,
+        _selectedImage!.path,
         contentType: MediaType('image', 'jpeg'),
-      ));
+      );
     }
 
-    try {
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return null; // 성공
-      } else {
-        final decoded = utf8.decode(response.bodyBytes);
-        final Map<String, dynamic> responseData = jsonDecode(decoded);
-        return responseData['message'] ?? '회원가입 실패';
-      }
-    } catch (e) {
-      return '네트워크 오류가 발생했습니다.';
-    }
-  }
-
-  // 회원가입 버튼 클릭 시 실행
-  void _signup() async {
-    if (_passwordController.text != _confirmPasswordController.text) {
-      _showDialog('비밀번호가 일치하지 않습니다.');
-      return;
-    }
-
-    final errorMessage = await signup(_selectedImage);
+    final errorMessage = await _authService.signUp(memberData, imageFile: imageFile);
 
     if (errorMessage == null) {
       _showDialog('회원가입 성공!', isSuccess: true);
     } else {
-      _showDialog(errorMessage);
+      if (errorMessage.contains('이메일')) {
+        setState(() {
+          _emailError = errorMessage;
+        });
+      } else if (errorMessage.contains('닉네임')) {
+        setState(() {
+          _nicknameError = errorMessage;
+        });
+      } else {
+        _showDialog(errorMessage);
+      }
     }
   }
 
-  // 다이얼로그로 메시지 표시
   void _showDialog(String message, {bool isSuccess = false}) {
     showDialog(
       context: context,
@@ -107,7 +103,13 @@ class _SignupPageState extends State<SignupPage> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              if (isSuccess) Navigator.pop(context); // 성공 시 이전 페이지로 이동
+              if (isSuccess) {
+                // 로그인 페이지로 이동
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => Login()),
+                );
+              }
             },
             child: const Text('확인'),
           ),
@@ -118,7 +120,7 @@ class _SignupPageState extends State<SignupPage> {
 
   void _checkNicknameDuplicate() {
     debugPrint('닉네임 중복 확인: ${_nicknameController.text}');
-    // 중복 확인 로직은 별도 구현
+    // 추후 구현
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -127,6 +129,9 @@ class _SignupPageState extends State<SignupPage> {
       initialDate: DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
+      locale: const Locale('ko', 'KR'),
+      initialEntryMode: DatePickerEntryMode.calendarOnly,
+
       builder: (context, child) => Theme(
         data: ThemeData.light().copyWith(
           colorScheme: const ColorScheme.light(
@@ -198,6 +203,8 @@ class _SignupPageState extends State<SignupPage> {
         onAddressSearch: _searchAddress,
         onPickImage: pickImage,
         selectedImage: _selectedImage,
+        emailError: _emailError,
+        nicknameError: _nicknameError,
       ),
     );
   }

@@ -27,7 +27,9 @@ class AuthService {
       } else {
         final decoded = utf8.decode(response.bodyBytes);
         final Map<String, dynamic> errorData = jsonDecode(decoded);
-        return errorData['message'] ?? '회원가입 실패';
+        final rawMessage = errorData['message'] ?? '회원가입 실패';
+        final cleanMessage = rawMessage.toString().replaceFirst('회원가입 실패: ', '');
+        return cleanMessage;
       }
     } catch (e) {
       print('회원가입 오류: $e');
