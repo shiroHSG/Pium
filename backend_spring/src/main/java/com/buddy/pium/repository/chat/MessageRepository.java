@@ -30,4 +30,17 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findTop100ByChatRoomIdAndIdLessThanAndSentAtAfterOrderByIdDesc(Long chatRoomId, Long pivotId, LocalDateTime joinedAt);
 
 
+    @Query("""
+    SELECT COUNT(m)
+    FROM Message m
+    WHERE m.chatRoom.id = :chatRoomId
+      AND m.id > (
+          SELECT COALESCE(crm.lastReadMessageId, 0)
+          FROM ChatRoomMember crm
+          WHERE crm.chatRoom.id = :chatRoomId
+            AND crm.member.id = :memberId
+      )
+""")
+    int countUnreadMessagesForMember(@Param("chatRoomId") Long chatRoomId,
+                                     @Param("memberId") Long memberId);
 }

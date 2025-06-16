@@ -323,4 +323,20 @@ public class ChatRoomService {
             throw new AccessDeniedException("이 채팅방에서 차단된 사용자입니다.");
         }
     }
+
+    // 안읽은 총 메시지 수
+    public int getTotalUnreadCount(Member member) {
+        List<ChatRoomMember> joinedRooms = chatRoomMemberRepository.findByMember(member);
+
+        int totalUnread = 0;
+        for (ChatRoomMember crm : joinedRooms) {
+            int unread = messageRepository.countUnreadMessagesForMember(
+                    crm.getChatRoom().getId(),
+                    member.getId()
+            );
+            totalUnread += unread;
+        }
+
+        return totalUnread;
+    }
 }
