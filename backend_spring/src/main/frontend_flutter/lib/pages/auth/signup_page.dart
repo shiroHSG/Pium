@@ -28,7 +28,7 @@ class _SignupPageState extends State<SignupPage> {
   String? _selectedGender;
   File? _selectedImage;
 
-  // 이미지 선택 함수
+  // 이미지 선택
   Future<void> pickImage() async {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -38,8 +38,8 @@ class _SignupPageState extends State<SignupPage> {
     }
   }
 
-  // 회원가입 API 요청
-  Future<bool> signup(File? imageFile) async {
+  // 회원가입 요청
+  Future<String?> signup(File? imageFile) async {
     final url = Uri.parse('http://10.0.2.2:8080/api/member/register');
 
     final Map<String, dynamic> memberData = {
@@ -69,35 +69,56 @@ class _SignupPageState extends State<SignupPage> {
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return true;
+        return null; // 성공
       } else {
-        debugPrint('회원가입 실패: ${response.statusCode}');
-        debugPrint('응답 내용: ${response.body}');
-        return false;
+        final decoded = utf8.decode(response.bodyBytes);
+        final Map<String, dynamic> responseData = jsonDecode(decoded);
+        return responseData['message'] ?? '회원가입 실패';
       }
     } catch (e) {
-      debugPrint('예외 발생: $e');
-      return false;
+      return '네트워크 오류가 발생했습니다.';
     }
   }
 
   // 회원가입 버튼 클릭 시 실행
   void _signup() async {
     if (_passwordController.text != _confirmPasswordController.text) {
-      _showSnackBar('비밀번호가 일치하지 않습니다.');
+      _showDialog('비밀번호가 일치하지 않습니다.');
       return;
     }
 
-    final success = await signup(_selectedImage);
-    _showSnackBar(success ? '회원가입 성공!' : '회원가입 실패');
+    final errorMessage = await signup(_selectedImage);
+
+    if (errorMessage == null) {
+      _showDialog('회원가입 성공!', isSuccess: true);
+    } else {
+      _showDialog(errorMessage);
+    }
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  // 다이얼로그로 메시지 표시
+  void _showDialog(String message, {bool isSuccess = false}) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(isSuccess ? '성공' : '실패'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              if (isSuccess) Navigator.pop(context); // 성공 시 이전 페이지로 이동
+            },
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _checkNicknameDuplicate() {
     debugPrint('닉네임 중복 확인: ${_nicknameController.text}');
+    // 중복 확인 로직은 별도 구현
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -141,7 +162,6 @@ class _SignupPageState extends State<SignupPage> {
     }
   }
 
-
   void _handleGenderChanged(String? gender) {
     setState(() {
       _selectedGender = gender;
@@ -176,8 +196,8 @@ class _SignupPageState extends State<SignupPage> {
         onSelectDate: _selectDate,
         onGenderChanged: _handleGenderChanged,
         onAddressSearch: _searchAddress,
-        onPickImage: pickImage, // 이미지 선택 가능
-        selectedImage: _selectedImage, // 선택된 이미지 넘기기
+        onPickImage: pickImage,
+        selectedImage: _selectedImage,
       ),
     );
   }

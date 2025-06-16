@@ -5,6 +5,36 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService {
   static const String baseUrl = 'http://10.0.2.2:8080'; // 하드코딩
 
+  // 이메일 닉네임 중복
+  Future<String?> signUp(Map<String, dynamic> memberData, {http.MultipartFile? imageFile}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/member/register');
+      final request = http.MultipartRequest('POST', uri);
+
+      // JSON 문자열로 변환해서 필드에 담기
+      request.fields['memberData'] = jsonEncode(memberData);
+
+      // 이미지가 있으면 추가
+      if (imageFile != null) {
+        request.files.add(imageFile);
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        return null; // 성공 시 에러 메시지 없음
+      } else {
+        final decoded = utf8.decode(response.bodyBytes);
+        final Map<String, dynamic> errorData = jsonDecode(decoded);
+        return errorData['message'] ?? '회원가입 실패';
+      }
+    } catch (e) {
+      print('회원가입 오류: $e');
+      return '네트워크 오류';
+    }
+  }
+
   // 로그인
   Future<bool> login(String email, String password) async {
     try {
