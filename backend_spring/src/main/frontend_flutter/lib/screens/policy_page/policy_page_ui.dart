@@ -26,7 +26,7 @@ class PolicyPageUI extends StatelessWidget {
       children: [
         // 드롭다운 + 검색창
         Padding(
-          padding: const EdgeInsets.only(top: 18.0),
+          padding: const EdgeInsets.only(top: 18.0, bottom: 18.0),
           child: Row(
             children: [
               Container(

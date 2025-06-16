@@ -21,71 +21,57 @@ class _PolicyPageState extends State<PolicyPage> {
     setState(() {
       _selectedIndex = index;
     });
-    // TODO: 탭에 따라 다른 페이지로 이동하는 로직
+    // TODO: 탭에 따라 다른 페이지로 이동하는 로직 (최신순, 인기순, 오래된순)
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      endDrawer: CustomDrawer(
-        onItemSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        onLoginStatusChanged: (isLoggedIn) {
-          // TODO: 로그아웃 처리
-        },
-      ),
-      body: Builder(
-        builder: (context) => Column(
-          children: [
-            // 커스텀 헤더
-            Container(
-              padding: const EdgeInsets.only(top: 30, left: 8, right: 8, bottom: 8),
-              color: AppTheme.primaryPurple,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    color: Colors.white,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.notifications_none),
-                    onPressed: () {
-                      Scaffold.of(context).openEndDrawer();
-                    },
-                    color: Colors.white,
-                  ),
-                ],
-              ),
-            ),
-
-            // 본문 스크롤 영역
-            Expanded(
-              child: PolicyPageUI(
-                dropdownValue: _dropdownValue,
-                onDropdownChanged: (value) {
-                  setState(() {
-                    _dropdownValue = value;
-                  });
-                },
-                searchController: _searchController,
-                currentPage: _currentPage,
-                onPageChanged: (page) {
-                  setState(() {
-                    _currentPage = page;
-                  });
-                },
-              ),
-            ),
-          ],
+      appBar: AppBar(
+        backgroundColor: AppTheme.primaryPurple,
+        elevation: 0,
+        title: const Text(
+          '정보 제공',
+          style: TextStyle(color: Colors.white),
         ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+          color: Colors.white,
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none),
+            onPressed: () {
+              // 알림 페이지 이동
+            },
+            color: Colors.white,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: PolicyPageUI(
+              dropdownValue: _dropdownValue,
+              onDropdownChanged: (value) {
+                setState(() {
+                  _dropdownValue = value;
+                });
+              },
+              searchController: _searchController,
+              currentPage: _currentPage,
+              onPageChanged: (page) {
+                setState(() {
+                  _currentPage = page;
+                });
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
+
 }
