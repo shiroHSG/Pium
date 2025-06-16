@@ -1,7 +1,7 @@
 package com.buddy.pium.service.post;
 
-import com.buddy.pium.dto.post.PostCommentRequest;
-import com.buddy.pium.dto.post.PostCommentResponse;
+import com.buddy.pium.dto.post.PostCommentRequestDto;
+import com.buddy.pium.dto.post.PostCommentResponseDto;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.Post;
 import com.buddy.pium.entity.post.PostComment;
@@ -23,7 +23,7 @@ public class PostCommentService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
 
-    public void create(Long postId, Long memberId, PostCommentRequest dto) {
+    public void create(Long postId, Long memberId, PostCommentRequestDto dto) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("게시글 없음"));
         Member member = memberRepository.findById(memberId)
@@ -38,13 +38,13 @@ public class PostCommentService {
         postCommentRepository.save(comment);
     }
 
-    public List<PostCommentResponse> getComments(Long postId) {
+    public List<PostCommentResponseDto> getComments(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("게시글 없음"));
 
         return postCommentRepository.findByPost(post)
                 .stream()
-                .map(c -> PostCommentResponse.builder()
+                .map(c -> PostCommentResponseDto.builder()
                         .id(c.getId())
                         .content(c.getContent())
                         .writer(c.getMember().getNickname())
@@ -54,7 +54,7 @@ public class PostCommentService {
     }
 
     @Transactional
-    public void update(Long commentId, Long memberId, PostCommentRequest dto) {
+    public void update(Long commentId, Long memberId, PostCommentRequestDto dto) {
         PostComment comment = postCommentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("댓글 없음"));
 

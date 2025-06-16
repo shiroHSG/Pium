@@ -1,6 +1,7 @@
 package com.buddy.pium.controller.common;
 
 import com.buddy.pium.annotation.CurrentMember;
+import com.buddy.pium.dto.chat.ChatRoomRequestDTO;
 import com.buddy.pium.dto.common.ChildRequestDto;
 import com.buddy.pium.dto.common.ChildResponseDto;
 import com.buddy.pium.dto.common.ChildUpdateDto;
@@ -49,12 +50,24 @@ public class ChildController {
         return ResponseEntity.ok(Map.of("message", "아이를 삭제했습니다."));
     }
 
-    @PatchMapping("/{childId}")
-    public ResponseEntity<?> updateChild(@PathVariable Long childId,
-                                         @RequestBody ChildUpdateDto dto,
-                                         @CurrentMember Member member) {
-        childService.updateChild(childId, dto, member);
-        return ResponseEntity.ok(Map.of("message", "아이 정보를 수정했습니다."));
+    @PatchMapping(value = "/{childId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateGroupChatRoom(
+            @PathVariable Long childId,
+            @RequestPart("chatRoomData") String childDataJson,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @CurrentMember Member member
+    ) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            ChildUpdateDto dto = mapper.readValue(childDataJson, ChildUpdateDto.class);
+
+            childService.updateChild(childId, dto, member, image);
+            return ResponseEntity.ok(Map.of("message", "아이 정보를 수정했습니다."));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
+        }
     }
 
     @GetMapping

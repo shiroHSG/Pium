@@ -19,24 +19,24 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<Void> create(@RequestBody PostRequest dto, Authentication auth) {
+    public ResponseEntity<Void> create(@RequestBody PostRequestDto dto, Authentication auth) {
         Long memberId = (Long) auth.getPrincipal();
         postService.create(dto, memberId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PostResponse> get(@PathVariable Long id) {
+    public ResponseEntity<PostResponseDto> get(@PathVariable Long id) {
         return ResponseEntity.ok(postService.get(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<PostResponse>> getAll(@RequestParam String category) {
+    public ResponseEntity<List<PostResponseDto>> getAll(@RequestParam String category) {
         return ResponseEntity.ok(postService.getAll(category));
     }
 
     public ResponseEntity<Void> update(@PathVariable Long id,
-                                       @RequestBody PostUpdateRequest dto,
+                                       @RequestBody PostUpdateRequestDto dto,
                                        Authentication auth) {
         Long memberId = (Long) auth.getPrincipal();
         postService.update(id, memberId, dto);
@@ -52,7 +52,7 @@ public class PostController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<PostResponse>> search(
+    public ResponseEntity<Page<PostResponseDto>> search(
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String sort,

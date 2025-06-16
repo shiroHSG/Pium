@@ -1,7 +1,7 @@
 package com.buddy.pium.controller.share;
 
-import com.buddy.pium.dto.share.ShareRequest;
-import com.buddy.pium.dto.share.ShareResponse;
+import com.buddy.pium.dto.share.ShareRequestDto;
+import com.buddy.pium.dto.share.ShareResponseDto;
 import com.buddy.pium.service.share.ShareService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,25 +18,25 @@ public class ShareController {
     private final ShareService shareService;
 
     @PostMapping
-    public ResponseEntity<Void> create(@RequestBody ShareRequest dto, Authentication auth) {
+    public ResponseEntity<Void> create(@RequestBody ShareRequestDto dto, Authentication auth) {
         Long memberId = (Long) auth.getPrincipal();
         shareService.create(dto, memberId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ShareResponse> get(@PathVariable Long id, Authentication auth) {
+    public ResponseEntity<ShareResponseDto> get(@PathVariable Long id, Authentication auth) {
         return ResponseEntity.ok(shareService.get(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<ShareResponse>> getAll(Authentication auth) {
+    public ResponseEntity<List<ShareResponseDto>> getAll(Authentication auth) {
         return ResponseEntity.ok(shareService.getAll());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> update(@PathVariable Long id,
-                                       @RequestBody ShareRequest dto,
+                                       @RequestBody ShareRequestDto dto,
                                        Authentication auth) {
         Long memberId = (Long) auth.getPrincipal();
         shareService.update(id, memberId, dto);

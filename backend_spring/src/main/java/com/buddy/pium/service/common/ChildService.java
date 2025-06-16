@@ -49,16 +49,24 @@ public class ChildService {
     }
 
     @Transactional
-    public void updateChild(Long childId, ChildUpdateDto dto, Member member) {
+    public void updateChild(Long childId, ChildUpdateDto dto, Member member, MultipartFile image) {
         Child child = validateChild(childId, member);
 
+        if (image != null && !image.isEmpty()) {
+            if (member.getProfileImageUrl() != null) {
+                fileUploadService.delete(member.getProfileImageUrl());
+            }
+            String imageUrl = fileUploadService.upload(image, "children");
+            child.setProfileImgUrl(imageUrl);
+        }
         if (dto.getName() != null) child.setName(dto.getName());
         if (dto.getBirth() != null) child.setBirth(dto.getBirth());
         if (dto.getGender() != null) child.setGender(dto.getGender());
         if (dto.getHeight() != null) child.setHeight(dto.getHeight());
         if (dto.getWeight() != null) child.setWeight(dto.getWeight());
-        if (dto.getProfileImgUrl() != null) child.setProfileImgUrl(dto.getProfileImgUrl());
         if (dto.getSensitiveInfo() != null) child.setSensitiveInfo(dto.getSensitiveInfo());
+
+        childRepository.save(child);
     }
 
     public List<ChildResponseDto> getChildren(Long memberId, Long mateId) {
@@ -75,7 +83,7 @@ public class ChildService {
         }
     }
 
-    private Child validateChild(Long childId, Member member) {
+    public Child validateChild(Long childId, Member member) {
         Child child = childRepository.findById(childId)
                 .orElseThrow(() -> new ResourceNotFoundException("아이를 찾을 수 없습니다."));
         if (!child.getMember().equals(member)) {

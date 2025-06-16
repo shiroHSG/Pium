@@ -1,7 +1,7 @@
 package com.buddy.pium.controller.post;
 
-import com.buddy.pium.dto.post.PostCommentRequest;
-import com.buddy.pium.dto.post.PostCommentResponse;
+import com.buddy.pium.dto.post.PostCommentRequestDto;
+import com.buddy.pium.dto.post.PostCommentResponseDto;
 import com.buddy.pium.service.post.PostCommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +19,7 @@ public class PostCommentController {
 
     @PostMapping("/{postId}/comments/")
     public ResponseEntity<Void> create(@PathVariable Long postId,
-                                       @RequestBody PostCommentRequest dto,
+                                       @RequestBody PostCommentRequestDto dto,
                                        Authentication auth) {
         Long memberId = (Long) auth.getPrincipal();
         postCommentService.create(postId, memberId, dto);
@@ -27,13 +27,13 @@ public class PostCommentController {
     }
 
     @GetMapping("/{postId}/comments")
-    public ResponseEntity<List<PostCommentResponse>> getComments(@PathVariable Long postId) {
+    public ResponseEntity<List<PostCommentResponseDto>> getComments(@PathVariable Long postId) {
         return ResponseEntity.ok(postCommentService.getComments(postId));
     }
 
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<Void> update(@PathVariable Long commentId,
-                                       @RequestBody PostCommentRequest dto,
+                                       @RequestBody PostCommentRequestDto dto,
                                        Authentication auth) {
         Long memberId = (Long) auth.getPrincipal();
         postCommentService.update(commentId, memberId, dto);

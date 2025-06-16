@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostResponse {
+public class PostResponseDto {
     private Long id;
     private String title;
     private String content;
@@ -20,8 +20,8 @@ public class PostResponse {
     private Long viewCount;
     private LocalDateTime createdAt;
 
-    public static PostResponse from(Post post) {
-        return new PostResponse(
+    public static PostResponseDto from(Post post) {
+        return new PostResponseDto(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),

@@ -1,8 +1,10 @@
 package com.buddy.pium.controller.calender;
 
+import com.buddy.pium.annotation.CurrentMember;
 import com.buddy.pium.annotation.CurrentMemberId;
 import com.buddy.pium.dto.calender.CalendarRequestDto;
 import com.buddy.pium.dto.calender.CalendarResponseDto;
+import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.calender.CalenderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +23,8 @@ public class CalenderController {
      * 캘린더 전체 조회 (본인 + mateInfo 포함)
      */
     @GetMapping
-    public ResponseEntity<List<CalendarResponseDto>> getAll(@CurrentMemberId Long memberId) {
-        return ResponseEntity.ok(calenderService.getCalendersWithMate(memberId));
+    public ResponseEntity<List<CalendarResponseDto>> getAll(@CurrentMember Member member) {
+        return ResponseEntity.ok(calenderService.getCalendersWithMate(member));
     }
 
     /**
@@ -30,8 +32,8 @@ public class CalenderController {
      */
     @PostMapping
     public ResponseEntity<CalendarResponseDto> create(@RequestBody CalendarRequestDto dto,
-                                                      @CurrentMemberId Long memberId) {
-        return ResponseEntity.ok(calenderService.createCalendar(memberId, dto));
+                                                      @CurrentMember Member member) {
+        return ResponseEntity.ok(calenderService.createCalendar(member, dto));
     }
 
     /**
@@ -40,8 +42,8 @@ public class CalenderController {
     @PatchMapping("/{id}")
     public ResponseEntity<CalendarResponseDto> update(@PathVariable Long id,
                                                       @RequestBody CalendarRequestDto dto,
-                                                      @CurrentMemberId Long memberId) {
-        return ResponseEntity.ok(calenderService.updateCalendar(id, dto, memberId));
+                                                      @CurrentMember Member member) {
+        return ResponseEntity.ok(calenderService.updateCalendar(id, dto, member));
     }
 
     /**
@@ -49,8 +51,8 @@ public class CalenderController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id,
-                                       @CurrentMemberId Long memberId) {
-        calenderService.deleteCalendar(id, memberId);
+                                       @CurrentMember Member member) {
+        calenderService.deleteCalendar(id, member);
         return ResponseEntity.noContent().build();
     }
 }

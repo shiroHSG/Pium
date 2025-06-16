@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DiaryResponse {
+public class DiaryResponseDto {
     private Long id;
     private String content;
     private String imageUrl;
@@ -18,8 +18,8 @@ public class DiaryResponse {
     private String author;
     private LocalDateTime createdAt;
 
-    public static DiaryResponse from(Diary diary) {
-        return DiaryResponse.builder()
+    public static DiaryResponseDto from(Diary diary) {
+        return DiaryResponseDto.builder()
                 .id(diary.getId())
                 .content(diary.getContent())
                 .imageUrl(diary.getImageUrl())

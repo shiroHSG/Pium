@@ -19,7 +19,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
 
-    public PostResponse create(PostRequest dto, Long memberId) {
+    public PostResponseDto create(PostRequestDto dto, Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("회원 없음"));
 
@@ -34,26 +34,26 @@ public class PostService {
 
         postRepository.save(post);
 
-        return PostResponse.from(post);
+        return PostResponseDto.from(post);
     }
 
-    public PostResponse get(Long id) {
+    public PostResponseDto get(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("글 없음"));
 
         post.setViewCount(post.getViewCount() + 1);
         postRepository.save(post);
 
-        return PostResponse.from(post);
+        return PostResponseDto.from(post);
     }
 
-    public List<PostResponse> getAll(String category) {
+    public List<PostResponseDto> getAll(String category) {
         return postRepository.findAllByCategory(category).stream()
-                .map(PostResponse::from)
+                .map(PostResponseDto::from)
                 .toList();
     }
 
-    public void update(Long postId, Long memberId, PostUpdateRequest dto) {
+    public void update(Long postId, Long memberId, PostUpdateRequestDto dto) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("글 없음"));
 
@@ -77,7 +77,7 @@ public class PostService {
         postRepository.delete(post);
     }
 
-    public Page<PostResponse> search(String type, String keyword, Pageable pageable) {
+    public Page<PostResponseDto> search(String type, String keyword, Pageable pageable) {
         Page<Post> posts;
 
         if (type == null || keyword == null || keyword.isBlank()) {
@@ -91,11 +91,11 @@ public class PostService {
             }
         }
 
-        return posts.map(PostResponse::from);
+        return posts.map(PostResponseDto::from);
     }
 
-    public Page<PostResponse> searchByLikes(Pageable pageable) {
+    public Page<PostResponseDto> searchByLikes(Pageable pageable) {
         return postRepository.findAllOrderByLikeCountDesc(pageable)
-                .map(PostResponse::from);
+                .map(PostResponseDto::from);
     }
 }
