@@ -6,6 +6,8 @@ import com.buddy.pium.dto.diary.*;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.diary.DiaryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +25,15 @@ public class DiaryController {
     private final DiaryService diaryService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createChild(
+    public ResponseEntity<?> createDiary(
             @RequestPart("diaryData") String diaryDataJson,
             @RequestPart(value = "image", required = false) MultipartFile image,
             @CurrentMember Member member
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             DiaryRequestDto dto = mapper.readValue(diaryDataJson, DiaryRequestDto.class);
 
             diaryService.create(dto, member, image);
@@ -41,9 +45,8 @@ public class DiaryController {
         }
     }
 
-    // 개발자용
     @GetMapping("/{diaryId}")
-    public ResponseEntity<DiaryResponseDto> get(@PathVariable Long diaryId) {
+    public ResponseEntity<DiaryResponseDto> get(@PathVariable Long diaryId, @CurrentMember Member member) {
         return ResponseEntity.ok(diaryService.get(diaryId));
     }
 
@@ -62,6 +65,8 @@ public class DiaryController {
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             DiaryUpdateDto dto = mapper.readValue(diaryDataJson, DiaryUpdateDto.class);
 
             diaryService.updateDiary(diaryId, dto, member, image);

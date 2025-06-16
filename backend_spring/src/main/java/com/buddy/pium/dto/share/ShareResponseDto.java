@@ -22,7 +22,7 @@ public class ShareResponseDto {
                 share.getId(),
                 share.getTitle(),
                 share.getContent(),
-                share.getImgUrl(),
+                share.getImageUrl(),
                 share.getMember().getNickname(),
                 share.getViewCount(),
                 share.getCreatedAt()

@@ -8,6 +8,8 @@ import com.buddy.pium.dto.common.ChildUpdateDto;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.common.ChildService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +34,8 @@ public class ChildController {
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             ChildRequestDto dto = mapper.readValue(childDataJson, ChildRequestDto.class);
 
             childService.addChild(dto, member, image);
@@ -51,16 +55,17 @@ public class ChildController {
     }
 
     @PatchMapping(value = "/{childId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateGroupChatRoom(
+    public ResponseEntity<?> updateChild(
             @PathVariable Long childId,
-            @RequestPart("chatRoomData") String childDataJson,
+            @RequestPart("childData") String childDataJson,
             @RequestPart(value = "image", required = false) MultipartFile image,
             @CurrentMember Member member
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             ChildUpdateDto dto = mapper.readValue(childDataJson, ChildUpdateDto.class);
-
             childService.updateChild(childId, dto, member, image);
             return ResponseEntity.ok(Map.of("message", "아이 정보를 수정했습니다."));
 

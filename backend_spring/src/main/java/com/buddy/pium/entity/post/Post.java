@@ -40,7 +40,7 @@ public class Post {
 
     private Long viewCount;
 
-    private String imgUrl;
+    private String imageUrl;
 
     @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)

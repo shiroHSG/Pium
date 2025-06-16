@@ -45,6 +45,9 @@ public class ChildService {
 
     public void deleteChild(Long childId, Member member) {
         Child child = validateChild(childId, member);
+        if (child.getProfileImgUrl() != null) {
+            fileUploadService.delete(child.getProfileImgUrl());
+        }
         childRepository.delete(child);
     }
 

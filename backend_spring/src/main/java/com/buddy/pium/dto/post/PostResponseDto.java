@@ -26,7 +26,7 @@ public class PostResponseDto {
                 post.getTitle(),
                 post.getContent(),
                 post.getCategory(),
-                post.getImgUrl(),
+                post.getImageUrl(),
                 post.getMember().getNickname(),
                 post.getViewCount() != null ? post.getViewCount() : 0,
                 post.getCreatedAt()

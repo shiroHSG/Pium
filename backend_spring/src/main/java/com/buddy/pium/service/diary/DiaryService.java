@@ -46,9 +46,8 @@ public class DiaryService {
         diaryRepository.save(diary);
     }
 
-    public DiaryResponseDto get(Long id) {
-        Diary diary = diaryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("일지 없음"));
+    public DiaryResponseDto get(Long diaryId) {
+        Diary diary = validateDiary(diaryId);
         return DiaryResponseDto.from(diary);
     }
 
@@ -61,11 +60,11 @@ public class DiaryService {
     }
 
     public void updateDiary(Long diaryId, DiaryUpdateDto dto, Member member, MultipartFile image ) {
-        Diary diary = validateDiary(diaryId, member);
+        Diary diary = validateDiaryOwner(diaryId, member);
 
         if (image != null && !image.isEmpty()) {
-            if (member.getProfileImageUrl() != null) {
-                fileUploadService.delete(member.getProfileImageUrl());
+            if (diary.getImageUrl() != null) {
+                fileUploadService.delete(diary.getImageUrl());
             }
             String imageUrl = fileUploadService.upload(image, "diaries");
             diary.setImageUrl(imageUrl);
@@ -77,20 +76,24 @@ public class DiaryService {
     }
 
     public void delete(Long diaryId, Member member) {
-        Diary diary = validateDiary(diaryId, member);
+        Diary diary = validateDiaryOwner(diaryId, member);
         if (diary.getImageUrl() != null) {
             fileUploadService.delete(diary.getImageUrl());
         }
         diaryRepository.delete(diary);
     }
 
-    public Diary validateDiary(Long diaryId, Member member) {
-        Diary diary = diaryRepository.findById(diaryId)
-                .orElseThrow(() -> new ResourceNotFoundException("일지 없음"));
+    public Diary validateDiaryOwner(Long diaryId, Member member) {
+        Diary diary = validateDiary(diaryId);
 
         if (!diary.getMember().equals(member)) {
             throw new AccessDeniedException("수정 권한 없음");
         }
         return diary;
+    }
+
+    public Diary validateDiary(Long diaryId) {
+        return diaryRepository.findById(diaryId)
+                .orElseThrow(() -> new ResourceNotFoundException("일지 없음"));
     }
 }

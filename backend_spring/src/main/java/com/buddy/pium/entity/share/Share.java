@@ -37,7 +37,7 @@ public class Share {
     @Column(nullable = false)
     private String content;
 
-    private String imgUrl;
+    private String imageUrl;
 
     private Long viewCount;
 

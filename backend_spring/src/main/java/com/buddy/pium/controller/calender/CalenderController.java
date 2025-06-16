@@ -39,20 +39,20 @@ public class CalenderController {
     /**
      * 캘린더 수정
      */
-    @PatchMapping("/{id}")
-    public ResponseEntity<CalendarResponseDto> update(@PathVariable Long id,
+    @PatchMapping("/{calendarId}")
+    public ResponseEntity<CalendarResponseDto> update(@PathVariable Long calendarId,
                                                       @RequestBody CalendarRequestDto dto,
                                                       @CurrentMember Member member) {
-        return ResponseEntity.ok(calenderService.updateCalendar(id, dto, member));
+        return ResponseEntity.ok(calenderService.updateCalendar(calendarId, dto, member));
     }
 
     /**
      * 캘린더 삭제
      */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id,
+    @DeleteMapping("/{calendarId}")
+    public ResponseEntity<Void> delete(@PathVariable Long calendarId,
                                        @CurrentMember Member member) {
-        calenderService.deleteCalendar(id, member);
+        calenderService.deleteCalendar(calendarId, member);
         return ResponseEntity.noContent().build();
     }
 }
