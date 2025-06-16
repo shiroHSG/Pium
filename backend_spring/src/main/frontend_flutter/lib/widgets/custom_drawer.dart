@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/auth/auth_services.dart';
 import '../pages/calendar_page/calendar_page.dart';
+import '../pages/policy_page/policy_page.dart';
 import '../pages/sharing_page/sharing_page.dart';
-import '../pages/calendar_page/add_schedule.dart';
 import '../pages/community/community_page.dart';
 
 class CustomDrawer extends StatelessWidget {
@@ -53,6 +53,10 @@ class CustomDrawer extends StatelessWidget {
               title: const Text('정보제공'),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PolicyPage()),
+                );
               },
             ),
             ListTile(
