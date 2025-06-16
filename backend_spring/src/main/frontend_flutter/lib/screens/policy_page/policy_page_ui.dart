@@ -128,27 +128,30 @@ class PolicyPageUI extends StatelessWidget {
         const SizedBox(height: 16),
 
         // 페이지네이션
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(6, (index) {
-            if (index == 5) return const Text(' >');
-            final pageNum = index + 1;
-            final isSelected = pageNum == currentPage;
+        Padding(
+          padding: const EdgeInsets.only(bottom: 18.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(6, (index) {
+              if (index == 5) return const Text(' >');
+              final pageNum = index + 1;
+              final isSelected = pageNum == currentPage;
 
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: GestureDetector(
-                onTap: () => onPageChanged(pageNum),
-                child: Text(
-                  '$pageNum',
-                  style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? AppTheme.primaryPurple : Colors.black,
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: GestureDetector(
+                  onTap: () => onPageChanged(pageNum),
+                  child: Text(
+                    '$pageNum',
+                    style: TextStyle(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected ? AppTheme.primaryPurple : Colors.black,
+                    ),
                   ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
+          ),
         ),
       ],
     );
@@ -170,7 +173,7 @@ class PolicyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell( // ← 카드 전체 터치 가능하게 만듦
+    return InkWell( // 카드 전체 터치 가능하게 만듦
       onTap: onPressed,
       borderRadius: BorderRadius.circular(12),
       child: Container(

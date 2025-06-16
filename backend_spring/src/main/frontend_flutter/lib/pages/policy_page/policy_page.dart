@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:frontend_flutter/widgets/custom_bottom_bar.dart';
 import 'package:frontend_flutter/widgets/custom_drawer.dart';
 
 import '../../screens/policy_page/policy_page_ui.dart';
@@ -86,10 +85,6 @@ class _PolicyPageState extends State<PolicyPage> {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        selectedIndex: _selectedIndex,
-        onItemTapped: _onItemTapped,
       ),
     );
   }
