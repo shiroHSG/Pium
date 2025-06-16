@@ -1,15 +1,13 @@
 package com.buddy.pium.controller.chat;
 
 import com.buddy.pium.annotation.CurrentMember;
-import com.buddy.pium.dto.chat.ChatRoomMemberResponseDTO;
+import com.buddy.pium.dto.chat.ChatRoomMemberResponseDto;
 import com.buddy.pium.entity.chat.ChatRoom;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.chat.ChatRoomMemberService;
 import com.buddy.pium.service.chat.ChatRoomService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,7 +29,7 @@ public class ChatRoomMemberController {
     ) {
         try {
             ChatRoom chatRoom = chatRoomService.validateChatRoom(chatRoomId);  // 추가
-            List<ChatRoomMemberResponseDTO> members =
+            List<ChatRoomMemberResponseDto> members =
                     chatRoomMemberService.getChatRoomMembers(chatRoom, member); // 변경
             return ResponseEntity.ok(members);
         } catch (Exception e) {

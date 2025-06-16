@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class InviteLinkResponseDTO {
+public class InviteLinkResponseDto {
     private String inviteCode;
     private String inviteLink;
 }

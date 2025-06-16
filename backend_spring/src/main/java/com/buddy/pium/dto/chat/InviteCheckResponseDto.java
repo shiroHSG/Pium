@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class InviteCheckResponseDTO {
+public class InviteCheckResponseDto {
     private String chatRoomName;
     private boolean alreadyJoined;
     private boolean requirePassword;
