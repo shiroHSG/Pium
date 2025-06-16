@@ -9,9 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatRoomMemberResponseDTO {
-    private Long memberId;
-    private String nickname;
-    private String profileImageUrl;
-    private boolean isAdmin;
+public class ReadMessageDto {
+    private Long readerId;
+    private Long lastReadMessageId;
 }

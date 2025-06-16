@@ -10,6 +10,7 @@ public class SecurityConstants {
             "/api/member/users/**",               // 개발자가 전체 Member테이블 조회 시 사용
             "/api/member/reissue",        // RefreshToken으로 AccessToken 재발급 (비인증 경로 필요)
             "/api/member/delete/**",
-            "/api/shares/**"
+            "/api/shares/**",
+            "/api/policies/**"
     );
 }

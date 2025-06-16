@@ -3,13 +3,18 @@ package com.buddy.pium.service.post;
 import com.buddy.pium.dto.post.*;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.Post;
+import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.repository.post.PostRepository;
+import com.buddy.pium.service.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.List;
 
 @Service
@@ -19,65 +24,65 @@ public class PostService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
 
-    public PostResponse create(PostRequest dto, Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("회원 없음"));
+    private final FileUploadService fileUploadService;
+
+    public void create(PostRequestDto dto, Member member, MultipartFile image) {
+        String imageUrl = null;
+        if (image != null && !image.isEmpty()) {
+            imageUrl = fileUploadService.upload(image, "posts"); // 파일 저장 후 URL 리턴
+        }
 
         Post post = Post.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
                 .category(dto.getCategory())
-                .imgUrl(dto.getImgUrl())
                 .member(member)
+                .imageUrl(imageUrl)
                 .viewCount(0L)
                 .build();
 
         postRepository.save(post);
-
-        return PostResponse.from(post);
     }
 
-    public PostResponse get(Long id) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("글 없음"));
+    public PostResponseDto get(Long postId) {
+        Post post = validatePost(postId);
 
         post.setViewCount(post.getViewCount() + 1);
         postRepository.save(post);
 
-        return PostResponse.from(post);
+        return PostResponseDto.from(post);
     }
 
-    public List<PostResponse> getAll(String category) {
+    public List<PostResponseDto> getAll(String category) {
         return postRepository.findAllByCategory(category).stream()
-                .map(PostResponse::from)
+                .map(PostResponseDto::from)
                 .toList();
     }
 
-    public void update(Long postId, Long memberId, PostUpdateRequest dto) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("글 없음"));
+    public void updatePost(Long postId, PostUpdateDto dto, Member member, MultipartFile image) {
+        Post post = validatePostOwner(postId, member);
 
-        if (!post.getMember().getId().equals(memberId)) {
-            throw new RuntimeException("권한 없음");
+        if (image != null && !image.isEmpty()) {
+            if (post.getImageUrl() != null) {
+                fileUploadService.delete(post.getImageUrl());
+            }
+            String imageUrl = fileUploadService.upload(image, "posts");
+            post.setImageUrl(imageUrl);
         }
 
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
-        post.setImgUrl(dto.getImgUrl());
     }
 
-    public void delete(Long postId, Long memberId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("글 없음"));
-
-        if (!post.getMember().getId().equals(memberId)) {
-            throw new RuntimeException("권한 없음");
+    public void delete(Long postId, Member member) {
+        Post post = validatePostOwner(postId, member);
+        if (post.getImageUrl() != null) {
+            fileUploadService.delete(post.getImageUrl());
         }
-
         postRepository.delete(post);
     }
 
-    public Page<PostResponse> search(String type, String keyword, Pageable pageable) {
+    public Page<PostResponseDto> search(String type, String keyword, Pageable pageable) {
         Page<Post> posts;
 
         if (type == null || keyword == null || keyword.isBlank()) {
@@ -91,11 +96,23 @@ public class PostService {
             }
         }
 
-        return posts.map(PostResponse::from);
+        return posts.map(PostResponseDto::from);
     }
 
-    public Page<PostResponse> searchByLikes(Pageable pageable) {
+    public Page<PostResponseDto> searchByLikes(Pageable pageable) {
         return postRepository.findAllOrderByLikeCountDesc(pageable)
-                .map(PostResponse::from);
+                .map(PostResponseDto::from);
+    }
+
+    public Post validatePostOwner(Long postId, Member member) {
+        Post post = validatePost(postId);
+        if (!post.getMember().equals(member)) {
+            throw new AccessDeniedException("권한이 없습니다.");
+        }
+        return post;
+    }
+    public Post validatePost(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("글이 없습니다."));
     }
 }

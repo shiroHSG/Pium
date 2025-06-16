@@ -1,19 +1,16 @@
 package com.buddy.pium.controller.chat;
 
 import com.buddy.pium.annotation.CurrentMember;
-import com.buddy.pium.dto.chat.ChatRoomRequestDTO;
-import com.buddy.pium.dto.chat.ChatRoomResponseDTO;
-import com.buddy.pium.dto.chat.InviteCheckResponseDTO;
-import com.buddy.pium.dto.chat.InviteLinkResponseDTO;
-import com.buddy.pium.dto.common.ChildResponseDto;
+import com.buddy.pium.dto.chat.ChatRoomRequestDto;
+import com.buddy.pium.dto.chat.ChatRoomResponseDto;
+import com.buddy.pium.dto.chat.InviteCheckResponseDto;
+import com.buddy.pium.dto.chat.InviteLinkResponseDto;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.chat.ChatRoomService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,23 +36,23 @@ public class ChatRoomController {
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            ChatRoomRequestDTO dto = mapper.readValue(chatRoomDataJson, ChatRoomRequestDTO.class);
+            ChatRoomRequestDto dto = mapper.readValue(chatRoomDataJson, ChatRoomRequestDto.class);
 
-            ChatRoomResponseDTO responseDTO = chatRoomService.getOrCreateChatRoom(dto, image, member);
+            ChatRoomResponseDto responseDTO = chatRoomService.getOrCreateChatRoom(dto, image, member);
 
             return ResponseEntity.ok(responseDTO);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
 
     // 채팅방 리스트 조회
     @GetMapping
-    public ResponseEntity<List<ChatRoomResponseDTO>> getMyChatRooms(
+    public ResponseEntity<List<ChatRoomResponseDto>> getMyChatRooms(
             @CurrentMember Member member
     ) {
-        List<ChatRoomResponseDTO> chatRooms = chatRoomService.getChatRoomsForMember(member);
+        List<ChatRoomResponseDto> chatRooms = chatRoomService.getChatRoomsForMember(member);
         return ResponseEntity.ok(chatRooms);
     }
 
@@ -69,14 +66,14 @@ public class ChatRoomController {
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            ChatRoomRequestDTO dto = mapper.readValue(chatRoomDataJson, ChatRoomRequestDTO.class);
+            ChatRoomRequestDto dto = mapper.readValue(chatRoomDataJson, ChatRoomRequestDto.class);
 
             chatRoomService.updateGroupChatRoom(chatRoomId, dto, image, member);
             return ResponseEntity.ok(Map.of("message", "채팅방 수정 완료"));
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -92,7 +89,7 @@ public class ChatRoomController {
             return ResponseEntity.ok(Map.of("message", "채팅방을 나갔습니다."));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -106,26 +103,26 @@ public class ChatRoomController {
             chatRoomService.deleteGroupChatRoom(chatRoomId, member);
             return ResponseEntity.ok(Map.of("message", "채팅방이 성공적으로 삭제되었습니다."));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
 
-    // 초대 링크 가져오기
+    // 초대 링크 조회
     @GetMapping("{chatRoomId}/invite-link")
     public ResponseEntity<?> getInviteLink(
             @PathVariable Long chatRoomId,
             @CurrentMember Member member) {
-        InviteLinkResponseDTO response = chatRoomService.getInviteLink(chatRoomId, member);
+        InviteLinkResponseDto response = chatRoomService.getInviteLink(chatRoomId, member);
         return ResponseEntity.ok(response);
     }
 
     // 초대 링크 정보 조회
     //alreadyJoined == true -> 바로 메세지 api 호출
     @GetMapping("/invite/{inviteCode}")
-    public ResponseEntity<InviteCheckResponseDTO> checkInvite(
+    public ResponseEntity<InviteCheckResponseDto> checkInvite(
             @PathVariable String inviteCode,
             @CurrentMember Member member) {
-        InviteCheckResponseDTO response = chatRoomService.checkInviteAccess(inviteCode, member);
+        InviteCheckResponseDto response = chatRoomService.checkInviteAccess(inviteCode, member);
         return ResponseEntity.ok(response);
     }
 

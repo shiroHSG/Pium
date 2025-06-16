@@ -4,7 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class PostCommentRequest {
+public class PostUpdateDto {
+    private String title;
     private String content;
 }
-// 댓글 작성
+// 글 수정

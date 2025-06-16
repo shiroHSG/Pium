@@ -6,6 +6,6 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MessageRequestDTO {
+public class MessageRequestDto {
     private String content;
 }

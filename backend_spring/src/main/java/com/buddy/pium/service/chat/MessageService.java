@@ -1,6 +1,6 @@
 package com.buddy.pium.service.chat;
 
-import com.buddy.pium.dto.chat.MessageResponseDTO;
+import com.buddy.pium.dto.chat.MessageResponseDto;
 import com.buddy.pium.entity.chat.ChatRoom;
 import com.buddy.pium.entity.chat.ChatRoomMember;
 import com.buddy.pium.entity.chat.Message;
@@ -9,9 +9,9 @@ import com.buddy.pium.repository.chat.ChatRoomMemberRepository;
 import com.buddy.pium.repository.chat.ChatRoomRepository;
 import com.buddy.pium.repository.chat.MessageRepository;
 import com.buddy.pium.repository.common.MemberRepository;
+import com.buddy.pium.service.common.MemberService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,15 +29,15 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
 
+    private final ChatRoomService chatRoomService;
+    private final ChatRoomMemberService chatRoomMemberService;
+    private final MemberService memberService;
+
     // 메세지 전송
     @Transactional
-    public MessageResponseDTO sendMessage(Long chatRoomId, Long senderId, String content) {
-        // 채팅방 조회
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다."));
-        // 멤버 조회
-        Member sender = memberRepository.findById(senderId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+    public MessageResponseDto sendMessage(Long chatRoomId, Member sender, String content) {
+        ChatRoom chatRoom = chatRoomService.validateChatRoom(chatRoomId);
+        ChatRoomMember senderMember = chatRoomMemberService.validateChatRoomMember(chatRoom, sender);
 
         Message message = Message.builder()
                 .chatRoom(chatRoom)
@@ -50,44 +50,28 @@ public class MessageService {
         // 채팅방 최신 메시지 갱신
         chatRoom.setLastMessageContent(content);
         chatRoom.setLastMessageSentAt(LocalDateTime.now());
-
         chatRoomRepository.save(chatRoom);
-
-        // 본인의 ChatRoomMember 조회
-        ChatRoomMember senderMember = chatRoomMemberRepository
-                .findByChatRoomAndMember(chatRoom, sender)
-                .orElseThrow(() -> new IllegalStateException("채팅방 멤버가 아닙니다."));
 
         // 마지막으로 읽은 메시지를 현재 메시지로 갱신
         senderMember.setLastReadMessageId(message.getId());
         chatRoomMemberRepository.save(senderMember);
 
-        return toDTO(message, senderId);
+        return toDTO(message, sender);
     }
 
     // 메세지 조회
     @Transactional
-    public List<MessageResponseDTO> getMessages(
-            Long chatRoomId,
-            Long memberId,
-            Long pivotId,
-            String direction
-    ) {
-        // 1. 채팅방 존재 여부 확인
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다."));
-
-        // 2. 참여 여부 확인 + joinedAt 조회
-        ChatRoomMember crm = chatRoomMemberRepository.findByChatRoomIdAndMemberId(chatRoomId, memberId)
-                .orElseThrow(() -> new AccessDeniedException("이 채팅방에 접근할 수 없습니다."));
-        LocalDateTime joinedAt = crm.getJoinedAt();
+    public List<MessageResponseDto> getMessages(Long chatRoomId, Member sender, Long pivotId, String direction) {
+        ChatRoom chatRoom = chatRoomService.validateChatRoom(chatRoomId);
+        ChatRoomMember chatRoomMember = chatRoomMemberService.validateChatRoomMember(chatRoom, sender);
+        LocalDateTime joinedAt = chatRoomMember.getJoinedAt();
 
         List<Message> messages;
 
-        // 3. 최신순으로 가져온 후 다시 역정렬 (오래된순으로 보여주기 위함)
+        // 최신순으로 가져온 후 다시 역정렬 (오래된순으로 보여주기 위함)
         if (pivotId == null || direction.equals("latest")) {
 
-            Long lastReadMessageId = crm.getLastReadMessageId();
+            Long lastReadMessageId = chatRoomMember.getLastReadMessageId();
 
             if (lastReadMessageId == null) {
                 // 🔹 처음 입장 → joinedAt 이후 메시지 전체
@@ -110,8 +94,8 @@ public class MessageService {
             if (!messages.isEmpty()) {
                 Long newLastReadMessageId = messages.get(messages.size() - 1).getId();
 
-                if (crm.getLastReadMessageId() == null || crm.getLastReadMessageId() < newLastReadMessageId) {
-                    crm.setLastReadMessageId(newLastReadMessageId);
+                if (chatRoomMember.getLastReadMessageId() == null || chatRoomMember.getLastReadMessageId() < newLastReadMessageId) {
+                    chatRoomMember.setLastReadMessageId(newLastReadMessageId);
                 }
             }
 
@@ -125,18 +109,18 @@ public class MessageService {
         }
 
         return messages.stream()
-                .map(message -> toDTO(message, memberId))
+                .map(message -> toDTO(message, sender))
                 .collect(Collectors.toList());
     }
 
-    private MessageResponseDTO toDTO(Message message, Long currentMemberId) {
+    private MessageResponseDto toDTO(Message message, Member sender) {
         int unreadCount = chatRoomMemberRepository.countUnreadMembers(
                 message.getChatRoom().getId(),
                 message.getId(),
-                currentMemberId  // 👈 이건 쿼리에서 본인 제외에 필요
+                sender.getId()  // 👈 이건 쿼리에서 본인 제외에 필요
         );
 
-        return MessageResponseDTO.builder()
+        return MessageResponseDto.builder()
                 .messageId(message.getId())
                 .senderId(message.getSender().getId())
                 .senderNickname(message.getSender().getNickname())

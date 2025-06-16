@@ -37,10 +37,11 @@ public class Share {
     @Column(nullable = false)
     private String content;
 
-    private String imgUrl;
+    private String imageUrl;
 
     private Long viewCount;
 
+    @Builder.Default
     @OneToMany(mappedBy = "share", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatRoom> chatRooms = new ArrayList<>();
 

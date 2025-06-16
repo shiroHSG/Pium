@@ -13,10 +13,9 @@ import java.util.List;
 
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
+    int countByChatRoomAndSentAtAfterAndSenderNot(ChatRoom chatRoom, LocalDateTime joinedAt, Member currentUser);
 
-    int countByChatRoomAndIdGreaterThanAndSenderNot(ChatRoom chatRoom, Long id, Member sender);
-
-    int countByChatRoomAndSenderNot(ChatRoom chatRoom, Member sender);
+    int countByChatRoomAndIdGreaterThanAndSentAtAfterAndSenderNot(ChatRoom chatRoom, Long lastReadMessageId, LocalDateTime joinedAt, Member currentUser);
 
     // 처음 입장 시
     List<Message> findByChatRoomIdAndSentAtAfterOrderByIdAsc(Long chatRoomId, LocalDateTime joinedAt);
@@ -29,4 +28,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     // prev 무한스크롤
     List<Message> findTop100ByChatRoomIdAndIdLessThanAndSentAtAfterOrderByIdDesc(Long chatRoomId, Long pivotId, LocalDateTime joinedAt);
+
+
 }

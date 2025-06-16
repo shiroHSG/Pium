@@ -5,12 +5,15 @@ import com.buddy.pium.entity.chat.ChatRoomBan;
 import com.buddy.pium.entity.chat.ChatRoomMember;
 import com.buddy.pium.entity.chat.Enum;
 import com.buddy.pium.entity.common.Member;
+import com.buddy.pium.exception.InvalidChatRoomOperationException;
+import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.chat.ChatRoomBanRepository;
 import com.buddy.pium.repository.chat.ChatRoomMemberRepository;
 import com.buddy.pium.repository.chat.ChatRoomRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.buddy.pium.service.common.MemberService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,41 +24,35 @@ public class ChatRoomBanService {
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatRoomBanRepository chatRoomBanRepository;
 
+    private final ChatRoomMemberService chatRoomMemberService;
+    private final MemberService memberService;
+
     @Transactional
-    public void banMember(Long chatRoomId, Long currentMemberId, Long targetMemberId) {
+    public void banMember(Long chatRoomId, Member member, Long targetMemberId) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-                .orElseThrow(() -> new EntityNotFoundException("채팅방이 존재하지 않습니다"));
+                .orElseThrow(() -> new ResourceNotFoundException("채팅방을 찾을 수 없습니다."));
 
         if (chatRoom.getType() != Enum.ChatRoomType.GROUP) {
-            throw new IllegalArgumentException("밴 기능은 그룹 채팅방에서만 사용할 수 있습니다");
+            throw new InvalidChatRoomOperationException("그룹 채팅방이 아닙니다.");
         }
 
-        ChatRoomMember requester = chatRoomMemberRepository.findByChatRoomIdAndMemberId(chatRoomId, currentMemberId)
-                .orElseThrow(() -> new IllegalArgumentException("요청자가 채팅방에 참여하고 있지 않습니다"));
+        ChatRoomMember admin = chatRoomMemberService.validateAdmin(chatRoom, member);
+        Member target = memberService.validateMember(targetMemberId);
+        ChatRoomMember targetMember = chatRoomMemberService.validateChatRoomMember(chatRoom, target);
 
-        if (!requester.isAdmin()) {
-            throw new IllegalArgumentException("관리자만 밴을 수행할 수 있습니다");
-        }
+        isBannedMember(chatRoom, target);
+        chatRoomMemberRepository.delete(targetMember);
 
-        ChatRoomMember target = chatRoomMemberRepository.findByChatRoomIdAndMemberId(chatRoomId, targetMemberId)
-                .orElseThrow(() -> new IllegalArgumentException("대상 사용자가 채팅방에 참여하고 있지 않습니다"));
-
-        // 이미 밴되어 있는지 확인
-        boolean alreadyBanned = chatRoomBanRepository.existsByChatRoomIdAndBannedMemberId(chatRoomId, targetMemberId);
-        if (alreadyBanned) {
-            throw new IllegalArgumentException("이미 밴된 사용자입니다");
-        }
-
-        // 1. ChatRoomMember에서 삭제
-        chatRoomMemberRepository.delete(target);
-
-        // 2. ChatRoomBan에 등록
-        Member bannedMember = target.getMember();
         ChatRoomBan ban = ChatRoomBan.builder()
                 .chatRoom(chatRoom)
-                .bannedMember(bannedMember)
+                .bannedMember(target)
                 .build();
         chatRoomBanRepository.save(ban);
     }
 
+    public void isBannedMember(ChatRoom chatRoom, Member member) {
+        if (chatRoomBanRepository.existsByChatRoomAndBannedMember(chatRoom, member)) {
+            throw new AccessDeniedException("이 채팅방에서 차단된 사용자입니다.");
+        }
+    }
 }
