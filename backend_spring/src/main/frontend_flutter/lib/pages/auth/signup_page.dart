@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/pages/auth/login.dart';
@@ -43,11 +42,22 @@ class _SignupPageState extends State<SignupPage> {
     }
   }
 
+  bool isValidEmail(String email) {
+    return RegExp(r'^[\w\.-]+@[\w\.-]+\.\w+$').hasMatch(email);
+  }
+
   void _signup() async {
     setState(() {
       _emailError = null;
       _nicknameError = null;
     });
+
+    if (!isValidEmail(_emailController.text.trim())) {
+      setState(() {
+        _emailError = '올바른 이메일 형식을 입력하세요.';
+      });
+      return;
+    }
 
     if (_passwordController.text != _confirmPasswordController.text) {
       _showDialog('비밀번호가 일치하지 않습니다.');
