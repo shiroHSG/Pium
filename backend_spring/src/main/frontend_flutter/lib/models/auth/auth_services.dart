@@ -142,4 +142,40 @@ class AuthService {
       return null;
     }
   }
+
+  // 회원 탈퇴
+  Future<bool> deleteMember() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? accessToken = prefs.getString('accessToken');
+
+      if (accessToken == null) {
+        print('회원 탈퇴 실패: 토큰 없음');
+        return false;
+      }
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/member'),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        await prefs.remove('accessToken');
+        await prefs.remove('refreshToken');
+        print('회원 탈퇴 완료');
+        return true;
+      } else {
+        print('회원 탈퇴 실패: ${response.statusCode}, ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('회원 탈퇴 에러: $e');
+      return false;
+    }
+  }
+
 }

@@ -1,7 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 
-// 라벨 텍스트 스타일
+// 라벨 텍스트
 Widget buildLabelText(String label) {
   return Text(
     label,
@@ -14,7 +15,7 @@ Widget buildLabelText(String label) {
   );
 }
 
-// 기본 텍스트 필드 컨테이너
+// 텍스트 필드 컨테이너
 Widget buildTextFieldContainer({
   required TextEditingController controller,
   bool isPassword = false,
@@ -57,7 +58,7 @@ Widget buildTextFieldContainer({
   );
 }
 
-// 이메일, 비밀번호, 이름 등 기본 필드
+// 기본 필드
 Widget buildSignupInputField(String label, TextEditingController controller, TextInputType type, bool isPassword) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,7 +70,7 @@ Widget buildSignupInputField(String label, TextEditingController controller, Tex
   );
 }
 
-// 닉네임 필드 + 중복확인
+// 닉네임 + 중복확인
 Widget buildNicknameInputField(String label, TextEditingController controller, VoidCallback onCheck) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,24 +96,27 @@ Widget buildNicknameInputField(String label, TextEditingController controller, V
   );
 }
 
-// 생년월일 필드
+// 생년월일 선택
 Widget buildBirthDateInputField(String label, TextEditingController controller, Future<void> Function(BuildContext) onSelect) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       buildLabelText(label),
       const SizedBox(height: 8),
-      buildTextFieldContainer(
-        controller: controller,
-        readOnly: true,
-        onTap: () => onSelect.call(controller as BuildContext),
-        suffixIcon: const Icon(Icons.calendar_today, color: AppTheme.textPurple),
+      Builder(
+        builder: (context) => buildTextFieldContainer(
+          controller: controller,
+          readOnly: true,
+          onTap: () => onSelect(context),
+          suffixIcon: const Icon(Icons.calendar_today, color: AppTheme.textPurple),
+        ),
       ),
     ],
   );
 }
 
-// 성별 선택 필드
+
+// 성별 선택
 Widget buildGenderSelectionField(String label, String? selected, Function(String?) onChange) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,7 +162,7 @@ Widget buildGenderSelectionField(String label, String? selected, Function(String
   );
 }
 
-// 주소 필드 + 검색 버튼
+// 주소 + 검색
 Widget buildAddressInputField(String label, TextEditingController controller, VoidCallback onSearch) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,9 +171,7 @@ Widget buildAddressInputField(String label, TextEditingController controller, Vo
       const SizedBox(height: 8),
       Row(
         children: [
-          Expanded(
-            child: buildTextFieldContainer(controller: controller, readOnly: true),
-          ),
+          Expanded(child: buildTextFieldContainer(controller: controller, readOnly: true)),
           const SizedBox(width: 10),
           ElevatedButton(
             onPressed: onSearch,
@@ -186,7 +188,7 @@ Widget buildAddressInputField(String label, TextEditingController controller, Vo
   );
 }
 
-// 회원가입 페이지 UI
+// 회원가입 UI with 이미지 선택
 class SignupPageUI extends StatelessWidget {
   final TextEditingController emailController;
   final TextEditingController passwordController;
@@ -202,6 +204,8 @@ class SignupPageUI extends StatelessWidget {
   final Future<void> Function(BuildContext) onSelectDate;
   final Function(String?) onGenderChanged;
   final VoidCallback onAddressSearch;
+  final VoidCallback onPickImage;
+  final File? selectedImage;
 
   const SignupPageUI({
     Key? key,
@@ -219,6 +223,8 @@ class SignupPageUI extends StatelessWidget {
     required this.onSelectDate,
     required this.onGenderChanged,
     required this.onAddressSearch,
+    required this.onPickImage,
+    required this.selectedImage,
   }) : super(key: key);
 
   @override
@@ -232,6 +238,49 @@ class SignupPageUI extends StatelessWidget {
             const SizedBox(height: 15),
             Image.asset('assets/logo1.png', width: 100),
             const SizedBox(height: 15),
+
+            // ✅ 프로필 이미지 업로드 박스
+            Column(
+              children: [
+                Container(
+                  width: 110,
+                  height: 110,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: selectedImage != null
+                        ? Image.file(selectedImage!, fit: BoxFit.cover)
+                        : const Icon(Icons.person, size: 60, color: AppTheme.primaryPurple),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton.icon(
+                  onPressed: onPickImage,
+                  icon: const Icon(Icons.photo, color: Colors.white),
+                  label: const Text('이미지 선택', style: TextStyle(fontFamily: 'Jua')),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: AppTheme.primaryPurple,
+                    elevation: 3,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
             buildSignupInputField('이메일', emailController, TextInputType.emailAddress, false),
             const SizedBox(height: 15),
             buildSignupInputField('비밀번호', passwordController, TextInputType.text, true),
