@@ -42,13 +42,6 @@ class PolicyDetailPageUI extends StatelessWidget {
                     },
                     color: Colors.white,
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () {
-                      Scaffold.of(context).openEndDrawer();
-                    },
-                    color: Colors.white,
-                  ),
                 ],
               ),
             ),

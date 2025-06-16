@@ -55,7 +55,7 @@ class _PolicyPageState extends State<PolicyPage> {
                     color: Colors.white,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.menu),
+                    icon: const Icon(Icons.notifications_none),
                     onPressed: () {
                       Scaffold.of(context).openEndDrawer();
                     },
