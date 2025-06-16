@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/pages/auth/login.dart';
-import 'package:frontend_flutter/pages/my_page/profile_edit_page.dart';
-import 'package:frontend_flutter/pages/my_page/babyProfile_page.dart';
+import '../../pages/my_page/baby_profile/babyProfile_page.dart';
+import '../../pages/my_page/my_activity/my_activity_page.dart';
+import '../../pages/my_page/profile_edit/profile_edit_page.dart';
 
 class MyPageUI extends StatelessWidget {
   const MyPageUI({Key? key}) : super(key: key);
@@ -125,6 +126,10 @@ class _MyPageButtonsGrid extends StatelessWidget {
             textSize: 14,
             onTap: () {
               print('내 활동');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MyActivityPage()),
+              );
             },
           ),
           _buildMyPageButton(

@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:frontend_flutter/theme/app_theme.dart';
 
-import '../../screens/my_page/profile_edit_page_ui.dart';
+import '../../../screens/my_page/profile_edit/profile_edit_page_ui.dart';
 
 class ProfileEditPage extends StatefulWidget {
   const ProfileEditPage({Key? key}) : super(key: key);

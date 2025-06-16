@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/baby_profile.dart';
-import '../../screens/my_page/babyProfile_edit_page_ui.dart';
+import '../../../screens/my_page/baby_profile/babyProfile_edit_page_ui.dart';
 
 class BabyProfileEditPage extends StatefulWidget {
   final BabyProfile babyProfile;
