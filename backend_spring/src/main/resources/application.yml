@@ -7,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -28,3 +28,10 @@ logging:
 # backend_spring/src/main/resources/application.yml
 jwt:
   secret: ${JWT_SECRET}
+
+# 강제로 UTF-8 인코딩
+http:
+  encoding:
+    charset: UTF-8
+    enabled: true
+    force: true

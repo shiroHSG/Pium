@@ -1,10 +1,10 @@
-// lib/pages/calendar_page/calendar_page.dart
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart';
-import 'package:frontend_flutter/models/schedule.dart';
+import 'package:frontend_flutter/models/calendar/schedule.dart';
+import 'package:frontend_flutter/models/calendar/calendar_api.dart';
 import 'package:frontend_flutter/screens/calendar/calendar_page_ui.dart';
-import 'package:intl/intl.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({Key? key}) : super(key: key);
@@ -27,18 +27,25 @@ class _CalendarPageState extends State<CalendarPage> {
     _selectedDay = _focusedDay;
     _currentMonthIndex = 0;
     _pageController = PageController(initialPage: _currentMonthIndex);
-
-    _schedules[DateTime(2025, 5, 19)] = [
-      Schedule(title: '병원 예약진료', date: DateTime(2025, 5, 19), time: '14:00', color: Colors.blue),
-      Schedule(title: '회의', date: DateTime(2025, 5, 19), time: '15:00', color: Colors.green),
-      Schedule(title: '가족 외식', date: DateTime(2025, 5, 19), time: '20:00', color: Colors.red),
-    ];
+    _loadSchedules(); // 일정 불러오기
   }
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+  Future<void> _loadSchedules() async {
+    try {
+      final fetched = await CalendarApi.fetchSchedules();
+      final Map<DateTime, List<Schedule>> grouped = {};
+
+      for (var s in fetched) {
+        final key = DateTime(s.date.year, s.date.month, s.date.day);
+        grouped.putIfAbsent(key, () => []).add(s);
+      }
+
+      setState(() {
+        _schedules = grouped;
+      });
+    } catch (e) {
+      print('일정 불러오기 실패: \$e');
+    }
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
@@ -64,26 +71,72 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
-  List<Schedule> _getSchedulesForDay(DateTime day) {
-    return _schedules[DateTime(day.year, day.month, day.day)] ?? [];
-  }
+  // 일정 추가 핸들러 함수
+  void _handleScheduleAdded(Schedule newSchedule) {
+    final dateKey = DateTime(
+      newSchedule.date.year,
+      newSchedule.date.month,
+      newSchedule.date.day,
+    );
 
-  void _handleScheduleAdded(Map<DateTime, List<Schedule>> updatedSchedules) {
+    final updatedSchedules = Map<DateTime, List<Schedule>>.from(_schedules);
+    updatedSchedules.update(
+      dateKey,
+          (existing) {
+        existing.add(newSchedule);
+        existing.sort((a, b) => a.startTime.compareTo(b.startTime));
+        return existing;
+      },
+      ifAbsent: () => [newSchedule],
+    );
+
     setState(() {
       _schedules = updatedSchedules;
-      if (_selectedDay != null && updatedSchedules.containsKey(_selectedDay)) {
-        // Keep the selected day if it has schedules
-      } else if (updatedSchedules.isNotEmpty) {
-        _selectedDay = updatedSchedules.keys.lastWhere((key) => true, orElse: () => DateTime.now());
-        _focusedDay = _selectedDay!;
+      _selectedDay = dateKey;
+      _focusedDay = dateKey;
+    });
+  }
+
+  // 일정 삭제 핸들러 함수
+  void _handleScheduleDeleted(Schedule deletedSchedule) {
+    final dateKey = DateTime(
+      deletedSchedule.date.year,
+      deletedSchedule.date.month,
+      deletedSchedule.date.day,
+    );
+
+    final updatedSchedules = Map<DateTime, List<Schedule>>.from(_schedules);
+    updatedSchedules[dateKey]?.removeWhere((s) => s.id == deletedSchedule.id);
+
+    setState(() {
+      _schedules = updatedSchedules;
+    });
+  }
+
+  void _handleScheduleEdited(Schedule updatedSchedule) {
+    final dateKey = DateTime(
+      updatedSchedule.date.year,
+      updatedSchedule.date.month,
+      updatedSchedule.date.day,
+    );
+
+    final updatedSchedules = Map<DateTime, List<Schedule>>.from(_schedules);
+
+    if (updatedSchedules.containsKey(dateKey)) {
+      final index = updatedSchedules[dateKey]!
+          .indexWhere((s) => s.id == updatedSchedule.id);
+      if (index != -1) {
+        updatedSchedules[dateKey]![index] = updatedSchedule;
       }
+    }
+
+    setState(() {
+      _schedules = updatedSchedules;
     });
   }
 
   bool isSameDay(DateTime? a, DateTime? b) {
-    if (a == null || b == null) {
-      return false;
-    }
+    if (a == null || b == null) return false;
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
@@ -92,7 +145,7 @@ class _CalendarPageState extends State<CalendarPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppTheme.primaryPurple,
-        title: const Text('일정'),
+        title: const Text('캘린더'),
         centerTitle: true,
         actions: [
           IconButton(
@@ -118,12 +171,11 @@ class _CalendarPageState extends State<CalendarPage> {
           SelectedDaySchedules(
             selectedDay: _selectedDay,
             schedules: _schedules,
-          ),
-          AddScheduleButton(
-            selectedDay: _selectedDay,
-            schedules: _schedules,
+            onScheduleDeleted: _handleScheduleDeleted,
             onScheduleAdded: _handleScheduleAdded,
+            onScheduleEdited: _handleScheduleEdited,
           ),
+
         ],
       ),
     );

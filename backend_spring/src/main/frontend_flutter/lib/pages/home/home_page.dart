@@ -5,12 +5,11 @@ import 'package:frontend_flutter/pages/search/people_search_page.dart';
 import 'package:frontend_flutter/pages/my_page/my_page.dart';
 import 'package:frontend_flutter/widgets/custom_app_bar.dart';
 import 'package:frontend_flutter/widgets/custom_bottom_bar.dart';
-import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/widgets/custom_drawer.dart';
 import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
-import 'package:frontend_flutter/models/schedule.dart';
-import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart';
+import 'package:frontend_flutter/models/calendar/schedule.dart';
 import 'package:frontend_flutter/pages/calendar_page/calendar_page.dart';
+import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart';
 import 'package:frontend_flutter/pages/chatting/chatting_page.dart';
 import 'package:frontend_flutter/screens/home/home_page_ui.dart';
 import 'package:frontend_flutter/pages/auth/login.dart';
@@ -99,7 +98,7 @@ class _MyHomePageState extends State<MyHomePage> {
           if (dateComparison != 0) {
             return dateComparison;
           }
-          return a.time.compareTo(b.time);
+          return a.startTime.compareTo(b.startTime);
         });
       });
     }

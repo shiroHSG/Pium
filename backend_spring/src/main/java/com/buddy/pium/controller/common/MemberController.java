@@ -9,7 +9,11 @@ import com.buddy.pium.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Valid;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/member")
@@ -26,6 +31,9 @@ public class MemberController {
 
     private final MemberService memberService;
     private final JwtUtil jwtUtil;
+
+    @Autowired
+    private Validator validator;
 
     /**
      * 회원 가입
@@ -41,6 +49,15 @@ public class MemberController {
             mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
             MemberRequestDto dto = mapper.readValue(memberDataJson, MemberRequestDto.class);
+
+            // 수동 검증
+            Set<ConstraintViolation<MemberRequestDto>> violations = validator.validate(dto);
+            if (!violations.isEmpty()) {
+                List<String> errors = violations.stream()
+                        .map(ConstraintViolation::getMessage)
+                        .toList();
+                return ResponseEntity.badRequest().body(Map.of("message", "유효성 검사 실패", "errors", errors));
+            }
 
             memberService.signUp(dto, image);
 

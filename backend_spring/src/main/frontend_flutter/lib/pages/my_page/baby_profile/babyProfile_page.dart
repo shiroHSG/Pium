@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/baby_profile.dart';
-import 'package:frontend_flutter/pages/my_page/babyProfile_edit_page.dart';
-import 'package:frontend_flutter/screens/my_page/babyProfile_ui.dart';
+import 'package:frontend_flutter/pages/my_page/baby_profile/babyProfile_edit_page.dart';
+import 'package:frontend_flutter/screens/my_page/baby_profile/babyProfile_ui.dart';
 
 class BabyProfilePage extends StatefulWidget {
   const BabyProfilePage({Key? key}) : super(key: key);
