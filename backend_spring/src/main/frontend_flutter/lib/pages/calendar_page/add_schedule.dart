@@ -88,14 +88,12 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
       if (amPm == '오전' && hour == 12) hour = 0;
 
       final startTime = DateTime(date.year, date.month, date.day, hour, minute);
-      final endTime = startTime.add(const Duration(hours: 1));
 
       final Schedule newSchedule = Schedule(
         id: widget.existingSchedule?.id,
         title: _titleController.text,
         content: _memoController.text,
         startTime: startTime,
-        endTime: endTime,
         colorTag: '#${(_selectedColor ?? AppTheme.primaryPurple).value.toRadixString(16).padLeft(8, '0').substring(2)}',
       );
 
