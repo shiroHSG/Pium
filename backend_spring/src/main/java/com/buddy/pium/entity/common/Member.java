@@ -4,6 +4,11 @@ import com.buddy.pium.entity.chat.ChatRoomBan;
 import com.buddy.pium.entity.chat.ChatRoomMember;
 import com.buddy.pium.entity.chat.Message;
 import com.buddy.pium.entity.calender.Calender;
+import com.buddy.pium.entity.diary.Diary;
+import com.buddy.pium.entity.post.Post;
+import com.buddy.pium.entity.post.PostComment;
+import com.buddy.pium.entity.post.PostLike;
+import com.buddy.pium.entity.share.Share;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -22,18 +27,10 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "member")
 public class Member {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false, length = 50)
-    private String username;
-
-    @Column(nullable = false, unique = true, length = 50)
-    private String nickname;
 
     @Column(nullable = false, unique = true, length = 100)
     private String email;
@@ -41,7 +38,13 @@ public class Member {
     @Column(nullable = false, length = 100)
     private String password;
 
-    @Column(nullable = false, length = 15)
+    @Column(nullable = false, length = 50)
+    private String username;
+
+    @Column(nullable = false, unique = true, length = 50)
+    private String nickname;
+
+    @Column(length = 15)
     private String phoneNumber;
 
     @Column(length = 100)
@@ -50,12 +53,12 @@ public class Member {
     @Column
     private LocalDate birth;
 
+    // M, F
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 1)
+    @Column(length = 1)
     private Enum.Gender gender;
 
-    @Column(length = 255)
-    private String profileImage;
+    private String profileImageUrl;
 
     @Column
     private Long mateInfo;
@@ -63,43 +66,59 @@ public class Member {
     @Column(length = 255)
     private String refreshToken;
 
+    @Builder.Default
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ChatRoomMember> chatRoomMember = new ArrayList<>();
+    private List<ChatRoomMember> chatRoomMembers = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "bannedMember", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatRoomBan> chatRoomBan = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messages = new ArrayList<>();
 
-    @CreatedDate
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-
-
-    // ✅ 양방향 관계 설정
+    @Builder.Default
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Child> children = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MateRequest> memberRequests = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MateRequest> memberResponses = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Calender> calenders = new ArrayList<>();
 
-    // POST, 품앗이 동일하게 추가 할 것
-    /*
-    @OneToMany(mappedBy = "Entity에서 참조하는 변수명",
-                            cascade = CascadeType.ALL,   : 000 기능을 한다
-                            orphanRemoval = true)        : 역할을 담당한다.
-    private List<Entity명> 임의의 변수명(ex. "calenders") = new ArrayList<>();
-    */
+    @Builder.Default
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Diary> diaries = new ArrayList<>();
 
+    @Builder.Default
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Post> posts = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostComment> postComments = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostLike> likes = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Share> shares = new ArrayList<>();
+
+    @CreatedDate
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 }

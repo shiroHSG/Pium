@@ -10,27 +10,25 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostResponse {
+public class PostResponseDto {
     private Long id;
     private String title;
     private String content;
     private String category;
-    private String postImg;
+    private String imgUrl;
     private String author;
     private Long viewCount;
-    private Long likeCount;
     private LocalDateTime createdAt;
 
-    public static PostResponse from(Post post) {
-        return new PostResponse(
+    public static PostResponseDto from(Post post) {
+        return new PostResponseDto(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
                 post.getCategory(),
-                post.getPostImg(),
+                post.getImageUrl(),
                 post.getMember().getNickname(),
                 post.getViewCount() != null ? post.getViewCount() : 0,
-                post.getLikeCount() != null ? post.getLikeCount() : 0,
                 post.getCreatedAt()
         );
     }

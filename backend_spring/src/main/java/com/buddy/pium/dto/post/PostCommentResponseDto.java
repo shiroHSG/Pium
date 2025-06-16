@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class PostCommentResponse {
+public class PostCommentResponseDto {
     private Long id;
     private String content;
     private String writer;

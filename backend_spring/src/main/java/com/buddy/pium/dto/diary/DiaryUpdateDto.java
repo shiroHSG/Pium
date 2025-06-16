@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class DiaryUpdateRequest {
+public class DiaryUpdateDto {
     private String content;
     private String imageUrl;
 }

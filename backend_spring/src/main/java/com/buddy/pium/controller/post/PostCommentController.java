@@ -1,7 +1,9 @@
 package com.buddy.pium.controller.post;
 
-import com.buddy.pium.dto.post.PostCommentRequest;
-import com.buddy.pium.dto.post.PostCommentResponse;
+import com.buddy.pium.annotation.CurrentMember;
+import com.buddy.pium.dto.post.PostCommentRequestDto;
+import com.buddy.pium.dto.post.PostCommentResponseDto;
+import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.post.PostCommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,32 +21,30 @@ public class PostCommentController {
 
     @PostMapping("/{postId}/comments/")
     public ResponseEntity<Void> create(@PathVariable Long postId,
-                                       @RequestBody PostCommentRequest dto,
-                                       Authentication auth) {
-        Long memberId = (Long) auth.getPrincipal();
-        postCommentService.create(postId, memberId, dto);
+                                       @RequestBody PostCommentRequestDto dto,
+                                       @CurrentMember Member member) {
+        postCommentService.create(postId, member, dto);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{postId}/comments")
-    public ResponseEntity<List<PostCommentResponse>> getComments(@PathVariable Long postId) {
+    public ResponseEntity<List<PostCommentResponseDto>> getComments(@PathVariable Long postId,
+                                                                    @CurrentMember Member member) {
         return ResponseEntity.ok(postCommentService.getComments(postId));
     }
 
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<Void> update(@PathVariable Long commentId,
-                                       @RequestBody PostCommentRequest dto,
-                                       Authentication auth) {
-        Long memberId = (Long) auth.getPrincipal();
-        postCommentService.update(commentId, memberId, dto);
+                                       @RequestBody PostCommentRequestDto dto,
+                                       @CurrentMember Member member) {
+        postCommentService.update(commentId, member, dto);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<Void> delete(@PathVariable Long commentId,
-                                       Authentication auth) {
-        Long memberId = (Long) auth.getPrincipal();
-        postCommentService.delete(commentId, memberId);
+                                       @CurrentMember Member member) {
+        postCommentService.delete(commentId, member);
         return ResponseEntity.ok().build();
     }
 }

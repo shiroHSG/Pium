@@ -20,33 +20,27 @@ public class PostLikeService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
 
+    private final PostService postService;
+
     @Transactional
-    public boolean toggleLike(Long postId, Long memberId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글 없음"));
-
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("회원 없음"));
-
+    public boolean toggleLike(Long postId, Member member) {
+        Post post = postService.validatePost(postId);
         Optional<PostLike> existing = postLikeRepository.findByPostAndMember(post, member);
 
         if (existing.isPresent()) {
             postLikeRepository.delete(existing.get());
-            post.setLikeCount(post.getLikeCount() - 1);
             return false;
         } else {
             postLikeRepository.save(PostLike.builder()
                     .post(post)
                     .member(member)
                     .build());
-            post.setLikeCount(post.getLikeCount() + 1);
             return true;
         }
     }
 
     public long countLikes(Long postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글 없음"));
+        Post post = postService.validatePost(postId);
         return postLikeRepository.countByPost(post);
     }
 }

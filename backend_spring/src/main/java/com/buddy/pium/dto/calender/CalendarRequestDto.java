@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 public class CalendarRequestDto {
     private String title;
     private String content;
-    private LocalDateTime start_time;
-    private LocalDateTime end_time;
-    private String color_tag;
+    private LocalDateTime startTime;
+    private String colorTag;
 }

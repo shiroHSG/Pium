@@ -20,17 +20,15 @@ public class ShareLikeService {
     private final MemberRepository memberRepository;
     private final ShareLikeRepository shareLikeRepository;
 
+    private final ShareService shareService;
+
     @Transactional
-    public boolean toggleLike(Long shareId, Long memberId) {
-        Share share = shareRepository.findById(shareId)
-                .orElseThrow(() -> new RuntimeException("게시글 없음"));
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("회원 없음"));
+    public boolean toggleLike(Long shareId, Member member) {
+        Share share = shareService.validateShareOwner(shareId, member);
 
         Optional<ShareLike> existing = shareLikeRepository.findByMemberAndShare(member, share);
         if (existing.isPresent()) {
             shareLikeRepository.delete(existing.get());
-//            share.setLikeCount(share.getLikeCount() - 1);
             return false;
         } else {
             ShareLike like = ShareLike.builder()
@@ -38,18 +36,14 @@ public class ShareLikeService {
                     .share(share)
                     .build();
             shareLikeRepository.save(like);
-//            share.setLikeCount(share.getLikeCount() + 1);
             return true;
         }
     }
 
-    public Long getLikes(Long shareId, Long memberId) {
-        Share share = shareRepository.findById(shareId)
-                .orElseThrow(() -> new RuntimeException("게시글 없음"));
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("회원 없음"));
-
-        return shareLikeRepository.countByShareAndMember(share, member);
+    public Long countLikes(Long shareId) {
+        Share share = shareService.validateShare(shareId);
+        return shareLikeRepository.countByShare(share);
     }
+
 
 }

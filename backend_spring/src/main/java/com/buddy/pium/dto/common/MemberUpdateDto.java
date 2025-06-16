@@ -11,13 +11,12 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class MemberUpdateDto {
-
+    private String password;
     private String username;
     private String nickname;
-    private String email;
     private String phoneNumber;
     private String address;
     private LocalDate birth;
     private Enum.Gender gender;
-    private String profileImage;
+    private String profileImageUrl;
 }

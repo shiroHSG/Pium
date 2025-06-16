@@ -16,6 +16,5 @@ public class ChildUpdateDto {
     private Enum.Gender gender;
     private Double height;
     private Double weight;
-    private String profileImg;
     private String sensitiveInfo;
 }

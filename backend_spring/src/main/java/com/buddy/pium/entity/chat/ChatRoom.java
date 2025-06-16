@@ -1,9 +1,10 @@
 package com.buddy.pium.entity.chat;
 
-import com.buddy.pium.entity.post.SharePost;
+import com.buddy.pium.entity.share.Share;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -13,10 +14,11 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @EntityListeners(AuditingEntityListener.class)
+@Table(name = "chatroom")
 public class ChatRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,39 +26,46 @@ public class ChatRoom {
 
     // DIRECT, SHARE, GROUP
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(name = "chatroom_type", nullable = false, length = 10)
     private Enum.ChatRoomType type;
 
     // SHARE일때만 사용, 나머지 null
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "share_post_id")
-    private SharePost sharePost;
+    @JoinColumn(name = "share_id")
+    private Share share;
 
     // GROUP일 때만 사용
-    @Column(name = "chatroom_name")
+    @Column(name = "chatroom_name", nullable = false)
     private String chatRoomName;
     private String password;
-    @Column(name = "image_url")
     private String imageUrl;
-    @Column(name = "invite_code", unique = true, length = 12)
+    @Column(unique = true, length = 12)
     private String inviteCode;
 
-    @Column(name = "last_message", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "last_message")
     private String lastMessageContent;
 
     @Column(name = "last_sent_at")
     private LocalDateTime lastMessageSentAt;
 
+    @Builder.Default
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatRoomMember> chatRoomMembers = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatRoomBan> chatRoomBan = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messages = new ArrayList<>();
 
     @CreatedDate
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 }

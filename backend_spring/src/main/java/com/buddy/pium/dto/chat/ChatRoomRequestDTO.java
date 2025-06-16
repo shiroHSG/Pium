@@ -18,7 +18,7 @@ public class ChatRoomRequestDTO {
     private Long receiverId;
 
     // ✅ share only
-    private Long sharePostId;
+    private Long shareId;
 
     // ✅ group only
     private String chatRoomName;

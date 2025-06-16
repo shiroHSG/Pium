@@ -1,5 +1,6 @@
 package com.buddy.pium.entity.share;
 
+import com.buddy.pium.entity.chat.ChatRoom;
 import com.buddy.pium.entity.common.Member;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,10 +9,17 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @EntityListeners(AuditingEntityListener.class)
+@Table(name = "shares")
 public class Share {
 
     @Id
@@ -25,13 +33,17 @@ public class Share {
     @Column(nullable = false, length = 100)
     private String title;
 
-    @Column(columnDefinition = "text", nullable = false)
+    @Lob
+    @Column(nullable = false)
     private String content;
 
-    private String postImg;
+    private String imageUrl;
 
-    @Column(nullable = false)
     private Long viewCount;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "share", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatRoom> chatRooms = new ArrayList<>();
 
     @CreatedDate
     @Column(name = "created_at", nullable = false)
