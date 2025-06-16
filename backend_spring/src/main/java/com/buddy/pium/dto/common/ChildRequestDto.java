@@ -10,12 +10,11 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChildRegisterDto {
+public class ChildRequestDto {
     private String name;
     private LocalDate birth;
     private Enum.Gender gender;
     private Double height;
     private Double weight;
-    private String profileImgUrl;
     private String sensitiveInfo;
 }

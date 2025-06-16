@@ -31,12 +31,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             @Param("shareId") Long shareId
     );
 
+    Optional<ChatRoom> findByInviteCode(String inviteCode);
+
     @Query("""
     SELECT cr FROM ChatRoom cr
     JOIN FETCH cr.chatRoomMembers crm
-    WHERE crm.member.id = :memberId
+    WHERE crm.member = :member
 """)
-    List<ChatRoom> findAllByMemberIdWithMembers(@Param("memberId") Long memberId);
-
-    Optional<ChatRoom> findByInviteCode(String inviteCode);
+    List<ChatRoom> findAllByMemberWithMembers(@Param("member") Member member);
 }

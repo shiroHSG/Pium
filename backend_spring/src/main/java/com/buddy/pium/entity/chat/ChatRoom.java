@@ -35,7 +35,7 @@ public class ChatRoom {
     private Share share;
 
     // GROUP일 때만 사용
-    @Column(name = "chatroom_name")
+    @Column(name = "chatroom_name", nullable = false)
     private String chatRoomName;
     private String password;
     private String imageUrl;
@@ -49,12 +49,15 @@ public class ChatRoom {
     @Column(name = "last_sent_at")
     private LocalDateTime lastMessageSentAt;
 
+    @Builder.Default
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatRoomMember> chatRoomMembers = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatRoomBan> chatRoomBan = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messages = new ArrayList<>();
 

@@ -45,6 +45,10 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.apache.commons:commons-lang3:3.12.0'	//random 초대 코드 생성
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// dateTime json 전달
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 }
 
 tasks.named('test') {

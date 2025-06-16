@@ -4,8 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class ShareRequest {
+public class ShareRequestDto {
     private String title;
     private String content;
-    private String imgUrl;
 }

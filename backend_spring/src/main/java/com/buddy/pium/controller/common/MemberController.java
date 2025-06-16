@@ -1,13 +1,20 @@
 package com.buddy.pium.controller.common;
 
+import com.buddy.pium.annotation.CurrentMember;
 import com.buddy.pium.annotation.CurrentMemberId;
 import com.buddy.pium.dto.common.*;
+import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.common.MemberService;
 import com.buddy.pium.util.JwtUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -23,28 +30,58 @@ public class MemberController {
     /**
      * 회원 가입
      */
-    @PostMapping("/register")
-    public ResponseEntity<MemberResponseDto> create(@RequestBody MemberRegisterDto registerDto) {
-        MemberResponseDto responseDto = memberService.createMember(registerDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> create(
+            @RequestPart("memberData") String memberDataJson,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+            MemberRequestDto dto = mapper.readValue(memberDataJson, MemberRequestDto.class);
+
+            memberService.signUp(dto, image);
+
+            return ResponseEntity.ok(Map.of("message", "회원가입 성공"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("message", "회원가입 실패: " + e.getMessage()));
+        }
     }
 
     /**
      * 회원 정보 수정
      */
-    @PatchMapping
-    public ResponseEntity<MemberResponseDto> update(@RequestBody MemberUpdateDto updateDto,
-                                                    @CurrentMemberId Long memberId) {
-        MemberResponseDto responseDto = memberService.updateMember(memberId, updateDto);
-        return ResponseEntity.ok(responseDto);
+    @PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> update(
+            @RequestPart("memberData") String memberDataJson,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @CurrentMember Member member
+    ) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule()); // LocalDate 대응
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+            MemberUpdateDto updateDto = mapper.readValue(memberDataJson, MemberUpdateDto.class);
+
+            memberService.updateMember(member, updateDto, image);
+            return ResponseEntity.ok(Map.of("message", "회원 정보 수정 완료"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
+
 
     /**
      * ID로 회원 조회
      */
     @GetMapping("/users/{id}")
     public ResponseEntity<MemberResponseDto> getById(@PathVariable Long id) {
-        MemberResponseDto responseDto = memberService.getMemberById(id);
+        MemberResponseDto responseDto = memberService.getMemberbyId(id);
         return ResponseEntity.ok(responseDto);
     }
 
@@ -62,7 +99,7 @@ public class MemberController {
      */
     @DeleteMapping("/delete/users/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        memberService.deleteMember(id);
+        memberService.deleteMemberById(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -70,8 +107,8 @@ public class MemberController {
      * 내 정보 조회 (/me)
      */
     @GetMapping
-    public ResponseEntity<MemberResponseDto> getMe(@CurrentMemberId Long memberId) {
-        MemberResponseDto responseDto = memberService.getMemberById(memberId);
+    public ResponseEntity<MemberResponseDto> getMe(@CurrentMember Member member) {
+        MemberResponseDto responseDto = memberService.getMember(member);
         return ResponseEntity.ok(responseDto);
     }
 
@@ -113,13 +150,23 @@ public class MemberController {
      * 로그아웃
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@CurrentMemberId Long memberId) {
+    public ResponseEntity<?> logout(@CurrentMember Member member) {
 
         // 로그 출력용
-        System.out.println("[Controller] 로그아웃 요청 - memberId: " + memberId);
+        System.out.println("[Controller] 로그아웃 요청 - member: " + member);
 
-        memberService.logout(memberId);
+        memberService.logout(member);
         return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));
     }
 
+    // 회원 탈퇴 추가
+    @DeleteMapping
+    public ResponseEntity<?> deleteMember(@CurrentMember Member member) {
+        try {
+            memberService.deleteMember(member);
+            return ResponseEntity.ok(Map.of("message", "회원 탈퇴가 완료되었습니다."));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
+        }
+    }
 }

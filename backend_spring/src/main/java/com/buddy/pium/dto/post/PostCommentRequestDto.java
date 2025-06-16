@@ -4,9 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class PostUpdateRequest {
-    private String title;
+public class PostCommentRequestDto {
     private String content;
-    private String imgUrl;
 }
-// 글 수정
+// 댓글 작성
