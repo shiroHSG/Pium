@@ -4,7 +4,7 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 class ChattingAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String selectedMode;  //선택모드 ->  type
   final List<String> modeOptions;
-  final ValueChanged<String> onModeSelected;
+  final ValueChanged<String> onModeSelected;  //나눔, 메시지
 
   const ChattingAppBar({
     Key? key,
