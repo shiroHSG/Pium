@@ -34,7 +34,7 @@ public class ChatWebSocketBroadcaster {
         messagingTemplate.convertAndSend("/sub/chatroom/" + chatRoomId + "/read", payload);
     }
 
-    // 3. 채팅방 요약 정보 (사이드탭 / 리스트 갱신용)
+    // 채팅방 요약 정보 (사이드탭 / 리스트 갱신용)
     public void broadcastChatSummary(Long memberId, ChatRoomSummaryDto summaryDTO) {
         messagingTemplate.convertAndSend("/sub/member/" + memberId + "/summary", summaryDTO);
     }

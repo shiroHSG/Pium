@@ -12,6 +12,6 @@ import java.time.LocalDateTime;
 public class ChatRoomSummaryDto {
     private Long chatRoomId;
     private String lastMessage;
-    private int unreadCount;
     private LocalDateTime lastSentAt;
+    private int unreadCount;
 }
