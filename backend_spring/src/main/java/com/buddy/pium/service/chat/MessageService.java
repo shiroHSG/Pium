@@ -52,24 +52,21 @@ public class MessageService {
 
         // 채팅방 최신 메시지 갱신
         chatRoom.setLastMessageContent(content);
-        chatRoom.setLastMessageSentAt(LocalDateTime.now());
+        chatRoom.setLastMessageSentAt(message.getSentAt());
         chatRoomRepository.save(chatRoom);
 
         // 보낸 사람은 즉시 읽음 처리
         senderMember.setLastReadMessageId(message.getId());
         chatRoomMemberRepository.save(senderMember);
 
-        // WebSocket 브로드캐스트 (해당 채팅방 참여자에게 실시간 전달)
-        MessageResponseDto responseDto = toDTO(message, sender);
-        chatWebSocketBroadcaster.broadcastMessage(chatRoomId, responseDto);
+        // 참여자별 summary(채팅방) 전송 (보낸 사람 제외)
+        List<ChatRoomMember> members = chatRoomMemberRepository.findByChatRoomId(chatRoomId);
+        for (ChatRoomMember crm : members) {
+            Member target = crm.getMember();
 
-        // 수신자에게 채팅방 요약 브로드캐스트
-        List<ChatRoomMember> otherMembers = chatRoomMemberRepository.findByChatRoomId(chatRoomId).stream()
-                .filter(m -> !m.getMember().getId().equals(sender.getId()))
-                .toList();
+            if (target.equals(sender)) continue; // 👈 객체 비교로 바뀜 (더 안전하고 직관적)
 
-        for (ChatRoomMember receiver : otherMembers) {
-            int unreadCount = messageRepository.countUnreadMessagesForMember(chatRoomId, receiver.getMember().getId());
+            int unreadCount = calculateUnreadCount(message, target); // ✅ Member 객체 그대로 전달
 
             ChatRoomSummaryDto summary = ChatRoomSummaryDto.builder()
                     .chatRoomId(chatRoomId)
@@ -78,15 +75,19 @@ public class MessageService {
                     .unreadCount(unreadCount)
                     .build();
 
-            chatWebSocketBroadcaster.broadcastChatSummary(receiver.getMember().getId(), summary);
+            chatWebSocketBroadcaster.broadcastChatSummary(target.getId(), summary);
         }
 
-        return toDTO(message, sender);
+        // 실시간 메시지 broadcast
+        MessageResponseDto dto = toDTO(message, sender);
+        chatWebSocketBroadcaster.broadcastMessage(chatRoomId, dto);
+
+        return dto;
     }
 
     // 메세지 조회
     @Transactional
-    public List<MessageResponseDto> getMessages(Long chatRoomId, Member sender, Long pivotId, String direction) {
+    public List<MessageResponseDto> getMessages(Long chatRoomId, Member member, Long pivotId, String direction) {
         ChatRoom chatRoom = chatRoomService.validateChatRoom(chatRoomId);
         ChatRoomMember chatRoomMember = chatRoomMemberService.validateChatRoomMember(chatRoom, sender);
         LocalDateTime joinedAt = chatRoomMember.getJoinedAt();
@@ -122,26 +123,30 @@ public class MessageService {
                 if (chatRoomMember.getLastReadMessageId() == null || chatRoomMember.getLastReadMessageId() < newLastReadMessageId) {
                     chatRoomMember.setLastReadMessageId(newLastReadMessageId);
 
-                    // 메세지 조회 브로드캐스트
-                    chatWebSocketBroadcaster.broadcastReadStatus(chatRoomId, sender.getId(), newLastReadMessageId);
+                    // summary 전송 → 대상: 본인
+                    int unreadCount = calculateUnreadCount(messages.get(messages.size() - 1), member);
 
-                    // ✅ 마지막 메시지의 발신자에게 summary 갱신 브로드캐스트
-                    Message lastMessage = messages.get(messages.size() - 1);
-                    Member lasMessageSender = lastMessage.getSender();
+                    ChatRoomSummaryDto summary = ChatRoomSummaryDto.builder()
+                            .chatRoomId(chatRoomId)
+                            .lastMessage(messages.get(messages.size() - 1).getContent())
+                            .lastSentAt(messages.get(messages.size() - 1).getSentAt())
+                            .unreadCount(unreadCount)
+                            .build();
 
-                    if (!lasMessageSender.equals(sender)) {
-                        int updatedUnreadCount = messageRepository.countUnreadMessagesForMember(chatRoomId, lasMessageSender.getId());
+                    chatWebSocketBroadcaster.broadcastChatSummary(member.getId(), summary);
 
-                        ChatRoomSummaryDto summary = ChatRoomSummaryDto.builder()
-                                .chatRoomId(chatRoomId)
-                                .lastMessage(lastMessage.getContent())
-                                .lastSentAt(lastMessage.getSentAt())
-                                .unreadCount(updatedUnreadCount)
-                                .build();
+                    // 읽음 브로드캐스트 (읽은 사람 → 같은 방의 다른 사람들에게)
+                    List<ChatRoomMember> members = chatRoomMemberRepository.findByChatRoomId(chatRoomId);
+                    for (ChatRoomMember crm : members) {
+                        Member other = crm.getMember();
+                        if (other.equals(member)) continue; // 본인은 제외
 
-                        chatWebSocketBroadcaster.broadcastChatSummary(lasMessageSender.getId(), summary);
+                        chatWebSocketBroadcaster.broadcastReadStatus(
+                                chatRoomId,
+                                member.getId(),              // 읽은 사람 ID
+                                newLastReadMessageId         // 마지막으로 읽은 메시지 ID
+                        );
                     }
-
                 }
             }
 
@@ -155,16 +160,12 @@ public class MessageService {
         }
 
         return messages.stream()
-                .map(message -> toDTO(message, sender))
+                .map(message -> toDTO(message, member))
                 .collect(Collectors.toList());
     }
 
     private MessageResponseDto toDTO(Message message, Member sender) {
-        int unreadCount = chatRoomMemberRepository.countUnreadMembers(
-                message.getChatRoom().getId(),
-                message.getId(),
-                sender.getId()  // 👈 이건 쿼리에서 본인 제외에 필요
-        );
+        int unreadCount = calculateUnreadCount(message, sender);
 
         return MessageResponseDto.builder()
                 .messageId(message.getId())
@@ -175,5 +176,13 @@ public class MessageService {
                 .sentAt(message.getSentAt())
                 .unreadCount(unreadCount)
                 .build();
+    }
+
+    public int calculateUnreadCount(Message message, Member sender) {
+        return chatRoomMemberRepository.countUnreadMembers(
+                message.getChatRoom().getId(),
+                message.getId(),
+                sender.getId()
+        );
     }
 }
