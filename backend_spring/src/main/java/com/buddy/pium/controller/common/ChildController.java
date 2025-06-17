@@ -74,13 +74,6 @@ public class ChildController {
         }
     }
 
-    @GetMapping("/{childId}")
-    public ResponseEntity<ChildResponseDto> getChildById(@PathVariable Long childId,
-                                                         @CurrentMemberId Long memberId) {
-        ChildResponseDto child = childService.getChildById(childId, memberId);
-        return ResponseEntity.ok(child);
-    }
-
     @GetMapping
     public ResponseEntity<List<ChildResponseDto>> getChildren(@CurrentMember Member member) {
         Long memberId = member.getId();

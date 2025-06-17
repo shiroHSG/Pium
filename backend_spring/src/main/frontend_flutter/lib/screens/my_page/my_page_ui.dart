@@ -106,7 +106,7 @@ class _MyPageButtonsGrid extends StatelessWidget {
           _buildMyPageButton(
             context,
             icon: Icons.child_care_outlined,
-            label: '아이 추가',
+            label: '아이 추가 및 정보 수정',
             iconSize: 30,
             textSize: 14,
             onTap: () {

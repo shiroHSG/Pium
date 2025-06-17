@@ -39,7 +39,7 @@ class BabyProfile {
       weight: json['weight'] != null
           ? double.tryParse(json['weight'].toString())
           : null,
-      allergy: json['allergy']?.toString(), // null 가능성 대비
+      allergy: json['sensitiveInfo']?.toString(), // null 가능성 대비
       developmentStep: json['developmentStep']?.toString(), // null 가능성 대비
     );
   }
@@ -59,7 +59,7 @@ class BabyProfile {
       'gender': gender == Gender.MALE ? 'M' : 'F',
       if (height != null) 'height': height,
       if (weight != null) 'weight': weight,
-      if (allergy != null) 'allergy': allergy,
+      if (allergy != null) 'sensitiveInfo': allergy,
       if (developmentStep != null) 'developmentStep': developmentStep,
     };
   }

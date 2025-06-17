@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/baby_profile.dart';
 import 'package:intl/intl.dart';
+import '../../models/child/child_api.dart';
 import '../../screens/my_page/babyProfile_edit_page_ui.dart';
 
 class BabyProfileEditPage extends StatefulWidget {
@@ -130,22 +131,20 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                   onTap: _pickBirthDate,
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 15),
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 15),
                     decoration: BoxDecoration(
                       color: AppTheme.lightPink,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       DateFormat('yyyy.MM.dd').format(_selectedDate),
-                      style: const TextStyle(
-                          fontSize: 16, color: AppTheme.textPurple),
+                      style: const TextStyle(fontSize: 16, color: AppTheme.textPurple),
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
                 GenderSelectionForEdit(
-                  selectedGender: _selectedGender?.name ?? '', // ✅ null safe
+                  selectedGender: _selectedGender?.name ?? '',
                   onChanged: (genderStr) {
                     setState(() {
                       _selectedGender = genderStr == '남아'
@@ -160,9 +159,7 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                   labelText: '키',
                   hintText: '예: 110',
                   keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 ),
                 const SizedBox(height: 20),
                 EditInputField(
@@ -170,9 +167,7 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                   labelText: '몸무게',
                   hintText: '예: 18',
                   keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 ),
                 const SizedBox(height: 20),
                 EditInputField(
@@ -181,6 +176,8 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                   hintText: '없으면 "없음"',
                 ),
                 const SizedBox(height: 40),
+
+                // ✅ 수정 버튼
                 ElevatedButton(
                   onPressed: _saveProfile,
                   style: ElevatedButton.styleFrom(
@@ -195,6 +192,54 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                     '수정하기',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ✅ 삭제 버튼
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.delete),
+                  label: const Text('삭제하기'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('정말 삭제하시겠어요?'),
+                        content: const Text('삭제된 아이 정보는 복구할 수 없습니다.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('취소'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('삭제'),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirm == true) {
+                      final success = await ChildApi.deleteChild(widget.babyProfile.childId!);
+                      if (context.mounted) {
+                        Navigator.pop(context, 'deleted'); // 상위로 삭제 상태 전달
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(success ? '삭제 완료!' : '삭제 실패'),
+                            backgroundColor: success ? Colors.green : Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
                 ),
               ],
             ),

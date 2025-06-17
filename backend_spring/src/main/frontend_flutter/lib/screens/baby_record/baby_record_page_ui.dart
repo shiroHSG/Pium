@@ -192,10 +192,10 @@ class BabyRecordGridItem extends StatelessWidget {
               ),
             ),
             Text(
-              entry.isPublic ? '공개' : '비공개',
+              entry.published ? '공개' : '비공개',
               style: TextStyle(
                 fontSize: 12,
-                color: entry.isPublic ? Colors.green : Colors.red,
+                color: entry.published ? Colors.green : Colors.red,
               ),
             ),
           ],

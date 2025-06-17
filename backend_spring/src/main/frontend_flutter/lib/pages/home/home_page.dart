@@ -63,6 +63,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _loadBabyProfile() async {
     final children = await ChildApi.fetchMyChildren();
+
+    for (var child in children) {
+      print('[DEBUG] 이름: ${child.name}, 생일: ${child.birthDate}, 성별: ${child.gender}');
+    }
+
     if (children.isNotEmpty) {
       ImageProvider? image;
       try {
@@ -78,16 +83,24 @@ class _MyHomePageState extends State<MyHomePage> {
         _babyProfile = children.first;
         _babyImage = image;
       });
+    } else {
+      print('[DEBUG] 서버로부터 아이 정보 없음');
     }
   }
 
   void _onItemTapped(int index) {
+    final isSameTab = _selectedIndex == index;
+
     setState(() {
       _selectedIndex = index;
       if (_scaffoldKey.currentState?.isEndDrawerOpen ?? false) {
         Navigator.pop(context);
       }
     });
+    // ✅ 이미 홈(0번)인 상태에서 다시 클릭한 경우에도 새로고침
+    if (index == 0) {
+      _loadBabyProfile();
+    }
   }
 
   void _onLoginStatusChanged(bool status) {
@@ -129,6 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
       context,
       MaterialPageRoute(builder: (context) => const CalendarPage()),
     );
+    _loadBabyProfile();
   }
 
   Future<void> _showEditBabyProfileDialog() async {

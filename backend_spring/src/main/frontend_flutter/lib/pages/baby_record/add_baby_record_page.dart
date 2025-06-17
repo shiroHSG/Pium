@@ -7,6 +7,7 @@ import 'package:frontend_flutter/models/baby_profile.dart';
 import 'package:frontend_flutter/screens/baby_record/add_baby_record_page_ui.dart';
 
 import '../../models/child/child_api.dart';
+import 'package:frontend_flutter/models/diary/diary_api.dart';
 
 class AddBabyRecordPage extends StatefulWidget {
   const AddBabyRecordPage({super.key});
@@ -16,7 +17,7 @@ class AddBabyRecordPage extends StatefulWidget {
 }
 
 class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
-  bool _isPublic = true;
+  bool _isPublic = false; // 기본 비공개
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _publicContentController = TextEditingController();
   final TextEditingController _privateContentController = TextEditingController();
@@ -56,6 +57,13 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
   }
 
   Future<void> _saveBabyRecord() async {
+    if (selectedChild == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('아이를 선택해주세요.')),
+      );
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     final String? existingRecordsJson = prefs.getString('babyRecords');
     List<BabyRecordEntry> existingRecords = [];
@@ -64,23 +72,29 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
       existingRecords = jsonList.map((json) => BabyRecordEntry.fromJson(json)).toList();
     }
 
-    final newEntry = BabyRecordEntry(
-      childId: selectedChild?.childId,
+    final entry = BabyRecordEntry(
+      childId: selectedChild!.childId,
       title: _titleController.text.trim().isEmpty ? '(제목 없음)' : _titleController.text.trim(),
-      publicContent: _publicContentController.text,
+      publicContent: _isPublic ? _publicContentController.text : null,
       privateContent: _privateContentController.text,
-      isPublic: _isPublic,
+      published: _isPublic,
       createdAt: DateTime.now(),
     );
 
-    existingRecords.add(newEntry);
+    final success = await DiaryApi.saveDiary(entry);
 
-    final String updatedRecordsJson = jsonEncode(existingRecords.map((e) => e.toJson()).toList());
-    await prefs.setString('babyRecords', updatedRecordsJson);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('일지가 임시 저장되었습니다.')),
-    );
+    if (success) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('일지가 등록되었습니다.')),
+      );
+      Navigator.pop(context);
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('등록에 실패했습니다. 다시 시도해주세요.')),
+      );
+    }
   }
 
   @override
@@ -106,7 +120,6 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 BabyNameDropdown(
                   selectedChild: selectedChild,
@@ -130,7 +143,10 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
             const SizedBox(height: 25),
             TitleInputField(titleController: _titleController),
             const SizedBox(height: 20),
-            PublicContentInputField(publicContentController: _publicContentController),
+            // ✅ 공개 스위치가 ON일 때만 공개내용 입력창 노출
+            if (_isPublic)
+              PublicContentInputField(publicContentController: _publicContentController),
+
             const SizedBox(height: 20),
             PrivateContentInputField(privateContentController: _privateContentController),
             const SizedBox(height: 20),
@@ -138,10 +154,7 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
               onAttachPhoto: () {
                 // TODO: 사진 첨부 로직 구현
               },
-              onComplete: () async {
-                await _saveBabyRecord();
-                Navigator.pop(context);
-              },
+              onComplete: _saveBabyRecord,
             ),
           ],
         ),

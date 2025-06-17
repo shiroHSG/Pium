@@ -7,6 +7,9 @@ import lombok.Setter;
 @Setter
 public class DiaryRequestDto {
     private Long childId;
+    private String title;
     private String content;
+    private String publicContent;
+    private boolean published;
     private String imageUrl;
 }

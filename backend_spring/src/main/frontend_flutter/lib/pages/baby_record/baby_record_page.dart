@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_flutter/models/baby_profile.dart';
 import 'package:frontend_flutter/models/baby_record_entry.dart';
-import 'package:frontend_flutter/screens/baby_record/baby_record_page_ui.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import 'package:frontend_flutter/pages/baby_record/add_baby_record_page.dart';
 import 'package:frontend_flutter/pages/baby_record/baby_record_detail_page.dart';
 
-import '../../models/baby_profile.dart';
 import '../../models/child/child_api.dart';
-import 'add_baby_record_page.dart';
+import '../../models/diary/diary_api.dart'; // 📌 API 불러오기
+
+import '../../screens/baby_record/baby_record_page_ui.dart';
 
 class BabyRecordPage extends StatefulWidget {
   const BabyRecordPage({super.key});
@@ -35,15 +35,14 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
         children = result;
         selectedChild = result.first;
       });
-      _loadBabyRecords(result.first.childId!); // 초기 선택된 아이 기준 일지 로드
+      _loadBabyRecords(result.first.childId!);
     }
   }
 
   Future<void> _loadBabyRecords(int childId) async {
-    // TODO: childId 기준으로 육아일지 조회 API 호출
-    // 임시: 빈 리스트로 설정
+    final diaries = await DiaryApi.fetchDiariesByChildId(childId); // ✅ 새 API 호출
     setState(() {
-      babyRecords = []; // 여기에 fetch 로직 넣기
+      babyRecords = diaries;
     });
   }
 
@@ -59,9 +58,7 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
     setState(() {
       babyRecords.removeAt(index);
     });
-    final prefs = await SharedPreferences.getInstance();
-    final String updatedRecordsJson = jsonEncode(babyRecords.map((e) => e.toJson()).toList());
-    await prefs.setString('babyRecords', updatedRecordsJson);
+    // 실제 서버에서 삭제 API 호출하려면 여기에 추가 가능
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('일지가 삭제되었습니다.')),
     );
@@ -109,15 +106,16 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
                     entry: entry,
                     onDelete: _deleteBabyRecord,
                     index: index,
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => BabyRecordDetailPage(
-                            entry: entry,
-                          ),
+                          builder: (context) => BabyRecordDetailPage(entry: entry),
                         ),
                       );
+                      if (result == true && selectedChild != null) {
+                        _loadBabyRecords(selectedChild!.childId!); // 변경된 일지 다시 로드
+                      }
                     },
                   );
                 },

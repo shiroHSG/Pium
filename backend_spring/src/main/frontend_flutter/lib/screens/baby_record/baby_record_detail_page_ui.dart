@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_flutter/models/baby_record_entry.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
+import '../../models/diary/diary_api.dart';
+import '../../pages/baby_record/edit_baby_record_page.dart';
 
 class BabyRecordDetailHeader extends StatelessWidget {
   final String date;
   final bool isPublic;
 
-  const BabyRecordDetailHeader({super.key, required this.date, required this.isPublic});
+  const BabyRecordDetailHeader({
+    super.key,
+    required this.date,
+    required this.isPublic,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -103,16 +110,26 @@ class BabyRecordDetailContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildContentBlock('내용', publicContent),
-        const SizedBox(height: 16),
-        _buildContentBlock('내 아이 일기', privateContent),
+        if (publicContent.trim().isNotEmpty) ...[
+          _buildContentBlock('자유 게시판 공유 내용', publicContent),
+          const SizedBox(height: 16),
+        ],
+        if (privateContent.trim().isNotEmpty)
+          _buildContentBlock('내 아이 일기', privateContent),
       ],
     );
   }
 }
 
-class BabyRecordDetailActions extends StatelessWidget {
-  const BabyRecordDetailActions({super.key});
+class BabyRecordDetailPageUi extends StatelessWidget {
+  final BabyRecordEntry entry;
+  final void Function(BabyRecordEntry updated)? onEdited;
+
+  const BabyRecordDetailPageUi({
+    super.key,
+    required this.entry,
+    this.onEdited,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -120,10 +137,20 @@ class BabyRecordDetailActions extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         ElevatedButton(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('수정 기능은 아직 구현되지 않았습니다.')),
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => EditBabyRecordPage(entry: entry),
+              ),
             );
+
+            // ✅ 수정 후 true 반환 시 → 서버에서 최신 데이터 fetch
+            if (result == true && context.mounted) {
+              final updated = await DiaryApi.fetchDiaryById(entry.id!); // 최신 데이터 가져오기
+              onEdited?.call(updated); // 부모 상태 갱신
+              Navigator.pop(context, true);
+            }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.primaryPurple,
@@ -134,7 +161,7 @@ class BabyRecordDetailActions extends StatelessWidget {
         const SizedBox(width: 8),
         ElevatedButton(
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pop(context); // TODO: 삭제 연동 예정
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.redAccent,

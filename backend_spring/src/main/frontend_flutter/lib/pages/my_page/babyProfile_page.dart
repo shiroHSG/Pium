@@ -35,15 +35,22 @@ class _BabyProfilePageState extends State<BabyProfilePage> {
 
   // 아이 수정 페이지로 이동
   Future<void> _navigateToEditProfile(BabyProfile baby) async {
-    final updated = await Navigator.push<BabyProfile>(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => BabyProfileEditPage(babyProfile: baby),
       ),
     );
-    print('[DEBUG] 수정 진입 : ${baby.childId}');
-    if (updated != null) {
-      final success = await ChildApi.updateMyChild(updated);
+
+    print('[DEBUG] 결과: $result');
+
+    if (result == null) return;
+
+    if (result == 'deleted') {
+      await _fetchChildProfiles();
+      _showSnack('아이 정보가 삭제되었습니다!');
+    } else if (result is BabyProfile) {
+      final success = await ChildApi.updateMyChild(result);
       if (success) {
         await _fetchChildProfiles(); // 수정 후 최신 정보 불러오기
         _showSnack('수정되었습니다!');
@@ -52,6 +59,7 @@ class _BabyProfilePageState extends State<BabyProfilePage> {
       }
     }
   }
+
 
   // 아이 추가 API 호출
   void _addBabyProfile(BabyProfile newProfile) async {

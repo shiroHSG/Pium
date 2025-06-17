@@ -80,6 +80,25 @@ class ChildApi {
     }
   }
 
+  // 아이 삭제
+  static Future<bool> deleteChild(int childId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    if (token == null) return false;
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/child/$childId'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      print('아이 삭제 실패: ${response.statusCode} - ${response.body}');
+      return false;
+    }
+  }
 
   // 아이 추가
   static Future<bool> addMyChild(BabyProfile newChild) async {
@@ -88,20 +107,29 @@ class ChildApi {
 
     if (token == null) return false;
 
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/child'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(newChild.toJson()),
-    );
+    final uri = Uri.parse('$baseUrl/api/child');
+    final request = http.MultipartRequest('POST', uri);
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return true;
-    } else {
-      print('아이 추가 실패: ${response.statusCode} - ${response.body}');
+    request.headers['Authorization'] = 'Bearer $token';
+
+    // ✅ childData 라는 키로 JSON 문자열 전달
+    final jsonBody = jsonEncode(newChild.toJson());
+    request.fields['childData'] = jsonBody;
+
+    try {
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
+        print('아이 추가 실패: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('네트워크 오류: $e');
       return false;
     }
   }
+
 }

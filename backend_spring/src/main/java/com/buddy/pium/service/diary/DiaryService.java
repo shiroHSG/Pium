@@ -39,7 +39,10 @@ public class DiaryService {
         Diary diary = Diary.builder()
                 .member(member)
                 .child(child)
+                .title(dto.getTitle())
                 .content(dto.getContent())
+                .publicContent(dto.getPublicContent())
+                .published(dto.isPublished())
                 .imageUrl(imageUrl)
                 .build();
 

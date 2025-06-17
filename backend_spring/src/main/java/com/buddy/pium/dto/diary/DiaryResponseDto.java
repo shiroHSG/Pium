@@ -12,7 +12,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class DiaryResponseDto {
     private Long id;
+    private String title;
     private String content;
+    private String publicContent;
+    private boolean published;
     private String imageUrl;
     private String childName;
     private String author;
@@ -21,7 +24,10 @@ public class DiaryResponseDto {
     public static DiaryResponseDto from(Diary diary) {
         return DiaryResponseDto.builder()
                 .id(diary.getId())
+                .title(diary.getTitle())
                 .content(diary.getContent())
+                .publicContent(diary.getPublicContent())
+                .published(diary.isPublished())
                 .imageUrl(diary.getImageUrl())
                 .childName(diary.getChild().getName())
                 .author(diary.getMember().getNickname())
