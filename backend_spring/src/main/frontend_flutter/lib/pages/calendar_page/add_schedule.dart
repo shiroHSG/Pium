@@ -95,7 +95,6 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
         title: _titleController.text,
         content: _memoController.text,
         startTime: startTime,
-        endTime: endTime,
         colorTag: '#${(_selectedColor ?? AppTheme.primaryPurple).value.toRadixString(16).padLeft(8, '0').substring(2)}',
       );
 

@@ -5,7 +5,6 @@ class Schedule {
   final String title;
   final String content;
   final DateTime startTime;
-  final DateTime endTime;
   final String colorTag;
 
   Schedule({
@@ -13,17 +12,15 @@ class Schedule {
     required this.title,
     required this.content,
     required this.startTime,
-    required this.endTime,
     required this.colorTag,
   });
 
   // JSON -> Schedule
   factory Schedule.fromJson(Map<String, dynamic> json) {
-    final startTimeStr = json['start_time'];
-    final endTimeStr = json['end_time'];
+    final startTimeStr = json['startTime'];
 
-    if (startTimeStr == null || endTimeStr == null) {
-      throw Exception('start_time 또는 end_time이 null입니다.');
+    if (startTimeStr == null) {
+      throw Exception('start_time이 null입니다.');
     }
 
     return Schedule(
@@ -31,8 +28,7 @@ class Schedule {
       title: json['title'] as String? ?? '',
       content: json['content'] as String? ?? '',
       startTime: DateTime.parse(startTimeStr),
-      endTime: DateTime.parse(endTimeStr),
-      colorTag: json['color_tag'] as String? ?? '#FFFFFF',
+      colorTag: json['colorTag'] as String? ?? '#FFFFFF',
     );
   }
 
@@ -41,9 +37,8 @@ class Schedule {
     return {
       "title": title,
       "content": content,
-      "start_time": startTime.toIso8601String(),
-      "end_time": endTime.toIso8601String(),
-      "color_tag": colorTag,
+      "startTime": startTime.toIso8601String(),
+      "colorTag": colorTag,
     };
   }
 
