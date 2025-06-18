@@ -54,21 +54,26 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       if (response.statusCode == 200) {
         final user = json.decode(utf8.decode(response.bodyBytes));
 
+        final birthList = user['birth'];
+        final birthFormatted = birthList is List
+            ? '${birthList[0]}-${birthList[1].toString().padLeft(2, '0')}-${birthList[2].toString().padLeft(2, '0')}'
+            : '';
+
         setState(() {
           emailController.text = user['email'] ?? '';
           usernameController.text = user['username'] ?? '';
           nameController.text = user['nickname'] ?? '';
           phoneController.text = user['phoneNumber'] ?? '';
-          birthController.text = user['birth'] ?? '';
+          birthController.text = birthFormatted;
           genderController.text = (user['gender'] == 'M') ? '남성' : '여성';
           addressController.text = user['address'] ?? '';
-          mateController.text = user['mateInfo'] ?? '';
+          mateController.text = user['mateInfo']?.toString() ?? '';
 
           _originalNickname = user['nickname'] ?? '';
           _originalPhoneNumber = user['phoneNumber'] ?? '';
-          _originalBirth = user['birth'] ?? '';
+          _originalBirth = birthFormatted;
           _originalAddress = user['address'] ?? '';
-          _originalMateInfo = user['mateInfo'] ?? '';
+          _originalMateInfo = user['mateInfo']?.toString() ?? '';
 
           isLoading = false;
         });
@@ -76,7 +81,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         print('회원 정보 조회 실패: ${response.statusCode}');
       }
     } catch (e) {
-      print('오류 발생: $e');
+      print('❌ 예외 발생: $e');
     }
   }
 
@@ -84,37 +89,49 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken') ?? '';
 
-    final response = await http.patch(
-      Uri.parse('http://10.0.2.2:8080/api/member/edit'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({
-        "nickname": nameController.text.trim(),
-        "phoneNumber": phoneController.text.trim(),
-        "birth": birthController.text.trim(),
-        "address": addressController.text.trim(),
-        "mateInfo": mateController.text.trim(),
-      }),
-    );
+    final uri = Uri.parse('http://10.0.2.2:8080/api/member');
+    final request = http.MultipartRequest('PATCH', uri);
 
-    if (response.statusCode == 200) {
-      print("회원 정보 수정 성공!");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('수정이 완료되었습니다.')),
-      );
+    final memberData = {
+      "nickname": nameController.text.trim(),
+      "phoneNumber": phoneController.text.trim(),
+      "birth": birthController.text.trim(),
+      "address": addressController.text.trim(),
+      "mateInfo": mateController.text.trim(),
+    };
 
-      // 최신값으로 다시 저장
-      _originalNickname = nameController.text.trim();
-      _originalPhoneNumber = phoneController.text.trim();
-      _originalBirth = birthController.text.trim();
-      _originalAddress = addressController.text.trim();
-      _originalMateInfo = mateController.text.trim();
-    } else {
-      print("수정 실패: ${response.statusCode}");
+    request.fields['memberData'] = jsonEncode(memberData);
+    request.headers['Authorization'] = 'Bearer $token';
+
+    // 이미지 업로드를 지원하려면 아래에 추가:
+    // request.files.add(await http.MultipartFile.fromPath('image', imageFilePath));
+
+    try {
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        print("✅ 회원 정보 수정 성공!");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('수정이 완료되었습니다.')),
+        );
+
+        _originalNickname = nameController.text.trim();
+        _originalPhoneNumber = phoneController.text.trim();
+        _originalBirth = birthController.text.trim();
+        _originalAddress = addressController.text.trim();
+        _originalMateInfo = mateController.text.trim();
+      } else {
+        print("수정 실패: ${response.statusCode}");
+        print("응답 본문: ${response.body}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('수정에 실패했습니다.')),
+        );
+      }
+    } catch (e) {
+      print("❌ 예외 발생: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('수정에 실패했습니다.')),
+        const SnackBar(content: Text('네트워크 오류')),
       );
     }
   }
@@ -140,11 +157,10 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         isEditing: isEditing,
         onToggleEdit: () async {
           if (!isEditing) {
-            // 수정 모드 진입
             setState(() => isEditing = true);
             return;
           }
-          // 수정 완료 상태
+
           final isUnchanged =
               nameController.text.trim() == _originalNickname?.trim() &&
                   phoneController.text.trim() == _originalPhoneNumber?.trim() &&
@@ -175,4 +191,3 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   void toggleEditing() => setState(() => isEditing = !isEditing);
   Future<void> submitUpdate() async => await _updateUserInfo();
 }
-

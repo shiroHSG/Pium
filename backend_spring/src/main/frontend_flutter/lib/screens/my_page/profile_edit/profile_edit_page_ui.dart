@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
+import '../../../widgets/protected_image.dart';
 
 class ProfileEditPageUI extends StatelessWidget {
   final TextEditingController emailController;
@@ -12,6 +13,7 @@ class ProfileEditPageUI extends StatelessWidget {
   final TextEditingController mateController;
   final bool isEditing;
   final VoidCallback onToggleEdit;
+  final String? profileImageUrl;
 
   const ProfileEditPageUI({
     Key? key,
@@ -25,6 +27,7 @@ class ProfileEditPageUI extends StatelessWidget {
     required this.mateController,
     required this.isEditing,
     required this.onToggleEdit,
+    this.profileImageUrl,
   }) : super(key: key);
 
   @override
@@ -50,7 +53,7 @@ class ProfileEditPageUI extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const _ProfileEditHeader(),
+            _ProfileEditHeader(profileImageUrl: profileImageUrl),
             const SizedBox(height: 30),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40.0),
@@ -69,7 +72,10 @@ class ProfileEditPageUI extends StatelessWidget {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: onToggleEdit,
+                      onPressed: () {
+                        FocusScope.of(context).unfocus();
+                        onToggleEdit();
+                      },
                       child: Text(
                         isEditing ? '완료' : '수정하기',
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -104,18 +110,21 @@ class ProfileEditPageUI extends StatelessWidget {
     final Color fieldColor = (readOnly ? AppTheme.primaryPurple : AppTheme.lightPink);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SizedBox(
             width: 80,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPurple,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPurple,
+                ),
               ),
             ),
           ),
@@ -147,7 +156,9 @@ class ProfileEditPageUI extends StatelessWidget {
 }
 
 class _ProfileEditHeader extends StatelessWidget {
-  const _ProfileEditHeader();
+  final String? profileImageUrl;
+
+  const _ProfileEditHeader({this.profileImageUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -164,15 +175,18 @@ class _ProfileEditHeader extends StatelessWidget {
             width: 150,
             height: 150,
             decoration: const BoxDecoration(
-              color: AppTheme.primaryPurple,
               shape: BoxShape.circle,
+              color: Colors.white,
             ),
-            child: const Center(
-              child: Icon(
-                Icons.camera_alt,
-                color: Colors.white,
-                size: 50,
+            child: profileImageUrl != null && profileImageUrl!.isNotEmpty
+                ? ClipOval(
+              child: Image.network(
+                profileImageUrl!,
+                fit: BoxFit.cover,
               ),
+            )
+                : const Center(
+              child: Icon(Icons.camera_alt, color: AppTheme.primaryPurple, size: 50),
             ),
           ),
           const SizedBox(height: 20),
