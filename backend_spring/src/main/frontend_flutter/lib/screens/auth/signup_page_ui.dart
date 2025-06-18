@@ -225,7 +225,7 @@ class SignupPageUI extends StatelessWidget {
   final TextEditingController passwordController;
   final TextEditingController confirmPasswordController;
   final TextEditingController nicknameController;
-  final TextEditingController nameController;
+  final TextEditingController usernameController;
   final TextEditingController phoneController;
   final TextEditingController birthDateController;
   final TextEditingController addressController;
@@ -246,7 +246,7 @@ class SignupPageUI extends StatelessWidget {
     required this.passwordController,
     required this.confirmPasswordController,
     required this.nicknameController,
-    required this.nameController,
+    required this.usernameController,
     required this.phoneController,
     required this.birthDateController,
     required this.addressController,
@@ -323,7 +323,7 @@ class SignupPageUI extends StatelessWidget {
             const SizedBox(height: 15),
             buildNicknameInputField('닉네임', nicknameController, onDuplicateNicknameCheck, errorText: nicknameError),
             const SizedBox(height: 15),
-            buildSignupInputField('이름', nameController, TextInputType.text, false),
+            buildSignupInputField('이름', usernameController, TextInputType.text, false),
             const SizedBox(height: 15),
             buildSignupInputField('전화번호', phoneController, TextInputType.phone, false),
             const SizedBox(height: 15),

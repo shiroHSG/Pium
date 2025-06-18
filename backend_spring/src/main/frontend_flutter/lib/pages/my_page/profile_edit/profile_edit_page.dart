@@ -16,7 +16,7 @@ class ProfileEditPage extends StatefulWidget {
 class _ProfileEditPageState extends State<ProfileEditPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
-  final TextEditingController nameController = TextEditingController();
+  final TextEditingController nicknameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController birthController = TextEditingController();
   final TextEditingController genderController = TextEditingController();
@@ -62,7 +62,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         setState(() {
           emailController.text = user['email'] ?? '';
           usernameController.text = user['username'] ?? '';
-          nameController.text = user['nickname'] ?? '';
+          nicknameController.text = user['nickname'] ?? '';
           phoneController.text = user['phoneNumber'] ?? '';
           birthController.text = birthFormatted;
           genderController.text = (user['gender'] == 'M') ? '남성' : '여성';
@@ -93,7 +93,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     final request = http.MultipartRequest('PATCH', uri);
 
     final memberData = {
-      "nickname": nameController.text.trim(),
+      "nickname": nicknameController.text.trim(),
       "phoneNumber": phoneController.text.trim(),
       "birth": birthController.text.trim(),
       "address": addressController.text.trim(),
@@ -116,7 +116,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           const SnackBar(content: Text('수정이 완료되었습니다.')),
         );
 
-        _originalNickname = nameController.text.trim();
+        _originalNickname = nicknameController.text.trim();
         _originalPhoneNumber = phoneController.text.trim();
         _originalBirth = birthController.text.trim();
         _originalAddress = addressController.text.trim();
@@ -148,7 +148,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       body: ProfileEditPageUI(
         emailController: emailController,
         usernameController: usernameController,
-        nameController: nameController,
+        nameController: nicknameController,
         phoneController: phoneController,
         birthController: birthController,
         genderController: genderController,
@@ -162,7 +162,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           }
 
           final isUnchanged =
-              nameController.text.trim() == _originalNickname?.trim() &&
+              nicknameController.text.trim() == _originalNickname?.trim() &&
                   phoneController.text.trim() == _originalPhoneNumber?.trim() &&
                   birthController.text.trim() == _originalBirth?.trim() &&
                   addressController.text.trim() == _originalAddress?.trim() &&
@@ -182,7 +182,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     );
   }
 
-  TextEditingController get getNameController => nameController;
+  TextEditingController get getNameController => nicknameController;
   TextEditingController get getPhoneController => phoneController;
   TextEditingController get getBirthController => birthController;
   TextEditingController get getAddressController => addressController;

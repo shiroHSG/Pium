@@ -62,7 +62,8 @@ public class MemberService {
     // 회원 정보 수정
     @Transactional
     public void updateMember(Member member, MemberUpdateDto dto, MultipartFile image) {
-        if(memberRepository.existsByNickname(dto.getNickname())) {
+        if (!member.getNickname().equals(dto.getNickname()) &&
+                memberRepository.existsByNickname(dto.getNickname())) {
             throw new IllegalArgumentException("이미 사용중인 닉네임입니다.");
         }
         if (image != null && !image.isEmpty()) {
