@@ -1,12 +1,11 @@
-// 이미지를 서버에서 불러와서 화면에 보여줌(JWT 토큰이 필요한 보호된 URL에서 불러옴)
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:typed_data';
 
-class ProtectedImage extends StatefulWidget {  // ProtectedImage : 이미지를 서버에서 직접 받아와서 JWT 인증 헤더 붙여서 표시해주는 커스텀 위젯
+class ProtectedImage extends StatefulWidget {
   final String imageUrl;
-  final double size; // 정사각형 이미지 크기
+  final double size;
 
   const ProtectedImage({
     super.key,
@@ -26,6 +25,18 @@ class _ProtectedImageState extends State<ProtectedImage> {
   void initState() {
     super.initState();
     _loadImage();
+  }
+
+  @override
+  void didUpdateWidget(covariant ProtectedImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.imageUrl != widget.imageUrl) {
+      setState(() {
+        imageBytes = null;
+        isLoading = true;
+      });
+      _loadImage();
+    }
   }
 
   Future<void> _loadImage() async {
@@ -87,7 +98,11 @@ class _ProtectedImageState extends State<ProtectedImage> {
           child: isLoading
               ? const Center(child: CircularProgressIndicator())
               : imageBytes != null
-              ? Image.memory(imageBytes!, fit: BoxFit.cover)  // 받은 바이트 플러터 이미지로 표시
+              ? Image.memory(
+            imageBytes!,
+            fit: BoxFit.cover,
+            key: ValueKey(widget.imageUrl), // 이미지 URL 변경 시 리렌더링
+          )
               : const Center(
             child: Text(
               '이미지 없음',

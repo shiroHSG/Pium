@@ -31,7 +31,7 @@ class _MyPageUIState extends State<MyPageUI> {
       final imagePath = data['profileImageUrl'];
       print('📸 프로필 이미지 경로: ${data['profileImageUrl']}');
       final fullImageUrl = (imagePath != null && imagePath.isNotEmpty)
-          ? 'http://10.0.2.2:8080${imagePath.startsWith('/') ? imagePath : '/$imagePath'}'
+          ? 'http://10.0.2.2:8080${imagePath.startsWith('/') ? imagePath : '/$imagePath'}?t=${DateTime.now().millisecondsSinceEpoch}'
           : null;
 
       print('🧪 최종 설정할 전체 URL: $fullImageUrl');
@@ -50,7 +50,7 @@ class _MyPageUIState extends State<MyPageUI> {
           children: [
             _MyPageHeader(nickname: nickname, profileImageUrl: profileImageUrl),
             const SizedBox(height: 60),
-            const _MyPageButtonsGrid(),
+            _MyPageButtonsGrid(onProfileUpdated: _loadUserInfo),
             const SizedBox(height: 30),
           ],
         ),
@@ -112,7 +112,9 @@ class _MyPageHeader extends StatelessWidget {
 }
 
 class _MyPageButtonsGrid extends StatelessWidget {
-  const _MyPageButtonsGrid();
+  final VoidCallback onProfileUpdated;
+
+  const _MyPageButtonsGrid({required this.onProfileUpdated});
 
   @override
   Widget build(BuildContext context) {
@@ -126,14 +128,21 @@ class _MyPageButtonsGrid extends StatelessWidget {
         crossAxisSpacing: 12.0,
         childAspectRatio: 1.4,
         children: [
-          _buildMyPageButton(
-            context,
-            icon: Icons.person_outline,
-            label: '프로필',
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileEditPage()));
-            },
-          ),
+        _buildMyPageButton(
+        context,
+        icon: Icons.person_outline,
+        label: '프로필',
+          onTap: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileEditPage()),
+            );
+            if (result == 'updated') {
+              await Future.delayed(Duration(milliseconds: 100));
+              if (context.mounted) onProfileUpdated();
+            }
+          },
+        ),
           _buildMyPageButton(
             context,
             icon: Icons.child_care_outlined,

@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
+
 import '../../../widgets/protected_image.dart';
 
 class ProfileEditPageUI extends StatelessWidget {
@@ -14,6 +16,8 @@ class ProfileEditPageUI extends StatelessWidget {
   final bool isEditing;
   final VoidCallback onToggleEdit;
   final String? profileImageUrl;
+  final File? selectedImage;
+  final VoidCallback onPickImage;
 
   const ProfileEditPageUI({
     Key? key,
@@ -27,7 +31,9 @@ class ProfileEditPageUI extends StatelessWidget {
     required this.mateController,
     required this.isEditing,
     required this.onToggleEdit,
-    this.profileImageUrl,
+    required this.profileImageUrl,
+    required this.selectedImage,
+    required this.onPickImage,
   }) : super(key: key);
 
   @override
@@ -44,16 +50,19 @@ class ProfileEditPageUI extends StatelessWidget {
         ),
         title: const Text(
           '프로필',
-          style: TextStyle(
-            color: Colors.white,
-          ),
+          style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _ProfileEditHeader(profileImageUrl: profileImageUrl),
+            _ProfileEditHeader(
+              profileImageUrl: profileImageUrl,
+              selectedImage: selectedImage,
+              onPickImage: onPickImage,
+              isEditing: isEditing,
+            ),
             const SizedBox(height: 30),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40.0),
@@ -62,9 +71,9 @@ class ProfileEditPageUI extends StatelessWidget {
                   _buildProfileInputField(label: '이메일', controller: emailController, readOnly: true),
                   _buildProfileInputField(label: '아이디', controller: usernameController, readOnly: true),
                   _buildProfileInputField(label: '성별', controller: genderController, readOnly: true),
+                  _buildProfileInputField(label: '생년월일', controller: birthController, readOnly: true),
                   _buildProfileInputField(label: '이름', controller: nameController, readOnly: !isEditing),
                   _buildProfileInputField(label: '전화번호', controller: phoneController, keyboardType: TextInputType.phone, readOnly: !isEditing),
-                  _buildProfileInputField(label: '생년월일', controller: birthController, keyboardType: TextInputType.datetime, readOnly: !isEditing),
                   _buildProfileInputField(label: '주소', controller: addressController, readOnly: !isEditing),
                   _buildProfileInputField(label: '배우자', controller: mateController, readOnly: !isEditing),
                   const SizedBox(height: 40),
@@ -83,9 +92,7 @@ class ProfileEditPageUI extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryPurple,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                         elevation: 2,
                       ),
                     ),
@@ -157,8 +164,16 @@ class ProfileEditPageUI extends StatelessWidget {
 
 class _ProfileEditHeader extends StatelessWidget {
   final String? profileImageUrl;
+  final File? selectedImage;
+  final VoidCallback onPickImage;
+  final bool isEditing;
 
-  const _ProfileEditHeader({this.profileImageUrl});
+  const _ProfileEditHeader({
+    this.profileImageUrl,
+    this.selectedImage,
+    required this.onPickImage,
+    required this.isEditing,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -169,27 +184,36 @@ class _ProfileEditHeader extends StatelessWidget {
         color: AppTheme.lightPink,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
       ),
-      child: Column(
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          Container(
+          SizedBox(
             width: 150,
             height: 150,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-            ),
-            child: profileImageUrl != null && profileImageUrl!.isNotEmpty
-                ? ClipOval(
-              child: Image.network(
-                profileImageUrl!,
-                fit: BoxFit.cover,
-              ),
-            )
-                : const Center(
-              child: Icon(Icons.camera_alt, color: AppTheme.primaryPurple, size: 50),
+            child: ClipOval(
+              child: selectedImage != null
+                  ? Image.file(selectedImage!, fit: BoxFit.cover)
+                  : (profileImageUrl != null && profileImageUrl!.startsWith('http'))
+                  ? ProtectedImage(imageUrl: profileImageUrl!)
+                  : const Icon(Icons.camera_alt, color: AppTheme.primaryPurple, size: 50),
             ),
           ),
-          const SizedBox(height: 20),
+          if (isEditing)
+            Positioned(
+              bottom: 0,
+              right: MediaQuery.of(context).size.width / 2 - 75 - 10, // 중앙에서 오른쪽 바깥쪽으로 살짝
+              child: GestureDetector(
+                onTap: onPickImage,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  child: const Icon(Icons.camera_alt, color: AppTheme.primaryPurple, size: 24),
+                ),
+              ),
+            ),
         ],
       ),
     );

@@ -1,8 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:frontend_flutter/theme/app_theme.dart';
 
 import '../../../screens/my_page/profile_edit/profile_edit_page_ui.dart';
 
@@ -25,17 +27,29 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   String? _originalNickname;
   String? _originalPhoneNumber;
-  String? _originalBirth;
   String? _originalAddress;
   String? _originalMateInfo;
 
   bool isLoading = true;
   bool isEditing = false;
 
+  String? _profileImageUrl;
+  File? _selectedImage;
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -56,7 +70,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
         final birthList = user['birth'];
         final birthFormatted = birthList is List
-            ? '${birthList[0]}-${birthList[1].toString().padLeft(2, '0')}-${birthList[2].toString().padLeft(2, '0')}'
+            ? '${birthList[0]}-${birthList[1].toString().padLeft(
+            2, '0')}-${birthList[2].toString().padLeft(2, '0')}'
             : '';
 
         setState(() {
@@ -68,10 +83,14 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           genderController.text = (user['gender'] == 'M') ? '남성' : '여성';
           addressController.text = user['address'] ?? '';
           mateController.text = user['mateInfo']?.toString() ?? '';
+          final imagePath = user['profileImageUrl'];
+          _profileImageUrl = (imagePath != null && imagePath.isNotEmpty)
+              ? 'http://10.0.2.2:8080${imagePath.startsWith('/') ? imagePath : '/$imagePath'}'
+              : null;
+
 
           _originalNickname = user['nickname'] ?? '';
           _originalPhoneNumber = user['phoneNumber'] ?? '';
-          _originalBirth = birthFormatted;
           _originalAddress = user['address'] ?? '';
           _originalMateInfo = user['mateInfo']?.toString() ?? '';
 
@@ -95,7 +114,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     final memberData = {
       "nickname": nicknameController.text.trim(),
       "phoneNumber": phoneController.text.trim(),
-      "birth": birthController.text.trim(),
       "address": addressController.text.trim(),
       "mateInfo": mateController.text.trim(),
     };
@@ -103,33 +121,38 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     request.fields['memberData'] = jsonEncode(memberData);
     request.headers['Authorization'] = 'Bearer $token';
 
-    // 이미지 업로드를 지원하려면 아래에 추가:
-    // request.files.add(await http.MultipartFile.fromPath('image', imageFilePath));
+    // 이미지 파일 추가
+    if (_selectedImage != null) {
+      print('📁 전송할 이미지 경로: ${_selectedImage!.path}');
+      request.files.add(await http.MultipartFile.fromPath(
+        'image',
+        _selectedImage!.path,
+      ));
+    }
 
     try {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
+      print('📨 응답 상태: ${response.statusCode}');
+      print('📨 응답 본문: ${response.body}');
+
       if (response.statusCode == 200) {
-        print("✅ 회원 정보 수정 성공!");
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('수정이 완료되었습니다.')),
         );
 
         _originalNickname = nicknameController.text.trim();
         _originalPhoneNumber = phoneController.text.trim();
-        _originalBirth = birthController.text.trim();
         _originalAddress = addressController.text.trim();
         _originalMateInfo = mateController.text.trim();
       } else {
-        print("수정 실패: ${response.statusCode}");
-        print("응답 본문: ${response.body}");
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('수정에 실패했습니다.')),
         );
       }
     } catch (e) {
-      print("❌ 예외 발생: $e");
+      print('❌ 예외 발생: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('네트워크 오류')),
       );
@@ -155,6 +178,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         addressController: addressController,
         mateController: mateController,
         isEditing: isEditing,
+        profileImageUrl: _profileImageUrl,
+        selectedImage: _selectedImage,
+        onPickImage: _pickImage,
         onToggleEdit: () async {
           if (!isEditing) {
             setState(() => isEditing = true);
@@ -164,9 +190,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           final isUnchanged =
               nicknameController.text.trim() == _originalNickname?.trim() &&
                   phoneController.text.trim() == _originalPhoneNumber?.trim() &&
-                  birthController.text.trim() == _originalBirth?.trim() &&
                   addressController.text.trim() == _originalAddress?.trim() &&
-                  mateController.text.trim() == _originalMateInfo?.trim();
+                  mateController.text.trim() == _originalMateInfo?.trim() &&
+                  _selectedImage == null;
 
           if (isUnchanged) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -174,6 +200,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             );
           } else {
             await _updateUserInfo();
+            Navigator.pop(context, 'updated'); // 수정 완료 후 마이페이지에 알림
+            return;
           }
 
           setState(() => isEditing = false);
@@ -181,13 +209,4 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       ),
     );
   }
-
-  TextEditingController get getNameController => nicknameController;
-  TextEditingController get getPhoneController => phoneController;
-  TextEditingController get getBirthController => birthController;
-  TextEditingController get getAddressController => addressController;
-  TextEditingController get getMateController => mateController;
-  bool get getIsEditing => isEditing;
-  void toggleEditing() => setState(() => isEditing = !isEditing);
-  Future<void> submitUpdate() async => await _updateUserInfo();
 }
