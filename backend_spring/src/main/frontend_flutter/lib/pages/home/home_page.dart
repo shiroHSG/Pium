@@ -15,6 +15,8 @@ import 'package:frontend_flutter/screens/home/home_page_ui.dart';
 import 'package:frontend_flutter/pages/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../models/calendar/calendar_api.dart';
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
@@ -39,7 +41,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _checkLoginStatus(); // 로그인 상태 체크
-    _loadBabyProfile();
+    _loadBabyProfile(); // 아기정보 불러오기
+    _loadSchedules(); //  일정 불러오기
   }
 
   Future<void> _checkLoginStatus() async {
@@ -93,13 +96,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (newSchedule != null) {
       setState(() {
         _schedules.add(newSchedule);
-        _schedules.sort((a, b) {
-          int dateComparison = a.date.compareTo(b.date);
-          if (dateComparison != 0) {
-            return dateComparison;
-          }
-          return a.startTime.compareTo(b.startTime);
-        });
+        _schedules.sort((a, b) => a.startTime.compareTo(b.startTime));
       });
     }
   }
@@ -177,6 +174,18 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  // 캘린더 일정 불러오기
+  Future<void> _loadSchedules() async {
+    try {
+      final schedules = await CalendarApi.fetchSchedules();
+      setState(() {
+        _schedules = schedules..sort((a, b) => a.startTime.compareTo(b.startTime));
+      });
+    } catch (e) {
+      print('일정 불러오기 실패: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(  // 화면의 전체 구조
@@ -203,12 +212,11 @@ class _MyHomePageState extends State<MyHomePage> {
     switch (index) {
       case 0:
         final today = DateTime.now();
-        final todaySchedules = _schedules
-            .where((schedule) =>
-        schedule.date.year == today.year &&
-            schedule.date.month == today.month &&
-            schedule.date.day == today.day)
-            .toList();
+        final todaySchedules = _schedules.where((schedule) =>
+        schedule.startTime.year == today.year &&
+            schedule.startTime.month == today.month &&
+            schedule.startTime.day == today.day
+        ).toList();
 
         return SingleChildScrollView(
           child: Column(
