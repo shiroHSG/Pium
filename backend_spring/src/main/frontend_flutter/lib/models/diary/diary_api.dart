@@ -107,29 +107,61 @@ class DiaryApi {
     final request = http.MultipartRequest('PATCH', uri);
     request.headers['Authorization'] = 'Bearer $token';
 
-    final diaryData = jsonEncode({
+    final diaryDataMap = {
       'title': entry.title,
       'publicContent': entry.publicContent,
       'content': entry.privateContent,
       'published': entry.published,
-    });
+    };
+
+    // ✅ 이미지 삭제 의도 명시
+    if (image == null && (entry.imageUrl == null || entry.imageUrl!.isEmpty)) {
+      diaryDataMap['removeImage'] = true;
+    }
+
+    final diaryData = jsonEncode(diaryDataMap);
     request.fields['diaryData'] = diaryData;
 
     if (image != null) {
-      request.files.add(await http.MultipartFile.fromPath('image', image.path));
+      request.files.add(await http.MultipartFile.fromPath('images', image.path));
     }
 
     final response = await request.send();
+
     if (response.statusCode == 200) {
       return true;
     } else {
       final error = await response.stream.bytesToString();
-      try {
-        final decoded = jsonDecode(error);
-        print('[ERROR] Failed to update diary: ${response.statusCode} - ${decoded['message'] ?? error}');
-      } catch (_) {
-        print('[ERROR] Failed to update diary: ${response.statusCode} - $error');
-      }
+      print('[ERROR] Failed to update diary: $error');
+      return false;
+    }
+  }
+
+  // ✅ 육아 일지 삭제
+  static Future<bool> deleteDiary(int diaryId) async {
+    print('[DEBUG] deleteDiary 호출됨: $diaryId'); // ✅ 호출 로그
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    if (token == null) {
+      print('[ERROR] Token 없음');
+      return false;
+    }
+
+    final uri = Uri.parse('$baseUrl/api/diaries/$diaryId');
+    print('[DEBUG] DELETE URI: $uri'); // ✅ 경로 로그
+
+    final response = await http.delete(uri, headers: {
+      'Authorization': 'Bearer $token',
+    });
+
+    print('[DEBUG] Status Code: ${response.statusCode}'); // ✅ 응답 확인
+
+    if (response.statusCode == 200) {
+      print('[DEBUG] 삭제 성공');
+      return true;
+    } else {
+      print('[ERROR] Failed to delete diary: ${response.statusCode} - ${response.body}');
       return false;
     }
   }

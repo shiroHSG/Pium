@@ -110,7 +110,7 @@ class _BabyRecordPageState extends State<BabyRecordPage> {
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => BabyRecordDetailPage(entry: entry),
+                          builder: (context) => BabyRecordDetailPage(diaryId: entry.id!),
                         ),
                       );
                       if (result == true && selectedChild != null) {

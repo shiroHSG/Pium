@@ -6,7 +6,7 @@ class BabyRecordEntry {
   final String? privateContent;
   final bool published;
   final DateTime createdAt;
-  final String? imageUrl; // ✅ imageUrl 필드 추가
+  String? imageUrl; // ✅ imageUrl 필드 추가
 
   BabyRecordEntry({
     this.id,

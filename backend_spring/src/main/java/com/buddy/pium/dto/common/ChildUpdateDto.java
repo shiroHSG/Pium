@@ -1,6 +1,7 @@
 package com.buddy.pium.dto.common;
 
 import com.buddy.pium.entity.common.Enum;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -10,6 +11,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true) // ✅ 알 수 없는 필드 무시
 public class ChildUpdateDto {
     private String name;
     private LocalDate birth;
@@ -17,4 +19,5 @@ public class ChildUpdateDto {
     private Double height;
     private Double weight;
     private String sensitiveInfo;
+    private String profileImgUrl;
 }

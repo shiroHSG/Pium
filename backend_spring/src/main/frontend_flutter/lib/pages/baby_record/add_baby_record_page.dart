@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -25,6 +27,7 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
   List<BabyProfile> children = [];
   BabyProfile? selectedChild;
   bool _isLoading = true; // ✅ 로딩 상태
+  File? selectedImage; // ✅ 이미지 상태 추가
 
   @override
   void initState() {
@@ -56,6 +59,16 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        selectedImage = File(picked.path);
+      });
+    }
+  }
+
   Future<void> _saveBabyRecord() async {
     if (selectedChild == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -81,7 +94,7 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
       createdAt: DateTime.now(),
     );
 
-    final success = await DiaryApi.saveDiary(entry);
+    final success = await DiaryApi.saveDiary(entry, image: selectedImage);
 
     if (success) {
       if (!mounted) return;
@@ -143,19 +156,25 @@ class _AddBabyRecordPageState extends State<AddBabyRecordPage> {
             const SizedBox(height: 25),
             TitleInputField(titleController: _titleController),
             const SizedBox(height: 20),
-            // ✅ 공개 스위치가 ON일 때만 공개내용 입력창 노출
             if (_isPublic)
               PublicContentInputField(publicContentController: _publicContentController),
-
             const SizedBox(height: 20),
             PrivateContentInputField(privateContentController: _privateContentController),
             const SizedBox(height: 20),
             ActionButtons(
-              onAttachPhoto: () {
-                // TODO: 사진 첨부 로직 구현
-              },
+              onAttachPhoto: _pickImage,
               onComplete: _saveBabyRecord,
             ),
+            if (selectedImage != null) ...[
+              const SizedBox(height: 16),
+              Text('선택한 사진 미리보기:', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Image.file(selectedImage!, height: 200),
+              TextButton(
+                onPressed: () => setState(() => selectedImage = null),
+                child: const Text('사진 제거', style: TextStyle(color: Colors.red)),
+              ),
+            ],
           ],
         ),
       ),

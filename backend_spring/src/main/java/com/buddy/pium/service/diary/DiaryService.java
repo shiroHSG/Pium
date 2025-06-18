@@ -62,18 +62,32 @@ public class DiaryService {
                 .toList();
     }
 
-    public void updateDiary(Long diaryId, DiaryUpdateDto dto, Member member, MultipartFile image ) {
+    public void updateDiary(Long diaryId, DiaryUpdateDto dto, Member member) {
         Diary diary = validateDiaryOwner(diaryId, member);
 
-        if (image != null && !image.isEmpty()) {
+        // ✅ 텍스트 필드 업데이트
+        if (dto.getTitle() != null) diary.setTitle(dto.getTitle());
+        if (dto.getContent() != null) diary.setContent(dto.getContent());
+        if (dto.getPublicContent() != null) diary.setPublicContent(dto.getPublicContent());
+        diary.setPublished(dto.getPublished());
+
+        // ✅ 1. removeImage가 true이면 기존 이미지 삭제
+        if (Boolean.TRUE.equals(dto.getRemoveImage())) {
             if (diary.getImageUrl() != null) {
                 fileUploadService.delete(diary.getImageUrl());
+                diary.setImageUrl(null);
             }
-            String imageUrl = fileUploadService.upload(image, "diaries");
-            diary.setImageUrl(imageUrl);
         }
 
-        if (dto.getContent() != null) diary.setContent(dto.getContent());
+        // ✅ 2. 새 이미지가 있을 경우 기존 이미지 덮어쓰기
+        List<MultipartFile> images = dto.getImageFiles();
+        if (images != null && !images.isEmpty()) {
+            MultipartFile newImage = images.get(0);
+
+            // 새 이미지 업로드 후 저장
+            String imageUrl = fileUploadService.upload(newImage, "diaries");
+            diary.setImageUrl(imageUrl);
+        }
 
         diaryRepository.save(diary);
     }

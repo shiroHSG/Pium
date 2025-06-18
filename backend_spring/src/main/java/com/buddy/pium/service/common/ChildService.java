@@ -56,12 +56,16 @@ public class ChildService {
         Child child = validateChild(childId, member);
 
         if (image != null && !image.isEmpty()) {
-            if (member.getProfileImageUrl() != null) {
-                fileUploadService.delete(member.getProfileImageUrl());
+            if (child.getProfileImgUrl() != null) { // ✅ 수정
+                fileUploadService.delete(child.getProfileImgUrl());
             }
             String imageUrl = fileUploadService.upload(image, "children");
             child.setProfileImgUrl(imageUrl);
+        } else if (dto.getProfileImgUrl() != null && dto.getProfileImgUrl().startsWith("/uploads")) {
+            // /uploads 경로만 허용
+            child.setProfileImgUrl(dto.getProfileImgUrl());
         }
+
         if (dto.getName() != null) child.setName(dto.getName());
         if (dto.getBirth() != null) child.setBirth(dto.getBirth());
         if (dto.getGender() != null) child.setGender(dto.getGender());

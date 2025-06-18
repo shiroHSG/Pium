@@ -51,6 +51,7 @@ class _EditBabyRecordPageState extends State<EditBabyRecordPage> {
   void _removeImage() {
     setState(() {
       selectedImage = null;
+      widget.entry.imageUrl = null; // ✅ 기존 이미지 URL도 제거
     });
   }
 
@@ -73,6 +74,17 @@ class _EditBabyRecordPageState extends State<EditBabyRecordPage> {
         content: Text(success ? '수정이 완료되었습니다.' : '수정에 실패했습니다.'),
       ));
       if (success) Navigator.pop(context, true);
+    }
+  }
+
+  Widget _buildImagePreview() {
+    if (selectedImage != null) {
+      return Image.file(selectedImage!, height: 200, fit: BoxFit.cover);
+    } else if (widget.entry.imageUrl != null && widget.entry.imageUrl!.isNotEmpty) {
+      final fullUrl = 'http://10.0.2.2:8080${widget.entry.imageUrl!.startsWith('/') ? widget.entry.imageUrl : '/${widget.entry.imageUrl!}'}';
+      return Image.network(fullUrl, height: 200, fit: BoxFit.cover);
+    } else {
+      return const Text('이미지가 없습니다.');
     }
   }
 
@@ -142,7 +154,7 @@ class _EditBabyRecordPageState extends State<EditBabyRecordPage> {
                   child: const Text('사진 선택'),
                 ),
                 const SizedBox(width: 12),
-                if (selectedImage != null)
+                if (selectedImage != null || (widget.entry.imageUrl != null && widget.entry.imageUrl!.isNotEmpty))
                   ElevatedButton(
                     onPressed: _removeImage,
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -150,10 +162,8 @@ class _EditBabyRecordPageState extends State<EditBabyRecordPage> {
                   ),
               ],
             ),
-            if (selectedImage != null) ...[
-              const SizedBox(height: 12),
-              Image.file(selectedImage!, height: 200),
-            ],
+            const SizedBox(height: 12),
+            _buildImagePreview(),
             const SizedBox(height: 32),
             Center(
               child: ElevatedButton(

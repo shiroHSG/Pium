@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/baby_profile.dart';
 import 'package:intl/intl.dart';
@@ -23,14 +25,16 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
   late TextEditingController _weightController;
   late TextEditingController _allergyController;
   late DateTime _selectedDate;
-  Gender? _selectedGender; // ✅ nullable 처리
+  Gender? _selectedGender;
+
+  File? _selectedImage;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.babyProfile.name);
     _selectedDate = widget.babyProfile.birthDate;
-    _selectedGender = widget.babyProfile.gender; // nullable
+    _selectedGender = widget.babyProfile.gender;
     _heightController = TextEditingController(
         text: widget.babyProfile.height?.toStringAsFixed(1) ?? '');
     _weightController = TextEditingController(
@@ -62,12 +66,22 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
     }
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _selectedImage = File(picked.path);
+      });
+    }
+  }
+
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
       final updated = widget.babyProfile.copyWith(
         name: _nameController.text,
         birthDate: _selectedDate,
-        gender: _selectedGender, // nullable 그대로 넘김
+        gender: _selectedGender,
         height: _heightController.text.isEmpty
             ? null
             : double.tryParse(_heightController.text),
@@ -75,6 +89,7 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
             ? null
             : double.tryParse(_weightController.text),
         allergy: _allergyController.text.isEmpty ? null : _allergyController.text,
+        profileImageUrl: _selectedImage?.path ?? widget.babyProfile.profileImageUrl,
       );
       Navigator.pop(context, updated);
     }
@@ -82,6 +97,12 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    final imageProvider = _selectedImage != null
+        ? FileImage(_selectedImage!)
+        : (widget.babyProfile.profileImageUrl != null
+        ? NetworkImage(widget.babyProfile.profileImageUrl!)
+        : null);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -108,15 +129,15 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
             child: Column(
               children: [
                 const SizedBox(height: 20),
-                Container(
-                  width: 150,
-                  height: 150,
-                  decoration: const BoxDecoration(
-                    color: AppTheme.primaryPurple,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.child_care, color: Colors.white, size: 80),
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: CircleAvatar(
+                    radius: 75,
+                    backgroundColor: AppTheme.primaryPurple,
+                    backgroundImage: imageProvider is ImageProvider ? imageProvider : null,
+                    child: imageProvider == null
+                        ? const Icon(Icons.add_a_photo, color: Colors.white, size: 50)
+                        : null,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -176,8 +197,6 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                   hintText: '없으면 "없음"',
                 ),
                 const SizedBox(height: 40),
-
-                // ✅ 수정 버튼
                 ElevatedButton(
                   onPressed: _saveProfile,
                   style: ElevatedButton.styleFrom(
@@ -193,10 +212,7 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // ✅ 삭제 버튼
                 ElevatedButton.icon(
                   icon: const Icon(Icons.delete),
                   label: const Text('삭제하기'),
@@ -230,7 +246,7 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
                     if (confirm == true) {
                       final success = await ChildApi.deleteChild(widget.babyProfile.childId!);
                       if (context.mounted) {
-                        Navigator.pop(context, 'deleted'); // 상위로 삭제 상태 전달
+                        Navigator.pop(context, 'deleted');
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(success ? '삭제 완료!' : '삭제 실패'),

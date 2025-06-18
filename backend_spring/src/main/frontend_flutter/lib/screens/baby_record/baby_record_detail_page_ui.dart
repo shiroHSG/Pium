@@ -38,11 +38,21 @@ class BabyRecordDetailHeader extends StatelessWidget {
 
 class BabyRecordDetailTitleAndImage extends StatelessWidget {
   final String title;
+  final String? imageUrl;
 
-  const BabyRecordDetailTitleAndImage({super.key, required this.title});
+  const BabyRecordDetailTitleAndImage({
+    super.key,
+    required this.title,
+    required this.imageUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Android 에뮬레이터용 완전한 이미지 URL 생성
+    final fullImageUrl = (imageUrl != null && imageUrl!.isNotEmpty)
+        ? 'http://10.0.2.2:8080${imageUrl!.startsWith('/') ? imageUrl : '/${imageUrl!}'}'
+        : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -57,14 +67,24 @@ class BabyRecordDetailTitleAndImage extends StatelessWidget {
         const SizedBox(height: 24),
         Container(
           width: double.infinity,
-          height: 200,
-          color: Colors.grey[200],
-          child: const Center(
-            child: Text(
-              '이미지',
-              style: TextStyle(color: Colors.grey),
-            ),
+          constraints: const BoxConstraints(
+            maxHeight: 300, // ✅ 최대 높이 제한
           ),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: fullImageUrl != null
+              ? ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              fullImageUrl,
+              fit: BoxFit.contain, // ✅ 이미지 비율 유지하며 최대한 채움
+              errorBuilder: (_, __, ___) =>
+              const Center(child: Text('이미지를 불러올 수 없습니다.')),
+            ),
+          )
+              : const Center(child: Text('이미지 없음')),
         ),
       ],
     );
@@ -145,10 +165,9 @@ class BabyRecordDetailPageUi extends StatelessWidget {
               ),
             );
 
-            // ✅ 수정 후 true 반환 시 → 서버에서 최신 데이터 fetch
             if (result == true && context.mounted) {
-              final updated = await DiaryApi.fetchDiaryById(entry.id!); // 최신 데이터 가져오기
-              onEdited?.call(updated); // 부모 상태 갱신
+              final updated = await DiaryApi.fetchDiaryById(entry.id!);
+              onEdited?.call(updated);
               Navigator.pop(context, true);
             }
           },
@@ -160,8 +179,17 @@ class BabyRecordDetailPageUi extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context); // TODO: 삭제 연동 예정
+          onPressed: () async {
+            print('[DEBUG] 상세 하단 삭제 버튼 눌림');
+            final success = await DiaryApi.deleteDiary(entry.id!);
+            if (success && context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("삭제가 완료되었습니다.")),
+              );
+              Navigator.pop(context, true); // 리스트 화면으로 돌아가기
+            } else {
+              print('[ERROR] 삭제 실패');
+            }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.redAccent,
