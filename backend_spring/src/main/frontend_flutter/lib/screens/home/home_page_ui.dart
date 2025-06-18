@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:frontend_flutter/models/baby_profile.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/calendar/schedule.dart';
@@ -96,8 +97,8 @@ class BabyProfileHeader extends StatelessWidget {
   }
 }
 
-class TodayScheduleCard extends StatelessWidget {
-  final List<Schedule> todaySchedules;
+class TodayScheduleCard extends StatefulWidget {
+  final List<Schedule> todaySchedules; // 전체 일정
   final VoidCallback onCalendarTap;
 
   const TodayScheduleCard({
@@ -107,12 +108,41 @@ class TodayScheduleCard extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<TodayScheduleCard> createState() => _TodayScheduleCardState();
+}
+
+class _TodayScheduleCardState extends State<TodayScheduleCard> {
+  DateTime currentDate = DateTime.now();
+
+  void _goToPreviousDay() {
+    setState(() {
+      currentDate = currentDate.subtract(const Duration(days: 1));
+    });
+  }
+
+  void _goToNextDay() {
+    setState(() {
+      currentDate = currentDate.add(const Duration(days: 1));
+    });
+  }
+
+  List<Schedule> get filteredSchedules {
+    return widget.todaySchedules.where((schedule) =>
+    schedule.startTime.year == currentDate.year &&
+        schedule.startTime.month == currentDate.month &&
+        schedule.startTime.day == currentDate.day
+    ).toList()
+      ..sort((a, b) => a.startTime.compareTo(b.startTime)); // 시간순 정렬
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final today = DateTime.now();
+    final isToday = DateUtils.isSameDay(currentDate, DateTime.now());
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40.0),
       child: GestureDetector(
-        onTap: onCalendarTap,
+        onTap: widget.onCalendarTap,
         child: Padding(
           padding: const EdgeInsets.only(top: 40.0),
           child: Container(
@@ -123,14 +153,24 @@ class TodayScheduleCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.arrow_back_ios, color: Colors.grey[600], size: 20),
+                // 왼쪽 화살표
+                SizedBox(
+                  width: 40, height: 60,
+                  child: InkWell(
+                    onTap: _goToPreviousDay,
+                    borderRadius: BorderRadius.circular(8),
+                    child: const Center(
+                      child: Icon(Icons.arrow_back_ios, color: Colors.grey, size: 20),
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${today.day}일',
+                        DateFormat('M월 d일 (E)', 'ko').format(currentDate),
                         style: const TextStyle(
                           color: AppTheme.textPurple,
                           fontSize: 18,
@@ -138,12 +178,12 @@ class TodayScheduleCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      if (todaySchedules.isEmpty)
+                      if (filteredSchedules.isEmpty)
                         const Text(
-                          '오늘 일정이 없습니다.',
+                          '일정이 없습니다.',
                           style: TextStyle(fontSize: 14, color: Colors.grey),
                         ),
-                      ...todaySchedules.map((schedule) => Padding(
+                      ...filteredSchedules.map((schedule) => Padding(
                         padding: const EdgeInsets.only(bottom: 4.0),
                         child: Row(
                           children: [
@@ -152,13 +192,16 @@ class TodayScheduleCard extends StatelessWidget {
                               height: 8,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: schedule.color,
+                                color: Color(int.parse(
+                                  'FF${schedule.colorTag.replaceAll('#', '')}',
+                                  radix: 16,
+                                )),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                '${schedule.title} - ${schedule.time}',
+                                '${schedule.title} - ${DateFormat('a h:mm', 'ko').format(schedule.startTime)}',
                                 style: const TextStyle(fontSize: 14),
                               ),
                             ),
@@ -169,7 +212,17 @@ class TodayScheduleCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Icon(Icons.arrow_forward_ios, color: Colors.grey[600], size: 20),
+                // 오른쪽 화살표
+                SizedBox(
+                  width: 40, height: 60,
+                  child: InkWell(
+                    onTap: _goToNextDay,
+                    borderRadius: BorderRadius.circular(8),
+                    child: const Center(
+                      child: Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 20),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

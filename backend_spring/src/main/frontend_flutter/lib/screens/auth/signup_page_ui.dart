@@ -59,19 +59,40 @@ Widget buildTextFieldContainer({
 }
 
 // 기본 필드
-Widget buildSignupInputField(String label, TextEditingController controller, TextInputType type, bool isPassword) {
+Widget buildSignupInputField(
+    String label,
+    TextEditingController controller,
+    TextInputType type,
+    bool isPassword, {
+      String? errorText,
+    }) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       buildLabelText(label),
       const SizedBox(height: 8),
-      buildTextFieldContainer(controller: controller, keyboardType: type, isPassword: isPassword),
+      buildTextFieldContainer(
+        controller: controller,
+        keyboardType: type,
+        isPassword: isPassword,
+      ),
+      if (errorText != null && errorText.isNotEmpty) ...[
+        const SizedBox(height: 5),
+        Text(
+          errorText,
+          style: const TextStyle(
+            color: Colors.red,
+            fontSize: 13,
+            fontFamily: 'Jua',
+          ),
+        ),
+      ],
     ],
   );
 }
 
 // 닉네임 + 중복확인
-Widget buildNicknameInputField(String label, TextEditingController controller, VoidCallback onCheck) {
+Widget buildNicknameInputField(String label, TextEditingController controller, VoidCallback onCheck, {String? errorText}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -92,6 +113,17 @@ Widget buildNicknameInputField(String label, TextEditingController controller, V
           ),
         ],
       ),
+      if (errorText != null && errorText.isNotEmpty) ...[
+        const SizedBox(height: 5),
+        Text(
+          errorText,
+          style: const TextStyle(
+            color: Colors.red,
+            fontSize: 13,
+            fontFamily: 'Jua',
+          ),
+        ),
+      ],
     ],
   );
 }
@@ -114,7 +146,6 @@ Widget buildBirthDateInputField(String label, TextEditingController controller, 
     ],
   );
 }
-
 
 // 성별 선택
 Widget buildGenderSelectionField(String label, String? selected, Function(String?) onChange) {
@@ -206,6 +237,8 @@ class SignupPageUI extends StatelessWidget {
   final VoidCallback onAddressSearch;
   final VoidCallback onPickImage;
   final File? selectedImage;
+  final String? emailError;
+  final String? nicknameError;
 
   const SignupPageUI({
     Key? key,
@@ -225,6 +258,8 @@ class SignupPageUI extends StatelessWidget {
     required this.onAddressSearch,
     required this.onPickImage,
     required this.selectedImage,
+    required this.emailError,
+    required this.nicknameError,
   }) : super(key: key);
 
   @override
@@ -239,7 +274,6 @@ class SignupPageUI extends StatelessWidget {
             Image.asset('assets/logo1.png', width: 100),
             const SizedBox(height: 15),
 
-            // ✅ 프로필 이미지 업로드 박스
             Column(
               children: [
                 Container(
@@ -281,13 +315,13 @@ class SignupPageUI extends StatelessWidget {
             ),
 
             const SizedBox(height: 20),
-            buildSignupInputField('이메일', emailController, TextInputType.emailAddress, false),
+            buildSignupInputField('이메일', emailController, TextInputType.emailAddress, false, errorText: emailError),
             const SizedBox(height: 15),
             buildSignupInputField('비밀번호', passwordController, TextInputType.text, true),
             const SizedBox(height: 15),
             buildSignupInputField('비밀번호 확인', confirmPasswordController, TextInputType.text, true),
             const SizedBox(height: 15),
-            buildNicknameInputField('닉네임', nicknameController, onDuplicateNicknameCheck),
+            buildNicknameInputField('닉네임', nicknameController, onDuplicateNicknameCheck, errorText: nicknameError),
             const SizedBox(height: 15),
             buildSignupInputField('이름', nameController, TextInputType.text, false),
             const SizedBox(height: 15),

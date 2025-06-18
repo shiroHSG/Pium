@@ -3,7 +3,6 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:frontend_flutter/models/calendar/schedule.dart';
 import '../../models/calendar/calendar_api.dart';
-import '../../pages/calendar_page/calendar_page.dart';
 import '../../pages/calendar_page/add_schedule.dart';
 
 String formatToAmPm(DateTime dateTime) {
