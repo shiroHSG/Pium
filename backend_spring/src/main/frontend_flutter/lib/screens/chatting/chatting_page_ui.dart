@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
+import 'package:intl/intl.dart';
+
+import '../../models/chat/chatroom.dart';
 
 class ChattingAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String selectedMode;  //선택모드 ->  type
@@ -71,57 +74,92 @@ class ChattingAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class ChattingListItem extends StatelessWidget {
-  final int index;
-  final String selectedMode;
+  final ChatRoom chatRoom;
   final VoidCallback onTap;
 
   const ChattingListItem({
     Key? key,
-    required this.index,
-    required this.selectedMode,
+    required this.chatRoom,
     required this.onTap,
   }) : super(key: key);
 
+  String _formatTime(String isoTime) {
+    try {
+      final dateTime = DateTime.parse(isoTime);
+      return DateFormat.Hm().format(dateTime); // 예: 14:22
+    } catch (e) {
+      return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final profileImage = chatRoom.imageUrl ??
+        chatRoom.otherProfileImageUrl ?? ''; // 없으면 공백
+
+    final name = chatRoom.chatRoomName ?? chatRoom.otherNickname ?? '이름 없음';
+
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Row(
           children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.grey[300],
-              ),
-              child: const Center(
-                child: Icon(Icons.person, color: Colors.grey),
-              ),
+            CircleAvatar(
+              radius: 25,
+              backgroundImage: profileImage.isNotEmpty
+                  ? NetworkImage(profileImage)
+                  : null,
+              backgroundColor: Colors.grey[300],
+              child: profileImage.isEmpty
+                  ? const Icon(Icons.person, color: Colors.grey)
+                  : null,
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
-                    '제목',
-                    style: TextStyle(
+                    name,
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       color: AppTheme.textPurple,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    '내용 요약',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    chatRoom.lastMessage,
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  _formatTime(chatRoom.lastSentAt),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                if (chatRoom.unreadCount > 0)
+                  Container(
+                    margin: const EdgeInsets.only(top: 6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${chatRoom.unreadCount}',
+                      style:
+                      const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  ),
+              ],
             ),
           ],
         ),

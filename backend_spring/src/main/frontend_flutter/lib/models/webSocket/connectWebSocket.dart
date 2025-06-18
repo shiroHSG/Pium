@@ -5,32 +5,46 @@ import 'dart:convert';
 
 late StompClient stompClient;
 
-void connectStomp(String token, String myId) {
+void connectStomp(String token, int myId) {
   stompClient = StompClient(
     config: StompConfig.SockJS(
-      url: 'http://10.0.2.2:8080/ws/chat?token=$token', // ✅ 서버 URL + 토큰
+
+      url: 'http://10.0.2.2:8080/ws/chat?token=$token',
       onConnect: (StompFrame frame) {
         print('✅ WebSocket 연결 완료');
-
-        // ✅ 요약 정보 구독
+        // ✅ 요약 구독 시작
         stompClient.subscribe(
           destination: '/sub/member/$myId/summary',
           callback: (StompFrame frame) {
             final data = jsonDecode(frame.body!);
-            print('📩 요약 정보 수신: $data');
+            print('📩 요약 수신: $data');
 
-            // ✅ TODO: 상태 업데이트 처리 함수 호출
+            // 상태 반영 (임시 예시)
             updateSidebarBadge(data);
             updateChatListItem(data);
           },
         );
       },
-      onWebSocketError: (dynamic error) => print('❌ WebSocket 오류: $error'),
-      stompConnectHeaders: {
-        'Authorization': 'Bearer $token',
+      onWebSocketError: (error) {
+        print('$token');
+        print('❌ WebSocket 오류 발생: $error');
       },
     ),
   );
 
-  stompClient.activate();
+  stompClient.activate(); // 연결 실행
+}
+
+void updateSidebarBadge(dynamic data) {
+  int unreadCount = data['unreadCount'];
+  // TODO: 전체 뱃지 총합 상태에 반영 (setState, Provider, Riverpod 등 활용)
+}
+
+void updateChatListItem(dynamic data) {
+  int chatRoomId = data['chatRoomId'];
+  String lastMessage = data['lastMessage'];
+  String lastSentAt = data['lastSentAt'];
+  int unreadCount = data['unreadCount'];
+
+  // TODO: 채팅방 목록 중 chatRoomId에 해당하는 항목을 찾아서 내용 갱신
 }

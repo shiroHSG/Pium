@@ -11,6 +11,8 @@ public class SecurityConstants {
             "/api/member/reissue",        // RefreshToken으로 AccessToken 재발급 (비인증 경로 필요)
             "/api/member/delete/**",
             "/api/shares/**",
-            "/api/policies/**"
+            "/api/policies/**",
+            "/ws/**",
+            "/api/chatroom/**"
     );
 }

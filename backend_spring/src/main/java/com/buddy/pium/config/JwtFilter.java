@@ -27,6 +27,13 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        // ✅ WebSocket handshake 경로 제외
+        return path.startsWith("/ws/");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
@@ -50,6 +57,18 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
+            System.out.println("");
+
+            // ✅ 여기서 null 또는 "null" 문자열 거르기
+            if (token == null || token.equals("null") || token.trim().isEmpty()) {
+                System.out.println("[JwtFilter] 토큰이 null 또는 빈 문자열 → 401 응답");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Token is null or empty\"}");
+                return;
+            }
+
             try {
                 Claims claims = jwtUtil.validateTokenAndGetClaims(token);
                 Long userId = Long.parseLong(claims.getSubject());
@@ -84,4 +103,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
+
 }

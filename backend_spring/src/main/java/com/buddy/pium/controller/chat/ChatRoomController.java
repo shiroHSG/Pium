@@ -52,6 +52,7 @@ public class ChatRoomController {
     public ResponseEntity<List<ChatRoomResponseDto>> getMyChatRooms(
             @CurrentMember Member member
     ) {
+        System.out.println("채팅방리스트 조회 controller");
         List<ChatRoomResponseDto> chatRooms = chatRoomService.getChatRoomsForMember(member);
         return ResponseEntity.ok(chatRooms);
     }

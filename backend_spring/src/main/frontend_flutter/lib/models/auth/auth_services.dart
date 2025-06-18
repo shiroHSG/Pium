@@ -2,6 +2,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../webSocket/connectWebSocket.dart';
+
 class AuthService {
   static const String baseUrl = 'http://10.0.2.2:8080'; // 하드코딩
 
@@ -54,10 +56,20 @@ class AuthService {
         final Map<String, dynamic> data = jsonDecode(response.body);
         final String accessToken = data['accessToken'];
         final String refreshToken = data['refreshToken'];
+        final int memberId = data['memberId'];
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('accessToken', accessToken);
         await prefs.setString('refreshToken', refreshToken);
+        await prefs.setInt('memberId', memberId);
+
+        final token = prefs.getString('accessToken');
+        final myId = prefs.getInt('memberId');
+
+        if (token != null && myId != null) {
+          connectStomp(token, myId);
+        }
+
         print("저장된 accessToken: $accessToken");
         print("저장된 refreshToken: $refreshToken");
         return true;

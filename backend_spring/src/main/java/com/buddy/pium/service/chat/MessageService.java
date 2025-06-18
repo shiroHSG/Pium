@@ -89,7 +89,7 @@ public class MessageService {
     @Transactional
     public List<MessageResponseDto> getMessages(Long chatRoomId, Member member, Long pivotId, String direction) {
         ChatRoom chatRoom = chatRoomService.validateChatRoom(chatRoomId);
-        ChatRoomMember chatRoomMember = chatRoomMemberService.validateChatRoomMember(chatRoom, sender);
+        ChatRoomMember chatRoomMember = chatRoomMemberService.validateChatRoomMember(chatRoom, member);
         LocalDateTime joinedAt = chatRoomMember.getJoinedAt();
 
         List<Message> messages;

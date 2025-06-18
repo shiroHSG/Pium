@@ -10,7 +10,7 @@ import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
 import 'package:frontend_flutter/models/calendar/schedule.dart';
 import 'package:frontend_flutter/pages/calendar_page/calendar_page.dart';
 import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart';
-import 'package:frontend_flutter/pages/chatting/chatting_page.dart';
+import 'package:frontend_flutter/pages/chat/chatting_page.dart';
 import 'package:frontend_flutter/screens/home/home_page_ui.dart';
 import 'package:frontend_flutter/pages/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
