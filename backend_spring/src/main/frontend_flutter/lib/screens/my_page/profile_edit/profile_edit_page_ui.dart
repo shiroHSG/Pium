@@ -18,6 +18,7 @@ class ProfileEditPageUI extends StatelessWidget {
   final String? profileImageUrl;
   final File? selectedImage;
   final VoidCallback onPickImage;
+  final VoidCallback onAddressSearch;
 
   const ProfileEditPageUI({
     Key? key,
@@ -34,6 +35,7 @@ class ProfileEditPageUI extends StatelessWidget {
     required this.profileImageUrl,
     required this.selectedImage,
     required this.onPickImage,
+    required this.onAddressSearch,
   }) : super(key: key);
 
   @override
@@ -74,7 +76,17 @@ class ProfileEditPageUI extends StatelessWidget {
                   _buildProfileInputField(label: '생년월일', controller: birthController, readOnly: true),
                   _buildProfileInputField(label: '이름', controller: nameController, readOnly: !isEditing),
                   _buildProfileInputField(label: '전화번호', controller: phoneController, keyboardType: TextInputType.phone, readOnly: !isEditing),
-                  _buildProfileInputField(label: '주소', controller: addressController, readOnly: !isEditing),
+                  _buildProfileInputField(
+                    label: '주소',
+                    controller: addressController,
+                    readOnly: !isEditing,
+                    suffixWidget: isEditing
+                        ? IconButton(
+                      icon: const Icon(Icons.search, color: AppTheme.textPurple),
+                      onPressed: onAddressSearch,
+                    )
+                        : null,
+                  ),
                   _buildProfileInputField(label: '배우자', controller: mateController, readOnly: !isEditing),
                   const SizedBox(height: 40),
                   SizedBox(
@@ -113,6 +125,7 @@ class ProfileEditPageUI extends StatelessWidget {
     TextInputType keyboardType = TextInputType.text,
     bool readOnly = false,
     IconData? suffixIcon,
+    Widget? suffixWidget,
   }) {
     final Color fieldColor = (readOnly ? AppTheme.primaryPurple : AppTheme.lightPink);
 
@@ -150,9 +163,9 @@ class ProfileEditPageUI extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10.0),
                   borderSide: BorderSide.none,
                 ),
-                suffixIcon: suffixIcon != null
+                suffixIcon: suffixWidget ?? (suffixIcon != null
                     ? Icon(suffixIcon, color: AppTheme.textPurple)
-                    : null,
+                    : null),
               ),
             ),
           ),
@@ -201,7 +214,7 @@ class _ProfileEditHeader extends StatelessWidget {
           if (isEditing)
             Positioned(
               bottom: 0,
-              right: MediaQuery.of(context).size.width / 2 - 75 - 10, // 중앙에서 오른쪽 바깥쪽으로 살짝
+              right: MediaQuery.of(context).size.width / 2 - 75 - 10,
               child: GestureDetector(
                 onTap: onPickImage,
                 child: Container(

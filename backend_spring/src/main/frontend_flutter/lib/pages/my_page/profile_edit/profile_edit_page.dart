@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../../../screens/auth/address_search/address_search_page.dart';
 import '../../../screens/my_page/profile_edit/profile_edit_page_ui.dart';
 
 class ProfileEditPage extends StatefulWidget {
@@ -200,12 +201,24 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             );
           } else {
             await _updateUserInfo();
-            Navigator.pop(context, 'updated'); // 수정 완료 후 마이페이지에 알림
+            Navigator.pop(context, 'updated');
             return;
           }
 
           setState(() => isEditing = false);
         },
+        onAddressSearch: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddressSearchPage()),
+          );
+          if (result != null && result is String) {
+            setState(() {
+              addressController.text = result;
+            });
+          }
+        },
+
       ),
     );
   }
