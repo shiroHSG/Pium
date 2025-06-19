@@ -10,8 +10,7 @@ import 'package:frontend_flutter/models/baby_profile.dart';
 class ChildApi {
   static const String baseUrl = 'http://10.0.2.2:8080';
 
-
-  // ✅ 아이 정보 전체 조회 (리스트 형태)
+  // 아이 정보 전체 조회
   static Future<List<BabyProfile>> fetchMyChildren() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
@@ -25,8 +24,8 @@ class ChildApi {
 
     if (response.statusCode == 200) {
       final responseBody = utf8.decode(response.bodyBytes);
-      print('[DEBUG] 응답 JSON: ${utf8.decode(response.bodyBytes)}');
-      final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+      print('[DEBUG] 응답 JSON: $responseBody');
+      final List<dynamic> data = jsonDecode(responseBody);
       return data.map((e) => BabyProfile.fromJson(e)).toList();
     } else {
       print('아이 정보 조회 실패: ${response.statusCode} - ${response.body}');
@@ -65,10 +64,13 @@ class ChildApi {
     final request = http.MultipartRequest('PATCH', uri);
     request.headers['Authorization'] = 'Bearer $token';
 
-    // 👉 JSON 문자열을 필드로 전달
-    request.fields['childData'] = jsonEncode(updatedChild.toJson());
+    // 👉 JSON 문자열 구성 (profileImgUrl은 서버에서 자동 처리)
+    final childJson = updatedChild.toJson();
+    childJson.remove('profileImgUrl'); // ⚠️ 서버에서 image로 처리하므로 삭제
 
-    // 👉 실제 선택된 이미지 경로가 있다면 파일로 추가
+    request.fields['childData'] = jsonEncode(childJson);
+
+    // 👉 이미지 파일 전송
     if (imagePath != null) {
       request.files.add(await http.MultipartFile.fromPath('image', imagePath));
     }
@@ -105,7 +107,7 @@ class ChildApi {
   }
 
   // 아이 추가
-  static Future<bool> addMyChild(BabyProfile newChild) async {
+  static Future<bool> addMyChild(BabyProfile newChild, {String? imagePath}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
 
@@ -113,12 +115,15 @@ class ChildApi {
 
     final uri = Uri.parse('$baseUrl/api/child');
     final request = http.MultipartRequest('POST', uri);
-
     request.headers['Authorization'] = 'Bearer $token';
 
-    // ✅ childData 라는 키로 JSON 문자열 전달
-    final jsonBody = jsonEncode(newChild.toJson());
-    request.fields['childData'] = jsonBody;
+    final childJson = newChild.toJson();
+    childJson.remove('profileImgUrl'); // 신규 등록 시도 때도 서버에서 처리하도록 제거
+    request.fields['childData'] = jsonEncode(childJson);
+
+    if (imagePath != null) {
+      request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+    }
 
     try {
       final streamedResponse = await request.send();
@@ -135,5 +140,4 @@ class ChildApi {
       return false;
     }
   }
-
 }

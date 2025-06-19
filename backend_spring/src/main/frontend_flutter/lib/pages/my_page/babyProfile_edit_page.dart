@@ -76,8 +76,9 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
     }
   }
 
-  void _saveProfile() {
+  void _saveProfile() async {
     if (_formKey.currentState!.validate()) {
+      // 수정된 정보를 객체에 반영 (profileImgUrl은 서버에서 처리하므로 null로 유지)
       final updated = widget.babyProfile.copyWith(
         name: _nameController.text,
         birthDate: _selectedDate,
@@ -89,19 +90,44 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
             ? null
             : double.tryParse(_weightController.text),
         allergy: _allergyController.text.isEmpty ? null : _allergyController.text,
-        profileImageUrl: _selectedImage?.path ?? widget.babyProfile.profileImageUrl,
+        profileImageUrl: null, // ⚠️ 서버에서 처리하므로 직접 보내지 않음
       );
-      Navigator.pop(context, updated);
+
+      // API 호출
+      final success = await ChildApi.updateMyChild(
+        updated,
+        imagePath: _selectedImage?.path,
+      );
+
+      if (!mounted) return;
+
+      if (success) {
+        Navigator.pop(context, updated); // 수정 완료 후 이전 화면으로
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('수정 완료!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('수정 실패'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
     final imageProvider = _selectedImage != null
         ? FileImage(_selectedImage!)
         : (widget.babyProfile.profileImageUrl != null
-        ? NetworkImage(widget.babyProfile.profileImageUrl!)
-        : null);
+        ? NetworkImage('http://10.0.2.2:8080${widget.babyProfile.profileImageUrl!}')
+        : const AssetImage('assets/default_baby.png') as ImageProvider);
 
     return Scaffold(
       appBar: AppBar(

@@ -40,7 +40,6 @@ class _MyHomePageState extends State<MyHomePage> {
     weight: 0,
     developmentStep: '00이는 생후 4개월이에요. 팔을 뻗어서 물체를 잡으려고 해요.',
   );
-  ImageProvider? _babyImage;
 
   @override
   void initState() {
@@ -65,28 +64,31 @@ class _MyHomePageState extends State<MyHomePage> {
     final children = await ChildApi.fetchMyChildren();
 
     for (var child in children) {
-      print('[DEBUG] 이름: ${child.name}, 생일: ${child.birthDate}, 성별: ${child.gender}');
+      print('[DEBUG] 이름: ${child.name}, 생일: ${child.birthDate}, 성별: ${child.gender}, 이미지: ${child.profileImageUrl}');
     }
 
     if (children.isNotEmpty) {
-      ImageProvider? image;
-      try {
+      final firstChild = children.first;
+
+      ImageProvider image;
+
+      if (firstChild.profileImageUrl != null && firstChild.profileImageUrl!.isNotEmpty) {
+        image = NetworkImage('http://10.0.2.2:8080${firstChild.profileImageUrl}');
+      } else {
         final assetImage = const AssetImage('assets/default_baby.png');
         await precacheImage(assetImage, context);
         image = assetImage;
-      } catch (e) {
-        image = null;
       }
 
       setState(() {
         _children = children;
-        _babyProfile = children.first;
-        _babyImage = image;
+        _babyProfile = firstChild;
       });
     } else {
       print('[DEBUG] 서버로부터 아이 정보 없음');
     }
   }
+
 
   void _onItemTapped(int index) {
     final isSameTab = _selectedIndex == index;
@@ -313,14 +315,19 @@ class _MyHomePageState extends State<MyHomePage> {
                         setState(() => _currentPage = index);
                       },
                       itemBuilder: (context, index) {
+                        final child = _children[index];
+
+                        final ImageProvider image = (child.profileImageUrl != null && child.profileImageUrl!.isNotEmpty)
+                            ? NetworkImage('http://10.0.2.2:8080${child.profileImageUrl}')
+                            : const AssetImage('assets/default_baby.png');
+
                         return BabyProfileHeader(
-                          babyProfile: _children[index],
-                          babyImage: _babyImage,
-                          onEditPressed: () =>
-                              _showEditDialogForChild(_children[index]),
+                          babyProfile: child,
+                          babyImage: image,
+                          onEditPressed: () => _showEditDialogForChild(child),
                         );
                       },
-                    ),
+                    )
                   ),
                   const SizedBox(height: 8),
                   Row(

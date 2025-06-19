@@ -33,15 +33,17 @@ class BabyRecordHeader extends StatelessWidget {
           Container(
             width: 90,
             height: 90,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.grey,
-            ),
-            child: const Center(
-              child: Text(
-                '아이\n사진',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white),
+              image: selectedChild?.profileImageUrl != null
+                  ? DecorationImage(
+                image: NetworkImage('http://10.0.2.2:8080${selectedChild!.profileImageUrl}'),
+                fit: BoxFit.cover,
+              )
+                  : const DecorationImage(
+                image: AssetImage('assets/default_baby.png'),
+                fit: BoxFit.cover,
               ),
             ),
           ),
