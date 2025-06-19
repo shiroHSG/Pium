@@ -60,71 +60,89 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
 
     _messageController.clear();
 
-    // 자동 스크롤
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final myId = prefs.getInt('memberId');
+      if (myId == null) throw Exception('로그인 정보 없음');
 
-    // ✅ 서버 전송 로직: 실제로 전송하고 응답 메시지로 갱신하고 싶다면 여기에 추가
-    // try {
-    //   await sendMessageToServer(widget.chatRoomId, text); // 함수는 직접 정의해야 함
-    // } catch (e) {
-    //   print('❌ 메시지 전송 실패: $e');
-    //   // 오류 처리 로직 추가 (ex. 메시지 삭제 or 재시도 표시)
-    // }
+      final newMessage = await sendMessageToServer(
+        chatRoomId: widget.chatRoomId,
+        content: text,
+        senderId: myId,
+      );
+
+      setState(() {
+        _messages.add(newMessage);
+      });
+
+      // 자동 스크롤
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent + 60,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      });
+    } catch (e) {
+      print('❌ 메시지 전송 실패: $e');
+      // 필요 시 토스트나 경고 처리
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        title: Row(
-          children: [
-            Container(
-              width: 30,
-              height: 30,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.grey[300],
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pop(context, true); // ✅ ChattingPage에게 '갱신 필요' 신호 전달
+        return false; // ✅ 기본 Pop 동작 막기
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 1,
+          title: Row(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.grey[300],
+                ),
+                child: const Center(
+                  child: Icon(Icons.person, color: Colors.grey, size: 20),
+                ),
               ),
-              child: const Center(
-                child: Icon(Icons.person, color: Colors.grey, size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                '채팅방',
+                style: TextStyle(
+                  color: AppTheme.textPurple,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              '채팅방',
-              style: TextStyle(
-                color: AppTheme.textPurple,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
+            ],
+          ),
+          iconTheme: const IconThemeData(color: AppTheme.textPurple),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.more_vert, color: AppTheme.textPurple),
+              onPressed: () {
+                // TODO: 더보기 기능
+              },
             ),
           ],
         ),
-        iconTheme: const IconThemeData(color: AppTheme.textPurple),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: AppTheme.textPurple),
-            onPressed: () {
-              // TODO: 더보기 기능
-            },
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ChattingMessagePageUI(
-        messages: _messages,
-        messageController: _messageController,
-        scrollController: _scrollController,
-        onSend: _sendMessage,
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : ChattingMessagePageUI(
+          messages: _messages,
+          messageController: _messageController,
+          scrollController: _scrollController,
+          onSend: _sendMessage,
+        ),
       ),
     );
   }

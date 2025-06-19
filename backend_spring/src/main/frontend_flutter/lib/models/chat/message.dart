@@ -28,9 +28,31 @@ class ChatMessage {
       senderNickname: json['senderNickname'],
       senderProfileImageUrl: json['senderProfileImageUrl'] ?? '',
       content: json['content'],
-      sentAt: DateTime.parse(json['sentAt']),
+      sentAt: _parseDateTime(json['sentAt']),
       unreadCount: json['unreadCount'],
       isMe: json['senderId'] == currentUserId,
     );
   }
+
+  static DateTime _parseDateTime(dynamic value) {
+    if (value == null) return DateTime.fromMillisecondsSinceEpoch(0);
+
+    if (value is String) {
+      return DateTime.parse(value); // e.g., "2025-06-18T16:35:30"
+    }
+
+    if (value is List && value.length >= 6) {
+      return DateTime(
+        value[0], // year
+        value[1], // month
+        value[2], // day
+        value[3], // hour
+        value[4], // minute
+        value[5], // second
+      );
+    }
+
+    throw Exception('Invalid sentAt format: $value');
+  }
+
 }

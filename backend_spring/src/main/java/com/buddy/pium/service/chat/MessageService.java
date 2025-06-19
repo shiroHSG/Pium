@@ -39,6 +39,7 @@ public class MessageService {
     // 메세지 전송
     @Transactional
     public MessageResponseDto sendMessage(Long chatRoomId, Member sender, String content) {
+        System.out.println("message 전송 service");
         ChatRoom chatRoom = chatRoomService.validateChatRoom(chatRoomId);
         ChatRoomMember senderMember = chatRoomMemberService.validateChatRoomMember(chatRoom, sender);
 
@@ -75,7 +76,10 @@ public class MessageService {
                     .unreadCount(unreadCount)
                     .build();
 
-            chatWebSocketBroadcaster.broadcastChatSummary(target.getId(), summary);
+//            chatWebSocketBroadcaster.broadcastChatSummary(target.getId(), summary);
+
+            // ✅ 사이드바 뱃지용 전체 unreadCount도 추가로 전송
+            chatWebSocketBroadcaster.broadcastUnreadCount(target.getId());
         }
 
         // 실시간 메시지 broadcast
@@ -133,7 +137,7 @@ public class MessageService {
                             .unreadCount(unreadCount)
                             .build();
 
-                    chatWebSocketBroadcaster.broadcastChatSummary(member.getId(), summary);
+//                    chatWebSocketBroadcaster.broadcastChatSummary(member.getId(), summary);
 
                     // 읽음 브로드캐스트 (읽은 사람 → 같은 방의 다른 사람들에게)
                     List<ChatRoomMember> members = chatRoomMemberRepository.findByChatRoomId(chatRoomId);
@@ -147,7 +151,10 @@ public class MessageService {
                                 newLastReadMessageId         // 마지막으로 읽은 메시지 ID
                         );
                     }
+
+                    chatWebSocketBroadcaster.broadcastUnreadCount(member.getId());
                 }
+
             }
 
         } else if ("prev".equals(direction)) {

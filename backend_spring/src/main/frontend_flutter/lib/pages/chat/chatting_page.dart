@@ -49,13 +49,17 @@ class _ChattingPageState extends State<ChattingPage> {
     print('선택된 모드: $_selectedMode');
   }
 
-  void _navigateToChatRoom(int chatRoomId) {
-    Navigator.push(
+  void _navigateToChatRoom(int chatRoomId) async {
+    final shouldRefresh = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ChatRoomPage(chatRoomId: chatRoomId),
       ),
     );
+
+    if (shouldRefresh == true) {
+      _loadChatRooms(); // ✅ 채팅방 목록 다시 불러오기
+    }
   }
 
   void _startNewChat() {

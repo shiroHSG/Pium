@@ -26,7 +26,7 @@ public class ChatRoomController {
 
     // 기존 채팅방 반환 또는 생성
     // DIRECT : type, receiverId
-    // SHARE : type, receiverId, sharePostId
+    // SHARE : type, receiverId, shareId
     // GROUP : type, password, chatRoomName
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> getOrCreateChatRoom(

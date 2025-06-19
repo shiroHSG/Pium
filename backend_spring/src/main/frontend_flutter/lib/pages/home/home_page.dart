@@ -14,8 +14,12 @@ import 'package:frontend_flutter/pages/chat/chatting_page.dart';
 import 'package:frontend_flutter/screens/home/home_page_ui.dart';
 import 'package:frontend_flutter/pages/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 import '../../models/calendar/calendar_api.dart';
+import '../../models/chat/chat_service.dart';
+import '../../models/webSocket/connectWebSocket.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
@@ -28,6 +32,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<Schedule> _schedules = [];
+  int _unreadCount = 0;
   BabyProfile _babyProfile = BabyProfile(
     name: '아이',
     dob: 'YY-MM-DD',
@@ -40,22 +45,58 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus(); // 로그인 상태 체크
-    _loadBabyProfile(); // 아기정보 불러오기
-    _loadSchedules(); //  일정 불러오기
+    _checkLoginStatus();
+    _loadBabyProfile();
+    _loadSchedules();
+    _fetchUnreadCount();
+    _connectWebSocket();
   }
 
   Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final String? accessToken = prefs.getString('accessToken');
     if (accessToken == null) {
-      print('토큰 없음: 로그인 페이지로 리다이렉트');
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => Login()),
             (Route<dynamic> route) => false,
       );
     }
+  }
+
+  Future<void> _connectWebSocket() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString('accessToken');
+    final int? myId = prefs.getInt('memberId');
+
+    print('📦 토큰: $token, 아이디: $myId');
+
+    if (token != null && myId != null) {
+      connectStomp(token, myId, _updateUnreadCount);
+    } else {
+      print('❌ WebSocket 연결 실패: token 또는 memberId 없음');
+    }
+  }
+
+  void _updateUnreadCount(int count) {
+    print('📩 새로 받은 안읽은 수: $count');
+    setState(() {
+      _unreadCount = count;
+    });
+  }
+
+  void updateSidebarBadge(dynamic data) {
+    final int newUnreadCount = data['unreadCount'];
+    setState(() {
+      _unreadCount = newUnreadCount;
+    });
+  }
+
+  Future<void> _fetchUnreadCount() async {
+    final count = await getUnreadCount();
+    setState(() {
+      _unreadCount = count;
+    });
   }
 
   Future<void> _loadBabyProfile() async {
@@ -116,8 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
         final _birthDateController = TextEditingController(text: _babyProfile.dob);
         final _heightController = TextEditingController(text: _babyProfile.height ?? '');
         final _weightController = TextEditingController(text: _babyProfile.weight ?? '');
-        final _developmentController =
-        TextEditingController(text: _babyProfile.development ?? '');
+        final _developmentController = TextEditingController(text: _babyProfile.development ?? '');
 
         return AlertDialog(
           title: const Text('아이 정보 수정'),
@@ -125,34 +165,15 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                TextField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(labelText: '이름'),
-                ),
-                TextField(
-                  controller: _birthDateController,
-                  decoration: const InputDecoration(labelText: '생년월일 (YYYY-MM-DD)'),
-                ),
-                TextField(
-                  controller: _heightController,
-                  decoration: const InputDecoration(labelText: '키 (cm)'),
-                  keyboardType: TextInputType.number,
-                ),
-                TextField(
-                  controller: _weightController,
-                  decoration: const InputDecoration(labelText: '몸무게 (kg)'),
-                  keyboardType: TextInputType.number,
-                ),
+                TextField(controller: _nameController, decoration: const InputDecoration(labelText: '이름')),
+                TextField(controller: _birthDateController, decoration: const InputDecoration(labelText: '생년월일 (YYYY-MM-DD)')),
+                TextField(controller: _heightController, decoration: const InputDecoration(labelText: '키 (cm)'), keyboardType: TextInputType.number),
+                TextField(controller: _weightController, decoration: const InputDecoration(labelText: '몸무게 (kg)'), keyboardType: TextInputType.number),
               ],
             ),
           ),
           actions: <Widget>[
-            TextButton(
-              child: const Text('취소'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            TextButton(child: const Text('취소'), onPressed: () => Navigator.of(context).pop()),
             TextButton(
               child: const Text('저장'),
               onPressed: () {
@@ -174,7 +195,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // 캘린더 일정 불러오기
   Future<void> _loadSchedules() async {
     try {
       final schedules = await CalendarApi.fetchSchedules();
@@ -188,7 +208,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(  // 화면의 전체 구조
+    return Scaffold(
       key: _scaffoldKey,
       appBar: CustomAppBar(
         onMenuPressed: () {
@@ -199,10 +219,11 @@ class _MyHomePageState extends State<MyHomePage> {
         onItemSelected: _onItemTapped,
         onLoginStatusChanged: _onLoginStatusChanged,
       ),
-      body: _getPageContent(_selectedIndex),  // 선택된 탭(인덱스)에 따라 화면을 바꿔줌
+      body: _getPageContent(_selectedIndex),
       bottomNavigationBar: CustomBottomNavigationBar(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
+        unreadCount: _unreadCount,
       ),
       floatingActionButton: null,
     );
@@ -215,8 +236,7 @@ class _MyHomePageState extends State<MyHomePage> {
         final todaySchedules = _schedules.where((schedule) =>
         schedule.startTime.year == today.year &&
             schedule.startTime.month == today.month &&
-            schedule.startTime.day == today.day
-        ).toList();
+            schedule.startTime.day == today.day).toList();
 
         return SingleChildScrollView(
           child: Column(
