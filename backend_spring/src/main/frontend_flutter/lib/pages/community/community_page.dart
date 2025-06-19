@@ -4,6 +4,7 @@ import 'package:frontend_flutter/models/post/post_api_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend_flutter/screens/community/community_page_ui.dart';
 
+
 class CommunityPage extends StatefulWidget {
   const CommunityPage({Key? key}) : super(key: key);
 
@@ -43,7 +44,7 @@ class _CommunityPageState extends State<CommunityPage> {
   void _fetchPosts() {
     setState(() {
       _futurePosts = PostApiService.fetchPosts(
-        _selectedCategory == '전체' ? '' : _selectedCategory,
+        _selectedCategory == '전체' ? null : _selectedCategory,
         type: _searchType.isNotEmpty ? _searchType : null,
         keyword: _searchKeyword.isNotEmpty ? _searchKeyword : null,
       );

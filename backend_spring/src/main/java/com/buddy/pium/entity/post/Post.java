@@ -43,10 +43,13 @@ public class Post {
     private String imgUrl;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<PostLike> likes = new ArrayList<>();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<PostComment> postComments = new ArrayList<>();
+
 
     @CreatedDate
     @Column(name = "created_at", nullable = false)

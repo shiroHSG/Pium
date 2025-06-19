@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/post/post_api_services.dart';
-
 import '../../models/post/post_request.dart';
-import '../../screens/community/create_post_page_ui.dart';
+import 'package:frontend_flutter/models/post/post_response.dart';
 
-// CreatePostPage 위젯 정의
+enum PostEditMode { create, edit }
+
 class CreatePostPage extends StatefulWidget {
-  final String loggedInUserId;  // 로그인한 사용자 아이디를 받을 파라미터
+  final PostEditMode mode;
+  final PostResponse? post;
 
-  const CreatePostPage({Key? key, required this.loggedInUserId}) : super(key: key);
+  const CreatePostPage({Key? key, required this.mode, this.post}) : super(key: key);
 
   @override
   State<CreatePostPage> createState() => _CreatePostPageState();
@@ -20,22 +21,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
   final _contentController = TextEditingController();
   final _postImgController = TextEditingController();
   String? _selectedCategory;
-  late final TextEditingController _writerController;
 
   final List<String> _categories = ['자유', '팁', '질문', '모임'];
-
-  @override
-  void initState() {
-    super.initState();
-    _writerController = TextEditingController(text: widget.loggedInUserId);  // 초기값 설정
-  }
 
   @override
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
     _postImgController.dispose();
-    // _writerController.dispose();
     super.dispose();
   }
 
@@ -56,31 +49,22 @@ class _CreatePostPageState extends State<CreatePostPage> {
       title: title,
       content: content,
       category: category,
-      postImg: postImg,
+      imgUrl: postImg,
+      // 작성자는 서버에서 토큰으로 자동 처리. 필요하면 추가
     );
 
     try {
-      await PostApiService.createPost(postRequest: postRequest); // PostApiService 사용
+      await PostApiService.createPost(postRequest: postRequest);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('게시글이 작성되었습니다!')),
       );
       Navigator.pop(context, true);
     } catch (e) {
-      print('createPost 게시글 작성 실패: $e');
+      print('게시글 작성 실패: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('createPost 게시글 작성에 실패했습니다: ${e.toString()}')),
+        SnackBar(content: Text('게시글 작성에 실패했습니다: ${e.toString()}')),
       );
     }
-  }
-
-  void _attachPhoto() {
-    print('사진 첨부 기능 구현 필요');
-  }
-
-  void _handleCategorySelected(String? category) {
-    setState(() {
-      _selectedCategory = category;
-    });
   }
 
   @override
@@ -94,13 +78,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {},
-            color: Colors.white,
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -108,20 +85,61 @@ class _CreatePostPageState extends State<CreatePostPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CategorySelection(
-                selectedCategory: _selectedCategory,
-                categories: _categories,
-                onCategorySelected: _handleCategorySelected,
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                decoration: const InputDecoration(
+                  labelText: '카테고리',
+                  border: OutlineInputBorder(),
+                ),
+                items: _categories
+                    .map((category) => DropdownMenuItem(
+                  value: category,
+                  child: Text(category),
+                ))
+                    .toList(),
+                onChanged: (value) => setState(() => _selectedCategory = value),
+                validator: (value) => (value == null || value.isEmpty) ? '카테고리를 선택하세요.' : null,
               ),
-              TitleTextField(titleController: _titleController),
               const SizedBox(height: 16),
-              ContentTextField(contentController: _contentController),
+              TextField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: '제목',
+                  border: OutlineInputBorder(),
+                ),
+              ),
               const SizedBox(height: 16),
-              // WriterTextField(writerController: _writerController),
+              TextField(
+                controller: _contentController,
+                decoration: const InputDecoration(
+                  labelText: '내용',
+                  border: OutlineInputBorder(),
+                ),
+                minLines: 6,
+                maxLines: 15,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _postImgController,
+                decoration: const InputDecoration(
+                  labelText: '이미지 URL (선택)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
               const SizedBox(height: 24),
-              ActionButtons(
-                onAttachPhoto: _attachPhoto,
-                onCreatePost: _createPost,
+              Row(
+                children: [
+                  const Spacer(),
+                  ElevatedButton(
+                    onPressed: _createPost,
+                    child: const Text('등록하기'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryPurple,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

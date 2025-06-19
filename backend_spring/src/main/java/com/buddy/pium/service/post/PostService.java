@@ -34,24 +34,29 @@ public class PostService {
 
         postRepository.save(post);
 
-        return PostResponse.from(post);
+        return PostResponse.from(post, memberId);
     }
 
-    public PostResponse get(Long id) {
+    public PostResponse get(Long id, Long memberId) { // memberId 추가!
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("글 없음"));
-
         post.setViewCount(post.getViewCount() + 1);
         postRepository.save(post);
-
-        return PostResponse.from(post);
+        return PostResponse.from(post, memberId);
     }
 
-    public List<PostResponse> getAll(String category) {
+    // **전체 글 반환 로직**
+    public List<PostResponse> getAll(String category, Long memberId) {
+        if (category == null || category.isBlank()) {
+            return postRepository.findAll().stream()
+                    .map(post -> PostResponse.from(post, memberId))
+                    .toList();
+        }
         return postRepository.findAllByCategory(category).stream()
-                .map(PostResponse::from)
+                .map(post -> PostResponse.from(post, memberId))
                 .toList();
     }
+
 
     public void update(Long postId, Long memberId, PostUpdateRequest dto) {
         Post post = postRepository.findById(postId)
@@ -77,7 +82,7 @@ public class PostService {
         postRepository.delete(post);
     }
 
-    public Page<PostResponse> search(String type, String keyword, Pageable pageable) {
+    public Page<PostResponse> search(String type, String keyword, Pageable pageable, Long memberId) {
         Page<Post> posts;
 
         if (type == null || keyword == null || keyword.isBlank()) {
@@ -86,16 +91,15 @@ public class PostService {
             switch (type) {
                 case "title" -> posts = postRepository.findByTitleContaining(keyword, pageable);
                 case "content" -> posts = postRepository.findByContentContaining(keyword, pageable);
-                case "writer" -> posts = postRepository.findByWriterNickname(keyword, pageable);
+                case "writer", "author" -> posts = postRepository.findByWriterNickname(keyword, pageable); // 이 줄 추가!
                 default -> throw new IllegalArgumentException("유효하지 않은 검색 타입입니다.");
             }
         }
-
-        return posts.map(PostResponse::from);
+        return posts.map(post -> PostResponse.from(post, memberId));
     }
 
-    public Page<PostResponse> searchByLikes(Pageable pageable) {
+    public Page<PostResponse> searchByLikes(Pageable pageable, Long memberId) {
         return postRepository.findAllOrderByLikeCountDesc(pageable)
-                .map(PostResponse::from);
+                .map(post -> PostResponse.from(post, memberId));
     }
 }

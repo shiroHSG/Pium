@@ -6,32 +6,41 @@ class PostResponse {
   final String title;
   final String content;
   final String category;
-  final String? postImg;  // String? -> null 허용
+  final String? imgUrl;
   final String author;
   final int viewCount;
   final String createdAt;
+  final int likeCount;
+  final bool isLiked; // ⭐️ 추가
+  final int commentCount;
 
   PostResponse({
     required this.id,
     required this.title,
     required this.content,
     required this.category,
-    this.postImg,  // nullable이기 때문에 required 사용X
+    this.imgUrl,
     required this.author,
     required this.viewCount,
     required this.createdAt,
+    required this.likeCount,
+    required this.isLiked, // ⭐️
+    required this.commentCount,
   });
 
   factory PostResponse.fromJson(Map<String, dynamic> json) {
     return PostResponse(
-      id: json['id'] as int,
-      title: json['title'] as String,
-      content: json['content'] as String,
-      category: json['category'] as String,
-      postImg: json['postImg'] as String?,
-      author: json['author'] as String,
-      viewCount: json['viewCount'] as int,
-      createdAt: json['createdAt'] as String,
+      id: json['id'],
+      title: json['title'],
+      content: json['content'],
+      category: json['category'],
+      imgUrl: json['imgUrl'],
+      author: json['author'],
+      viewCount: json['viewCount'],
+      createdAt: json['createdAt'],
+      likeCount: json['likeCount'] ?? 0,
+      isLiked: json['isLiked'] ?? false, // ⭐️
+      commentCount: json['commentCount'] ?? 0,
     );
   }
 }
