@@ -6,7 +6,6 @@ import 'package:frontend_flutter/models/child/child_api.dart';
 import 'package:frontend_flutter/models/calendar/calendar_api.dart';
 
 import 'package:frontend_flutter/pages/baby_record/baby_record_page.dart';
-import 'package:frontend_flutter/pages/search/people_search_page.dart';
 import 'package:frontend_flutter/pages/my_page/my_page.dart';
 import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
 import 'package:frontend_flutter/pages/calendar_page/calendar_page.dart';
@@ -19,6 +18,7 @@ import 'package:frontend_flutter/widgets/custom_bottom_bar.dart';
 import 'package:frontend_flutter/widgets/custom_drawer.dart';
 
 import '../../screens/home/home_page_ui.dart';
+import '../community/community_page.dart';
 
 class MyHomePage extends StatefulWidget {
   final int initialIndex;
@@ -251,7 +251,7 @@ class _MyHomePageState extends State<MyHomePage> {
       case 2:
         return ChattingPage();
       case 3:
-        return const PeopleSearchPage();
+        return const CommunityPage();
       case 4:
         return const MyPage();
       case 5:

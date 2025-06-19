@@ -22,7 +22,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
           _buildNavItem(0, Icons.home, '홈'),
           _buildNavItem(1, Icons.book, '육아일지'),
           _buildNavItem(2, Icons.chat, '채팅'),
-          _buildNavItem(3, Icons.search, '검색'),
+          _buildNavItem(3, Icons.group, '커뮤니티'),
           _buildNavItem(4, Icons.person, '마이페이지'),
         ],
       ),
