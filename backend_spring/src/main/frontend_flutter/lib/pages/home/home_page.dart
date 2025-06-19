@@ -396,7 +396,7 @@ class _MyHomePageState extends State<MyHomePage> {
       case 2:
         return ChattingPage();
       case 3:
-        return const PeopleSearchPage();
+        return PeopleSearchPage();
       case 4:
         return const MyPage();
       case 5:
