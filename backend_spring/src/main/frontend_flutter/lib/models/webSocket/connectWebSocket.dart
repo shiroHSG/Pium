@@ -32,12 +32,25 @@ void connectStomp(String token, int myId, Function(int) onUnreadCount) {
   stompClient.activate();
 }
 
+void subscribeSummary(int myId, Function(dynamic) onSummary) {
+  print("subscribeSummary 구독");
+  // summary 전용 구독
+  stompClient.subscribe(
+    destination: '/sub/member/$myId/summary',
+    callback: (StompFrame frame) {
+      final data = jsonDecode(frame.body!);
+      onSummary(data);
+    },
+  );
+}
 
-void updateChatListItem(dynamic data) {
-  int chatRoomId = data['chatRoomId'];
-  String lastMessage = data['lastMessage'];
-  String lastSentAt = data['lastSentAt'];
-  int unreadCount = data['unreadCount'];
-
-  // TODO: 채팅방 목록 중 chatRoomId에 해당하는 항목을 찾아서 내용 갱신
+void subscribeChatRoomMessages(int chatRoomId, Function(dynamic) onMessage) {
+  stompClient.subscribe(
+    destination: '/sub/chatroom/$chatRoomId',
+    callback: (StompFrame frame) {
+      final data = jsonDecode(frame.body!);
+      print('📥 채팅 메시지 수신: $data');
+      onMessage(data);
+    },
+  );
 }

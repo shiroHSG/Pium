@@ -26,6 +26,7 @@ public class ChatWebSocketBroadcaster {
 
     // 채팅방 내부 메세지 브로드캐스트
     public void broadcastMessage(Long chatRoomId, MessageResponseDto dto) {
+        System.out.println("broadcastMessage socket 입장");
         messagingTemplate.convertAndSend("/sub/chatroom/" + chatRoomId, dto);
     }
 
@@ -39,7 +40,7 @@ public class ChatWebSocketBroadcaster {
         messagingTemplate.convertAndSend("/sub/chatroom/" + chatRoomId + "/read", payload);
     }
 
-    // 채팅방 요약 정보 (사이드탭 / 리스트 갱신용) - 임시
+    // 채팅방 요약 정보 갱신(채팅방 리스트)
     public void broadcastChatSummary(Long memberId, ChatRoomSummaryDto dto) {
         messagingTemplate.convertAndSend("/sub/member/" + memberId + "/summary", dto);
     }

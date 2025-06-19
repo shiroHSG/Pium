@@ -5,6 +5,7 @@ import 'package:frontend_flutter/models/chat/message.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/chat/chat_service.dart';
+import '../../models/webSocket/connectWebSocket.dart';
 
 class ChatRoomPage extends StatefulWidget {
   final int chatRoomId;
@@ -20,29 +21,41 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   bool _isLoading = true;
+  int? myId; // ✅ 전역 변수로 선언
 
   @override
   void initState() {
     super.initState();
-    _loadMessages();
+    _loadMessagesAndSubscribe();
   }
 
-  Future<void> _loadMessages() async {
+  Future<void> _loadMessagesAndSubscribe() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final myId = prefs.getInt('memberId');
+      myId = prefs.getInt('memberId');
 
       if (myId == null) {
         throw Exception('로그인된 사용자 ID가 없습니다.');
       }
+
       final messages = await fetchMessages(
         chatRoomId: widget.chatRoomId,
-        currentUserId: myId,
+        currentUserId: myId!,
       );
+
+      // ✅ 구독 설정은 myId를 가져온 이후에만 가능
+      subscribeChatRoomMessages(widget.chatRoomId, (data) {
+        final message = ChatMessage.fromJson(data, myId!);
+        setState(() {
+          _messages.add(message);
+        });
+      });
+
       setState(() {
         _messages.addAll(messages);
         _isLoading = false;
       });
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       });
@@ -61,21 +74,16 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     _messageController.clear();
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final myId = prefs.getInt('memberId');
-      if (myId == null) throw Exception('로그인 정보 없음');
-
       final newMessage = await sendMessageToServer(
         chatRoomId: widget.chatRoomId,
         content: text,
-        senderId: myId,
+        senderId: myId!,
       );
 
       setState(() {
         _messages.add(newMessage);
       });
 
-      // 자동 스크롤
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent + 60,
@@ -85,10 +93,8 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       });
     } catch (e) {
       print('❌ 메시지 전송 실패: $e');
-      // 필요 시 토스트나 경고 처리
     }
   }
-
 
   @override
   Widget build(BuildContext context) {

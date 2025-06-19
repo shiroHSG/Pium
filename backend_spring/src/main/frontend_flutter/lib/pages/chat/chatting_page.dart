@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/screens/chatting/chatting_page_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 import '../../models/chat/chat_service.dart';
 import '../../models/chat/chatroom.dart';
+import '../../models/util/parse_date_time.dart';
+import '../../models/webSocket/connectWebSocket.dart';
 import 'chat_room_message_page.dart';
 
 class ChattingPage extends StatefulWidget {
@@ -25,6 +28,7 @@ class _ChattingPageState extends State<ChattingPage> {
   void initState() {
     super.initState();
     _loadChatRooms();
+    _subscribeSummaryOnEnter();
   }
 
   Future<void> _loadChatRooms() async {
@@ -40,6 +44,42 @@ class _ChattingPageState extends State<ChattingPage> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _subscribeSummaryOnEnter() async {
+    final prefs = await SharedPreferences.getInstance();
+    final myId = prefs.getInt('memberId');
+
+    if (myId == null) {
+      print('❌ SharedPreferences에 memberId 없음');
+      return;
+    }
+
+    subscribeSummary(myId, (data) {
+      final int chatRoomId = data['chatRoomId'];
+      final String lastMessage = data['lastMessage'];
+      final int unreadCount = data['unreadCount'];
+      final DateTime? lastSentAt = parseDateTime(data['lastSentAt']);
+
+      setState(() {
+        final index = _chatRooms.indexWhere((room) => room.chatRoomId == chatRoomId);
+        if (index != -1) {
+          final oldRoom = _chatRooms[index];
+          _chatRooms[index] = ChatRoom(
+            chatRoomId: chatRoomId,
+            type: oldRoom.type,
+            otherNickname: oldRoom.otherNickname,
+            otherProfileImageUrl: oldRoom.otherProfileImageUrl,
+            sharePostId: oldRoom.sharePostId,
+            chatRoomName: oldRoom.chatRoomName,
+            imageUrl: oldRoom.imageUrl,
+            lastMessage: lastMessage,
+            lastSentAt: lastSentAt,
+            unreadCount: unreadCount,
+          );
+        }
+      });
+    });
   }
 
   void _handleModeSelection(String value) {

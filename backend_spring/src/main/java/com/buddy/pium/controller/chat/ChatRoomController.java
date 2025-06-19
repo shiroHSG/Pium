@@ -1,10 +1,7 @@
 package com.buddy.pium.controller.chat;
 
 import com.buddy.pium.annotation.CurrentMember;
-import com.buddy.pium.dto.chat.ChatRoomRequestDto;
-import com.buddy.pium.dto.chat.ChatRoomResponseDto;
-import com.buddy.pium.dto.chat.InviteCheckResponseDto;
-import com.buddy.pium.dto.chat.InviteLinkResponseDto;
+import com.buddy.pium.dto.chat.*;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.chat.ChatRoomService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -138,6 +135,7 @@ public class ChatRoomController {
         return ResponseEntity.ok(chatRoomId);
     }
 
+    // 총 안읽은 메세지 수 반환(footer)
     @GetMapping("/unread-count")
     public ResponseEntity<?> getTotalUnreadCount(@CurrentMember Member member) {
         int count = chatRoomService.getTotalUnreadCount(member);
