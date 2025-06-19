@@ -56,12 +56,17 @@ public class ChildService {
         Child child = validateChild(childId, member);
 
         if (image != null && !image.isEmpty()) {
-            if (member.getProfileImageUrl() != null) {
-                fileUploadService.delete(member.getProfileImageUrl());
+            if (child.getProfileImgUrl() != null) { // ✅ 수정
+                fileUploadService.delete(child.getProfileImgUrl());
             }
             String imageUrl = fileUploadService.upload(image, "children");
             child.setProfileImgUrl(imageUrl);
         }
+//        else if (dto.getProfileImgUrl() != null && dto.getProfileImgUrl().startsWith("/uploads")) {
+//            // /uploads 경로만 허용
+//            child.setProfileImgUrl(dto.getProfileImgUrl());
+//        }
+
         if (dto.getName() != null) child.setName(dto.getName());
         if (dto.getBirth() != null) child.setBirth(dto.getBirth());
         if (dto.getGender() != null) child.setGender(dto.getGender());
@@ -89,7 +94,8 @@ public class ChildService {
     public Child validateChild(Long childId, Member member) {
         Child child = childRepository.findById(childId)
                 .orElseThrow(() -> new ResourceNotFoundException("아이를 찾을 수 없습니다."));
-        if (!child.getMember().equals(member)) {
+        Member owner = child.getMember();
+        if (!owner.equals(member) && !owner.equals(member.getMateInfo())) {
             throw new AccessDeniedException("권한이 없습니다.");
         }
         return child;

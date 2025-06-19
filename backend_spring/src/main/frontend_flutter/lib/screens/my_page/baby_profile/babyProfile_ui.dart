@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/baby_profile.dart';
 
@@ -23,12 +23,10 @@ class BabyProfileUI extends StatelessWidget {
           const SizedBox(height: 20),
           _Header(onAdd: onAdd),
           const SizedBox(height: 20),
-          ...babyProfiles
-              .map((baby) => GestureDetector(
+          ...babyProfiles.map((baby) => GestureDetector(
             onTap: () => onEdit(baby),
             child: _BabyCard(baby: baby),
-          ))
-              .toList(),
+          )),
           const SizedBox(height: 20),
         ],
       ),
@@ -57,7 +55,7 @@ class _Header extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: onAdd, // 변경 없음
+            onTap: onAdd,
             child: Container(
               width: 40,
               height: 40,
@@ -79,6 +77,16 @@ class _BabyCard extends StatelessWidget {
 
   const _BabyCard({required this.baby});
 
+  String formatDate(DateTime? date) {
+    if (date == null) return '미입력';
+    return DateFormat('yyyy년 MM월 dd일').format(date);
+  }
+
+  String genderToKorean(Gender? gender) {
+    if (gender == null) return '미입력';
+    return gender == Gender.MALE ? '남자' : '여자';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -99,10 +107,17 @@ class _BabyCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 40,
               backgroundColor: AppTheme.primaryPurple,
-              child: Icon(Icons.child_care, color: Colors.white, size: 40),
+              backgroundImage: (baby.profileImageUrl != null &&
+                  baby.profileImageUrl!.startsWith('/uploads'))
+                  ? NetworkImage('http://10.0.2.2:8080${baby.profileImageUrl!}')
+                  : null,
+              child: (baby.profileImageUrl == null ||
+                  !baby.profileImageUrl!.startsWith('/uploads'))
+                  ? const Icon(Icons.child_care, color: Colors.white, size: 40)
+                  : null,
             ),
             const SizedBox(width: 20),
             Expanded(
@@ -110,11 +125,14 @@ class _BabyCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _Info(label: '이름', value: baby.name),
-                  _Info(label: '생년월일', value: baby.dob),
-                  if (baby.gender?.isNotEmpty ?? false) _Info(label: '성별', value: baby.gender!),
-                  if (baby.height?.isNotEmpty ?? false) _Info(label: '키', value: baby.height!),
-                  if (baby.weight?.isNotEmpty ?? false) _Info(label: '몸무게', value: baby.weight!),
-                  if (baby.allergies?.isNotEmpty ?? false) _Info(label: '알러지', value: baby.allergies!),
+                  _Info(label: '생년월일', value: formatDate(baby.birthDate)),
+                  _Info(label: '성별', value: genderToKorean(baby.gender)),
+                  if (baby.height != null)
+                    _Info(label: '키', value: '${baby.height!.toStringAsFixed(1)} cm'),
+                  if (baby.weight != null)
+                    _Info(label: '몸무게', value: '${baby.weight!.toStringAsFixed(1)} kg'),
+                  if (baby.allergy?.isNotEmpty ?? false)
+                    _Info(label: '알러지', value: baby.allergy!),
                 ],
               ),
             ),
@@ -135,8 +153,10 @@ class _Info extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
-      child: Text('$label: $value',
-          style: const TextStyle(fontSize: 14, color: AppTheme.textPurple)),
+      child: Text(
+        '$label: $value',
+        style: const TextStyle(fontSize: 14, color: AppTheme.textPurple),
+      ),
     );
   }
 }

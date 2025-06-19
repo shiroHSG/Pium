@@ -1,10 +1,9 @@
 package com.buddy.pium.service.chat;
 
-import com.buddy.pium.dto.chat.ChatRoomRequestDTO;
-import com.buddy.pium.dto.chat.ChatRoomResponseDTO;
-import com.buddy.pium.dto.chat.InviteCheckResponseDTO;
-import com.buddy.pium.dto.chat.InviteLinkResponseDTO;
-import com.buddy.pium.dto.chat.ChatRoomMemberResponseDTO;
+import com.buddy.pium.dto.chat.ChatRoomRequestDto;
+import com.buddy.pium.dto.chat.ChatRoomResponseDto;
+import com.buddy.pium.dto.chat.InviteCheckResponseDto;
+import com.buddy.pium.dto.chat.InviteLinkResponseDto;
 import com.buddy.pium.entity.chat.ChatRoom;
 import com.buddy.pium.entity.chat.ChatRoomMember;
 import com.buddy.pium.entity.chat.Enum;
@@ -18,7 +17,6 @@ import com.buddy.pium.repository.chat.ChatRoomBanRepository;
 import com.buddy.pium.repository.chat.ChatRoomMemberRepository;
 import com.buddy.pium.repository.chat.ChatRoomRepository;
 import com.buddy.pium.repository.chat.MessageRepository;
-import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.repository.share.ShareRepository;
 import com.buddy.pium.service.FileUploadService;
 import com.buddy.pium.service.common.MemberService;
@@ -48,7 +46,7 @@ public class ChatRoomService {
     private final MemberService memberService;
     private final ChatRoomBanRepository chatRoomBanRepository;
 
-    public ChatRoomResponseDTO getOrCreateChatRoom(ChatRoomRequestDTO dto, MultipartFile image, Member member) {
+    public ChatRoomResponseDto getOrCreateChatRoom(ChatRoomRequestDto dto, MultipartFile image, Member member) {
         Enum.ChatRoomType type = dto.getType();
 
         return switch (type) {
@@ -57,7 +55,7 @@ public class ChatRoomService {
         };
     }
 
-    private ChatRoomResponseDTO handleDirectOrShareChatRoom(ChatRoomRequestDTO dto, Member sender) {
+    private ChatRoomResponseDto handleDirectOrShareChatRoom(ChatRoomRequestDto dto, Member sender) {
         Enum.ChatRoomType type = dto.getType();
         Long shareId = dto.getShareId();
 
@@ -88,7 +86,7 @@ public class ChatRoomService {
         return toResponseDTO(chatRoom, sender);
     }
 
-    private ChatRoomResponseDTO handleGroupChatRoom(ChatRoomRequestDTO dto, MultipartFile image, Member creator) {
+    private ChatRoomResponseDto handleGroupChatRoom(ChatRoomRequestDto dto, MultipartFile image, Member creator) {
         String roomName = dto.getChatRoomName();
         if (roomName == null || roomName.trim().isEmpty()) {
             throw new IllegalArgumentException("그룹 채팅방 이름은 필수입니다.");
@@ -113,7 +111,7 @@ public class ChatRoomService {
         return toResponseDTO(chatRoom, creator);
     }
 
-    public List<ChatRoomResponseDTO> getChatRoomsForMember(Member member) {
+    public List<ChatRoomResponseDto> getChatRoomsForMember(Member member) {
         List<ChatRoom> chatRooms = chatRoomRepository.findAllByMemberWithMembers(member);
 
         return chatRooms.stream()
@@ -125,7 +123,7 @@ public class ChatRoomService {
                 .collect(Collectors.toList());
     }
 
-    private ChatRoomResponseDTO toResponseDTO(ChatRoom chatRoom, Member currentUser) {
+    private ChatRoomResponseDto toResponseDTO(ChatRoom chatRoom, Member currentUser) {
         String otherNickname = null;
         String otherProfileImageUrl = null;
 
@@ -156,7 +154,7 @@ public class ChatRoomService {
             }
         }
 
-        return ChatRoomResponseDTO.builder()
+        return ChatRoomResponseDto.builder()
                 .chatRoomId(chatRoom.getId())
                 .type(chatRoom.getType())
                 .chatRoomName(chatRoom.getChatRoomName())
@@ -171,7 +169,7 @@ public class ChatRoomService {
     }
 
     @Transactional
-    public void updateGroupChatRoom(Long chatRoomId, ChatRoomRequestDTO dto, MultipartFile image, Member member) {
+    public void updateGroupChatRoom(Long chatRoomId, ChatRoomRequestDto dto, MultipartFile image, Member member) {
         ChatRoom chatRoom = validateGroupChatRoom(chatRoomId);
         validateAdmin(chatRoom, member);
 
@@ -211,23 +209,23 @@ public class ChatRoomService {
     }
 
     @Transactional
-    public InviteLinkResponseDTO getInviteLink(Long chatRoomId, Member member) {
+    public InviteLinkResponseDto getInviteLink(Long chatRoomId, Member member) {
         ChatRoom chatRoom = validateGroupChatRoom(chatRoomId);
 
         if (!isMember(chatRoom, member)) {
             throw new AccessDeniedException("해당 채팅방에 속한 멤버만 초대 링크를 조회할 수 있습니다.");
         }
 
-        return new InviteLinkResponseDTO(chatRoom.getInviteCode(), "http://localhost:8080/chat/invite/" + chatRoom.getInviteCode());
+        return new InviteLinkResponseDto(chatRoom.getInviteCode(), "http://localhost:8080/chat/invite/" + chatRoom.getInviteCode());
     }
 
     @Transactional
-    public InviteCheckResponseDTO checkInviteAccess(String inviteCode, Member member) {
+    public InviteCheckResponseDto checkInviteAccess(String inviteCode, Member member) {
         ChatRoom chatRoom = validateInviteCode(inviteCode);
         isTypeGroupChatRoom(chatRoom);
         isBannedMember(chatRoom, member);
 
-        return new InviteCheckResponseDTO(
+        return new InviteCheckResponseDto(
                 chatRoom.getChatRoomName(),
                 isMember(chatRoom, member),
                 !isMember(chatRoom, member) && (chatRoom.getPassword() != null && !chatRoom.getPassword().isBlank())
@@ -324,5 +322,21 @@ public class ChatRoomService {
         if (chatRoomBanRepository.existsByChatRoomAndBannedMember(chatRoom, member)) {
             throw new AccessDeniedException("이 채팅방에서 차단된 사용자입니다.");
         }
+    }
+
+    // 안읽은 총 메시지 수
+    public int getTotalUnreadCount(Member member) {
+        List<ChatRoomMember> joinedRooms = chatRoomMemberRepository.findByMember(member);
+
+        int totalUnread = 0;
+        for (ChatRoomMember crm : joinedRooms) {
+            int unread = messageRepository.countUnreadMessagesForMember(
+                    crm.getChatRoom().getId(),
+                    member.getId()
+            );
+            totalUnread += unread;
+        }
+
+        return totalUnread;
     }
 }

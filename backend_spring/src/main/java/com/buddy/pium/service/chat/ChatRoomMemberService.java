@@ -1,6 +1,6 @@
 package com.buddy.pium.service.chat;
 
-import com.buddy.pium.dto.chat.ChatRoomMemberResponseDTO;
+import com.buddy.pium.dto.chat.ChatRoomMemberResponseDto;
 import com.buddy.pium.entity.chat.ChatRoom;
 import com.buddy.pium.entity.chat.ChatRoomMember;
 import com.buddy.pium.entity.common.Member;
@@ -25,7 +25,7 @@ public class ChatRoomMemberService {
 
     // 채팅방 멤버 조회 (chatRoom을 인자로 받도록 수정)
     @Transactional
-    public List<ChatRoomMemberResponseDTO> getChatRoomMembers(ChatRoom chatRoom, Member member) {
+    public List<ChatRoomMemberResponseDto> getChatRoomMembers(ChatRoom chatRoom, Member member) {
         if (!isMember(chatRoom, member)) {
             throw new AccessDeniedException("해당 채팅방에 참여하고 있지 않습니다.");
         }
@@ -33,7 +33,7 @@ public class ChatRoomMemberService {
         List<ChatRoomMember> members = chatRoomMemberRepository.findByChatRoom(chatRoom);
 
         return members.stream()
-                .map(ChatRoomMemberResponseDTO::from)
+                .map(ChatRoomMemberResponseDto::from)
                 .collect(Collectors.toList());
     }
 

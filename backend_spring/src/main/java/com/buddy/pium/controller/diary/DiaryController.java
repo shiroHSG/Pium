@@ -60,23 +60,30 @@ public class DiaryController {
     public ResponseEntity<?> updateDiary(
             @PathVariable Long diaryId,
             @RequestPart("diaryData") String diaryDataJson,
-            @RequestPart(value = "image", required = false) MultipartFile image,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
             @CurrentMember Member member
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new JavaTimeModule());
             mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+            // ✅ JSON → DTO 매핑 (removeImage 포함)
             DiaryUpdateDto dto = mapper.readValue(diaryDataJson, DiaryUpdateDto.class);
 
-            diaryService.updateDiary(diaryId, dto, member, image);
-            return ResponseEntity.ok(Map.of("message", "육아 일지를 수정했습니다."));
+            // ✅ 이미지 파일 리스트도 주입
+            dto.setImageFiles(images);
 
+            // ✅ 서비스 호출
+            diaryService.updateDiary(diaryId, dto, member);
+
+            return ResponseEntity.ok(Map.of("message", "육아 일지를 수정했습니다."));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
+
 
     @DeleteMapping("/{diaryId}")
     public ResponseEntity<?> delete(@PathVariable Long diaryId,

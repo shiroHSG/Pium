@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:frontend_flutter/models/baby_profile.dart';
+
 import 'package:frontend_flutter/theme/app_theme.dart';
+import 'package:frontend_flutter/models/baby_profile.dart';
 import 'package:frontend_flutter/models/calendar/schedule.dart';
 
 class BabyProfileHeader extends StatelessWidget {
@@ -15,6 +16,15 @@ class BabyProfileHeader extends StatelessWidget {
     this.babyImage,
     required this.onEditPressed,
   }) : super(key: key);
+
+  String genderToKorean(Gender? gender) {
+    if (gender == null) return '성별 정보 없음';
+    return gender == Gender.MALE ? '남자' : '여자';
+  }
+
+  String formatDate(DateTime date) {
+    return DateFormat('yyyy년 MM월 dd일').format(date);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,24 +67,39 @@ class BabyProfileHeader extends StatelessWidget {
                       : null,
                 ),
                 const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      babyProfile.name,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        color: AppTheme.textPurple,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        babyProfile.name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          color: AppTheme.textPurple,
+                        ),
+                        overflow: TextOverflow.ellipsis, // ✅ 너무 긴 텍스트 방지
                       ),
-                    ),
-                    Text(
-                      '${babyProfile.dob} / ${babyProfile.height ?? '??'} cm / ${babyProfile.weight ?? '??'} kg',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: AppTheme.textPurple,
+                      const SizedBox(height: 4),
+                      Text(
+                        '${formatDate(babyProfile.birthDate)} / '
+                            '${babyProfile.height?.toStringAsFixed(1) ?? '??'} cm / '
+                            '${babyProfile.weight?.toStringAsFixed(1) ?? '??'} kg',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: AppTheme.textPurple,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        genderToKorean(babyProfile.gender),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: AppTheme.textPurple,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -83,7 +108,7 @@ class BabyProfileHeader extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
-                  babyProfile.development ?? '성장 발달 내용이 없습니다.',
+                  babyProfile.developmentStep ?? '성장 발달 내용이 없습니다.',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
                 ),
@@ -286,3 +311,4 @@ class PopularPostsSection extends StatelessWidget {
     );
   }
 }
+

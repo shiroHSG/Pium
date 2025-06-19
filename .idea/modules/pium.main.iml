@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module external.linked.project.id="pium:main" external.linked.project.path="$MODULE_DIR$/../../backend_spring" external.root.project.path="$MODULE_DIR$/../../backend_spring" external.system.id="GRADLE" external.system.module.group="com.example" external.system.module.type="sourceSet" external.system.module.version="0.0.1-SNAPSHOT" type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_17">
+  <component name="NewModuleRootManager">
     <output url="file://$MODULE_DIR$/../../backend_spring/out/production/classes" />
     <exclude-output />
     <content url="file://$MODULE_DIR$/../../backend_spring/src/main">
-      <sourceFolder url="file://$MODULE_DIR$/../../backend_spring/src/main/generated" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/../../backend_spring/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../backend_spring/src/main/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/../../backend_spring/src/main/generated" isTestSource="false" generated="true" />
     </content>
-    <orderEntry type="jdk" jdkName="17" jdkType="JavaSDK" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: org.springframework.boot:spring-boot-configuration-processor:3.4.5" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: org.projectlombok:lombok:1.18.38" level="project" />
@@ -16,7 +16,9 @@
     <orderEntry type="library" name="Gradle: me.paulschwarz:spring-dotenv:3.0.0" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-data-jpa:3.4.5" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-security:3.4.5" level="project" />
+    <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-websocket:3.4.5" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-web:3.4.5" level="project" />
+    <orderEntry type="library" name="Gradle: org.apache.commons:commons-lang3:3.12.0" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-jdbc:3.4.5" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter:3.4.5" level="project" />
     <orderEntry type="library" name="Gradle: org.hibernate.orm:hibernate-core:6.6.13.Final" level="project" />
@@ -25,6 +27,8 @@
     <orderEntry type="library" name="Gradle: org.springframework.security:spring-security-config:6.4.5" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.security:spring-security-web:6.4.5" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework:spring-aop:6.2.6" level="project" />
+    <orderEntry type="library" name="Gradle: org.springframework:spring-websocket:6.2.6" level="project" />
+    <orderEntry type="library" name="Gradle: org.springframework:spring-messaging:6.2.6" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-json:3.4.5" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework:spring-webmvc:6.2.6" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-tomcat:3.4.5" level="project" />

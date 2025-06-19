@@ -17,4 +17,5 @@ public class ChildRequestDto {
     private Double height;
     private Double weight;
     private String sensitiveInfo;
+    private String profileImgUrl;
 }
