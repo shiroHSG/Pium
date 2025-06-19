@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
+
+import '../../../widgets/protected_image.dart';
 
 class ProfileEditPageUI extends StatelessWidget {
   final TextEditingController emailController;
@@ -12,6 +15,10 @@ class ProfileEditPageUI extends StatelessWidget {
   final TextEditingController mateController;
   final bool isEditing;
   final VoidCallback onToggleEdit;
+  final String? profileImageUrl;
+  final File? selectedImage;
+  final VoidCallback onPickImage;
+  final VoidCallback onAddressSearch;
 
   const ProfileEditPageUI({
     Key? key,
@@ -25,6 +32,10 @@ class ProfileEditPageUI extends StatelessWidget {
     required this.mateController,
     required this.isEditing,
     required this.onToggleEdit,
+    required this.profileImageUrl,
+    required this.selectedImage,
+    required this.onPickImage,
+    required this.onAddressSearch,
   }) : super(key: key);
 
   @override
@@ -41,16 +52,19 @@ class ProfileEditPageUI extends StatelessWidget {
         ),
         title: const Text(
           '프로필',
-          style: TextStyle(
-            color: Colors.white,
-          ),
+          style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const _ProfileEditHeader(),
+            _ProfileEditHeader(
+              profileImageUrl: profileImageUrl,
+              selectedImage: selectedImage,
+              onPickImage: onPickImage,
+              isEditing: isEditing,
+            ),
             const SizedBox(height: 30),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40.0),
@@ -59,17 +73,30 @@ class ProfileEditPageUI extends StatelessWidget {
                   _buildProfileInputField(label: '이메일', controller: emailController, readOnly: true),
                   _buildProfileInputField(label: '아이디', controller: usernameController, readOnly: true),
                   _buildProfileInputField(label: '성별', controller: genderController, readOnly: true),
+                  _buildProfileInputField(label: '생년월일', controller: birthController, readOnly: true),
                   _buildProfileInputField(label: '이름', controller: nameController, readOnly: !isEditing),
                   _buildProfileInputField(label: '전화번호', controller: phoneController, keyboardType: TextInputType.phone, readOnly: !isEditing),
-                  _buildProfileInputField(label: '생년월일', controller: birthController, keyboardType: TextInputType.datetime, readOnly: !isEditing),
-                  _buildProfileInputField(label: '주소', controller: addressController, readOnly: !isEditing),
+                  _buildProfileInputField(
+                    label: '주소',
+                    controller: addressController,
+                    readOnly: !isEditing,
+                    suffixWidget: isEditing
+                        ? IconButton(
+                      icon: const Icon(Icons.search, color: AppTheme.textPurple),
+                      onPressed: onAddressSearch,
+                    )
+                        : null,
+                  ),
                   _buildProfileInputField(label: '배우자', controller: mateController, readOnly: !isEditing),
                   const SizedBox(height: 40),
                   SizedBox(
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: onToggleEdit,
+                      onPressed: () {
+                        FocusScope.of(context).unfocus();
+                        onToggleEdit();
+                      },
                       child: Text(
                         isEditing ? '완료' : '수정하기',
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -77,9 +104,7 @@ class ProfileEditPageUI extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryPurple,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                         elevation: 2,
                       ),
                     ),
@@ -100,22 +125,26 @@ class ProfileEditPageUI extends StatelessWidget {
     TextInputType keyboardType = TextInputType.text,
     bool readOnly = false,
     IconData? suffixIcon,
+    Widget? suffixWidget,
   }) {
     final Color fieldColor = (readOnly ? AppTheme.primaryPurple : AppTheme.lightPink);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SizedBox(
             width: 80,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPurple,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPurple,
+                ),
               ),
             ),
           ),
@@ -134,9 +163,9 @@ class ProfileEditPageUI extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10.0),
                   borderSide: BorderSide.none,
                 ),
-                suffixIcon: suffixIcon != null
+                suffixIcon: suffixWidget ?? (suffixIcon != null
                     ? Icon(suffixIcon, color: AppTheme.textPurple)
-                    : null,
+                    : null),
               ),
             ),
           ),
@@ -147,7 +176,17 @@ class ProfileEditPageUI extends StatelessWidget {
 }
 
 class _ProfileEditHeader extends StatelessWidget {
-  const _ProfileEditHeader();
+  final String? profileImageUrl;
+  final File? selectedImage;
+  final VoidCallback onPickImage;
+  final bool isEditing;
+
+  const _ProfileEditHeader({
+    this.profileImageUrl,
+    this.selectedImage,
+    required this.onPickImage,
+    required this.isEditing,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -158,24 +197,36 @@ class _ProfileEditHeader extends StatelessWidget {
         color: AppTheme.lightPink,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
       ),
-      child: Column(
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          Container(
+          SizedBox(
             width: 150,
             height: 150,
-            decoration: const BoxDecoration(
-              color: AppTheme.primaryPurple,
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: Icon(
-                Icons.camera_alt,
-                color: Colors.white,
-                size: 50,
-              ),
+            child: ClipOval(
+              child: selectedImage != null
+                  ? Image.file(selectedImage!, fit: BoxFit.cover)
+                  : (profileImageUrl != null && profileImageUrl!.startsWith('http'))
+                  ? ProtectedImage(imageUrl: profileImageUrl!)
+                  : const Icon(Icons.camera_alt, color: AppTheme.primaryPurple, size: 50),
             ),
           ),
-          const SizedBox(height: 20),
+          if (isEditing)
+            Positioned(
+              bottom: 0,
+              right: MediaQuery.of(context).size.width / 2 - 75 - 10,
+              child: GestureDetector(
+                onTap: onPickImage,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  child: const Icon(Icons.camera_alt, color: AppTheme.primaryPurple, size: 24),
+                ),
+              ),
+            ),
         ],
       ),
     );

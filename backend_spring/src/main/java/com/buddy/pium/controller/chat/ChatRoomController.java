@@ -137,4 +137,9 @@ public class ChatRoomController {
         return ResponseEntity.ok(chatRoomId);
     }
 
+    @GetMapping("/unread-count")
+    public ResponseEntity<?> getTotalUnreadCount(@CurrentMember Member member) {
+        int count = chatRoomService.getTotalUnreadCount(member);
+        return ResponseEntity.ok(count);
+    }
 }

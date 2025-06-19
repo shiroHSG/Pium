@@ -1,5 +1,100 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
+
+Future<void> onDateTap(BuildContext context, TextEditingController dateController) async {
+  final DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(2000),
+    lastDate: DateTime(2100),
+    locale: const Locale('ko', 'KR'),
+  );
+  if (picked != null) {
+    dateController.text = '${picked.year}년 ${picked.month}월 ${picked.day}일';
+  }
+}
+
+Future<void> showCustomTimePicker(BuildContext context, TextEditingController timeController) async {
+  DateTime now = DateTime.now();
+  int roundedMinute = (now.minute / 5).round() * 5;
+  if (roundedMinute == 60) {
+    now = now.add(const Duration(hours: 1));
+    roundedMinute = 0;
+  }
+  DateTime initialTime = DateTime(now.year, now.month, now.day, now.hour, roundedMinute);
+
+  await showCupertinoModalPopup(
+    context: context,
+    builder: (BuildContext context) {
+      return Container(
+        height: 300,
+        color: Colors.white,
+        child: Column(
+          children: [
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CupertinoButton(
+                    child: const Text(
+                      '취소',
+                      style: TextStyle(
+                        fontFamily: 'Jua',
+                        color: Colors.grey,
+                      ),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  CupertinoButton(
+                    child: const Text(
+                      '확인',
+                      style: TextStyle(
+                        fontFamily: 'Jua',
+                        color: AppTheme.primaryPurple,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      final amPm = initialTime.hour < 12 ? '오전' : '오후';
+                      final displayHour = initialTime.hour % 12 == 0 ? 12 : initialTime.hour % 12;
+                      timeController.text =
+                      '$amPm ${displayHour.toString().padLeft(2, '0')}시 ${initialTime.minute.toString().padLeft(2, '0')}분';
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: CupertinoTheme(
+                data: const CupertinoThemeData(
+                  textTheme: CupertinoTextThemeData(
+                    dateTimePickerTextStyle: TextStyle(
+                      fontFamily: 'Jua',
+                      fontSize: 20,
+                      color: AppTheme.textPurple,
+                    ),
+                  ),
+                ),
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.time,
+                  initialDateTime: initialTime,
+                  use24hFormat: false,
+                  minuteInterval: 5,
+                  onDateTimeChanged: (DateTime newTime) {
+                    initialTime = newTime;
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
 Widget buildScheduleDialog(
     BuildContext context,
@@ -10,8 +105,6 @@ Widget buildScheduleDialog(
     Color? selectedColor,
     ValueChanged<Color> onColorSelected,
     VoidCallback onSave,
-    Future<void> Function(BuildContext) onDateTap,
-    Future<void> Function(BuildContext) onTimeTap,
     ) {
   return AlertDialog(
     contentPadding: EdgeInsets.zero,
@@ -30,9 +123,17 @@ Widget buildScheduleDialog(
           _AddScheduleHeader(onClose: () => Navigator.of(context).pop()),
           _ScheduleInputField(hint: '일정 제목', controller: titleController),
           const SizedBox(height: 15),
-          _ScheduleInputField(hint: '날짜', controller: dateController, onTap: () => onDateTap(context)),
+          _ScheduleInputField(
+            hint: '날짜',
+            controller: dateController,
+            onTap: () => onDateTap(context, dateController),
+          ),
           const SizedBox(height: 15),
-          _ScheduleInputField(hint: '시간', controller: timeController, onTap: () => onTimeTap(context)),
+          _ScheduleInputField(
+            hint: '시간',
+            controller: timeController,
+            onTap: () => showCustomTimePicker(context, timeController),
+          ),
           const SizedBox(height: 15),
           _ScheduleInputField(hint: '메모(선택)', controller: memoController, maxLines: 3),
           const SizedBox(height: 20),
@@ -64,7 +165,12 @@ class _AddScheduleHeader extends StatelessWidget {
         const Center(
           child: Text(
             '일정 추가',
-            style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold, color: AppTheme.textPurple),
+            style: TextStyle(
+              fontFamily: 'Jua',
+              fontSize: 23,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPurple,
+            ),
           ),
         ),
         const SizedBox(height: 15),
@@ -98,7 +204,10 @@ class _ScheduleInputField extends StatelessWidget {
           readOnly: onTap != null,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[700]),
+            hintStyle: const TextStyle(
+              fontFamily: 'Jua',
+              color: Colors.grey,
+            ),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
@@ -107,7 +216,10 @@ class _ScheduleInputField extends StatelessWidget {
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
           ),
-          style: const TextStyle(color: Colors.black87),
+          style: const TextStyle(
+            fontFamily: 'Jua',
+            color: Colors.black87,
+          ),
         ),
       ),
     );

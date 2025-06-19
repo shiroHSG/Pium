@@ -13,6 +13,7 @@ public class MessageResponseDto {
     private Long messageId;
     private Long senderId;
     private String senderNickname;
+    private String senderProfileImageUrl;
     private String content;
     private LocalDateTime sentAt;
 

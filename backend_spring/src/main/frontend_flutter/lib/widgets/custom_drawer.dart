@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/auth/auth_services.dart';
-import '../pages/sharing_page/sharing_page.dart';
 import '../pages/calendar_page/calendar_page.dart';
+import '../pages/my_page/baby_profile/babyProfile_page.dart';
+import '../pages/my_page/my_activity/my_activity_page.dart';
+import '../pages/policy_page/policy_page.dart';
+import '../pages/sharing_page/sharing_page.dart';
 import '../pages/community/community_page.dart';
+import 'confirm_dialog.dart';
 
 class CustomDrawer extends StatelessWidget {
   final ValueChanged<int> onItemSelected;
@@ -52,6 +56,10 @@ class CustomDrawer extends StatelessWidget {
               title: const Text('정보제공'),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PolicyPage()),
+                );
               },
             ),
             ListTile(
@@ -116,6 +124,10 @@ class CustomDrawer extends StatelessWidget {
               title: const Text('아이 정보'),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const BabyProfilePage()),
+                );
               },
             ),
             ListTile(
@@ -123,6 +135,10 @@ class CustomDrawer extends StatelessWidget {
               title: const Text('내 활동'),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MyActivityPage()),
+                );
               },
             ),
             ListTile(
@@ -137,96 +153,26 @@ class CustomDrawer extends StatelessWidget {
               leading: const Icon(Icons.logout),
               title: const Text('로그아웃'),
               onTap: () {
-                Navigator.pop(context); // 드로어 닫기
-
+                Navigator.pop(context);
                 showDialog(
                   context: context,
-                  builder: (BuildContext dialogContext) {
-                    return AlertDialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      contentPadding: EdgeInsets.zero,
-                      content: Container(
-                        width: MediaQuery.of(context).size.width * 0.7,
-                        padding: const EdgeInsets.symmetric(vertical: 30.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(
-                              '로그아웃 하시겠습니까?',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 30),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    bool success = await AuthService().logout();
-                                    Navigator.of(dialogContext).pop(); // 다이얼로그 닫기
-
-                                    if (success) {
-                                      onLoginStatusChanged(false); // 부모 위젯에 로그아웃 알림
-                                    } else {
-                                      showDialog(
-                                        context: dialogContext,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            title: const Text('로그아웃 실패'),
-                                            content: const Text('토큰이 없습니다. 다시 로그인해주세요.'),
-                                            actions: [
-                                              TextButton(
-                                                child: const Text('확인'),
-                                                onPressed: () => Navigator.of(context).pop(),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFde95ba),
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                                  ),
-                                  child: const Text(
-                                    '예',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.of(dialogContext).pop(); // 다이얼로그 닫기
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFde95ba),
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                                  ),
-                                  child: const Text(
-                                    '아니오',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                  builder: (context) => ConfirmDialog(
+                    content: '로그아웃 하시겠습니까?',
+                    onConfirm: () async {
+                      bool success = await AuthService().logout();
+                      if (success) {
+                        onLoginStatusChanged(false);
+                      } else {
+                        showDialog(
+                          context: context,
+                          builder: (context) => const AlertDialog(
+                            title: Text('로그아웃 실패'),
+                            content: Text('토큰이 없습니다. 다시 로그인해주세요.'),
+                          ),
+                        );
+                      }
+                    },
+                  ),
                 );
               },
             ),

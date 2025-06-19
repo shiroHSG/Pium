@@ -89,7 +89,8 @@ public class CalenderService {
     }
 
     public void authCalenderMember(Calender calender, Member member) {
-        if (!calender.getMember().equals(member)) {
+        Member owner = calender.getMember();
+        if (!owner.equals(member) && !owner.equals(member.getMateInfo())) {
             throw new AccessDeniedException("권한이 없습니다.");
         }
     }

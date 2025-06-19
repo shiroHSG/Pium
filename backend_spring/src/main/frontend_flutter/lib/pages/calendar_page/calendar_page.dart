@@ -70,33 +70,22 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   // 일정 추가 핸들러 함수
-  void _handleScheduleAdded(Schedule newSchedule) async {
-    Schedule savedSchedule;
-
-    try {
-      savedSchedule = await CalendarApi.postSchedule(newSchedule); // id 포함된 객체
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('일정 저장 실패')),
-      );
-      return;
-    }
-
+  void _handleScheduleAdded(Schedule newSchedule) {
     final dateKey = DateTime(
-      savedSchedule.date.year,
-      savedSchedule.date.month,
-      savedSchedule.date.day,
+      newSchedule.date.year,
+      newSchedule.date.month,
+      newSchedule.date.day,
     );
 
     final updatedSchedules = Map<DateTime, List<Schedule>>.from(_schedules);
     updatedSchedules.update(
       dateKey,
           (existing) {
-        existing.add(savedSchedule);
+        existing.add(newSchedule);
         existing.sort((a, b) => a.startTime.compareTo(b.startTime));
         return existing;
       },
-      ifAbsent: () => [savedSchedule],
+      ifAbsent: () => [newSchedule],
     );
 
     setState(() {
@@ -105,7 +94,6 @@ class _CalendarPageState extends State<CalendarPage> {
       _focusedDay = dateKey;
     });
   }
-
 
   // 일정 삭제 핸들러 함수
   void _handleScheduleDeleted(Schedule deletedSchedule) {
@@ -155,7 +143,7 @@ class _CalendarPageState extends State<CalendarPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppTheme.primaryPurple,
-        title: const Text('일정'),
+        title: const Text('캘린더'),
         centerTitle: true,
         actions: [
           IconButton(

@@ -71,6 +71,7 @@ flutter:
   assets:
      - assets/logo1.png
      - assets/logo2.png
+     - assets/kakao_address_search.html
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

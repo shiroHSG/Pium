@@ -1,198 +1,171 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 
-// 기본 입력 필드 위젯
-Widget buildSignupInputField(String labelText, TextEditingController controller, TextInputType keyboardType, bool isPassword) {
+// 라벨 텍스트
+Widget buildLabelText(String label) {
+  return Text(
+    label,
+    style: const TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+      color: AppTheme.textPurple,
+      fontFamily: 'Jua',
+    ),
+  );
+}
+
+// 텍스트 필드 컨테이너
+Widget buildTextFieldContainer({
+  required TextEditingController controller,
+  bool isPassword = false,
+  bool readOnly = false,
+  VoidCallback? onTap,
+  Widget? suffixIcon,
+  TextInputType keyboardType = TextInputType.text,
+}) {
+  return Container(
+    decoration: BoxDecoration(
+      color: AppTheme.lightPink,
+      borderRadius: BorderRadius.circular(10),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          spreadRadius: 1,
+          blurRadius: 5,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    ),
+    child: TextField(
+      controller: controller,
+      obscureText: isPassword,
+      readOnly: readOnly,
+      keyboardType: keyboardType,
+      onTap: onTap,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+        suffixIcon: suffixIcon,
+      ),
+      style: const TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua'),
+    ),
+  );
+}
+
+// 기본 필드
+Widget buildSignupInputField(
+    String label,
+    TextEditingController controller,
+    TextInputType type,
+    bool isPassword, {
+      String? errorText,
+    }) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(
-        labelText,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.textPurple,
-          fontFamily: 'Jua',
-        ),
-      ),
+      buildLabelText(label),
       const SizedBox(height: 8),
-      Container(
-        decoration: BoxDecoration(
-          color: AppTheme.lightPink,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: TextField(
-          controller: controller,
-          keyboardType: keyboardType,
-          obscureText: isPassword,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-          ),
-          style: const TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua'),
-        ),
+      buildTextFieldContainer(
+        controller: controller,
+        keyboardType: type,
+        isPassword: isPassword,
       ),
+      if (errorText != null && errorText.isNotEmpty) ...[
+        const SizedBox(height: 5),
+        Text(
+          errorText,
+          style: const TextStyle(
+            color: Colors.red,
+            fontSize: 13,
+            fontFamily: 'Jua',
+          ),
+        ),
+      ],
     ],
   );
 }
 
-// 닉네임 입력 필드 (중복 확인 버튼 포함)
-Widget buildNicknameInputField(String labelText, TextEditingController controller, VoidCallback onDuplicateCheck) {
+// 닉네임 + 중복확인
+Widget buildNicknameInputField(String label, TextEditingController controller, VoidCallback onCheck, {String? errorText}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(
-        labelText,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.textPurple,
-          fontFamily: 'Jua',
-        ),
-      ),
+      buildLabelText(label),
       const SizedBox(height: 8),
       Row(
         children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppTheme.lightPink,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    spreadRadius: 1,
-                    blurRadius: 5,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: controller,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                ),
-                style: const TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua'),
-              ),
-            ),
-          ),
+          Expanded(child: buildTextFieldContainer(controller: controller)),
           const SizedBox(width: 10),
           ElevatedButton(
-            onPressed: onDuplicateCheck,
+            onPressed: onCheck,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryPurple,
               minimumSize: const Size(100, 50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text(
-              '중복 확인',
-              style: TextStyle(
-                color: Colors.white,
-                fontFamily: 'Jua',
-              ),
-            ),
+            child: const Text('중복 확인', style: TextStyle(color: Colors.white, fontFamily: 'Jua')),
           ),
         ],
       ),
+      if (errorText != null && errorText.isNotEmpty) ...[
+        const SizedBox(height: 5),
+        Text(
+          errorText,
+          style: const TextStyle(
+            color: Colors.red,
+            fontSize: 13,
+            fontFamily: 'Jua',
+          ),
+        ),
+      ],
     ],
   );
 }
 
-// 생년월일 입력 필드 (달력 아이콘 포함)
-Widget buildBirthDateInputField(String labelText, TextEditingController controller, Future<void> Function(BuildContext) onSelectDate) {
+// 생년월일 선택
+Widget buildBirthDateInputField(String label, TextEditingController controller, Future<void> Function(BuildContext) onSelect) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(
-        labelText,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.textPurple,
-          fontFamily: 'Jua',
-        ),
-      ),
+      buildLabelText(label),
       const SizedBox(height: 8),
-      Container(
-        decoration: BoxDecoration(
-          color: AppTheme.lightPink,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: TextField(
+      Builder(
+        builder: (context) => buildTextFieldContainer(
           controller: controller,
           readOnly: true,
-          onTap: () => onSelectDate(controller.text as BuildContext), // Type cast needed here
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-            suffixIcon: const Icon(Icons.calendar_today, color: AppTheme.textPurple),
-          ),
-          style: const TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua'),
+          onTap: () => onSelect(context),
+          suffixIcon: const Icon(Icons.calendar_today, color: AppTheme.textPurple),
         ),
       ),
     ],
   );
 }
 
-// 성별 선택 필드
-Widget buildGenderSelectionField(String labelText, String? selectedGender, Function(String?) onGenderChanged) {
+// 성별 선택
+Widget buildGenderSelectionField(String label, String? selected, Function(String?) onChange) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(
-        labelText,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.textPurple,
-          fontFamily: 'Jua',
-        ),
-      ),
+      buildLabelText(label),
       const SizedBox(height: 8),
       Row(
-        children: [
-          Expanded(
+        children: ['남성', '여성'].map((gender) {
+          final isSelected = gender == selected;
+          return Expanded(
             child: GestureDetector(
-              onTap: () => onGenderChanged('남성'),
+              onTap: () => onChange(gender),
               child: Container(
                 height: 50,
+                margin: EdgeInsets.only(right: gender == '남성' ? 10 : 0),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: selectedGender == '남성' ? AppTheme.primaryPurple : AppTheme.lightPink,
+                  color: isSelected ? AppTheme.primaryPurple : AppTheme.lightPink,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
@@ -204,116 +177,41 @@ Widget buildGenderSelectionField(String labelText, String? selectedGender, Funct
                   ],
                 ),
                 child: Text(
-                  '남성',
+                  gender,
                   style: TextStyle(
-                    color: selectedGender == '남성' ? Colors.white : AppTheme.textPurple,
+                    color: isSelected ? Colors.white : AppTheme.textPurple,
                     fontFamily: 'Jua',
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: GestureDetector(
-              onTap: () => onGenderChanged('여성'),
-              child: Container(
-                height: 50,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: selectedGender == '여성' ? AppTheme.primaryPurple : AppTheme.lightPink,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  '여성',
-                  style: TextStyle(
-                    color: selectedGender == '여성' ? Colors.white : AppTheme.textPurple,
-                    fontFamily: 'Jua',
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+          );
+        }).toList(),
       ),
     ],
   );
 }
 
-// 주소 입력 필드 (주소 검색 버튼 포함)
-Widget buildAddressInputField(String labelText, TextEditingController controller, VoidCallback onAddressSearch) {
+// 주소 + 검색
+Widget buildAddressInputField(String label, TextEditingController controller, VoidCallback onSearch) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(
-        labelText,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.textPurple,
-          fontFamily: 'Jua',
-        ),
-      ),
+      buildLabelText(label),
       const SizedBox(height: 8),
       Row(
         children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppTheme.lightPink,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    spreadRadius: 1,
-                    blurRadius: 5,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: controller,
-                readOnly: true, // 주소는 직접 입력 방지
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                ),
-                style: const TextStyle(color: AppTheme.textPurple, fontFamily: 'Jua'),
-              ),
-            ),
-          ),
+          Expanded(child: buildTextFieldContainer(controller: controller, readOnly: true)),
           const SizedBox(width: 10),
           ElevatedButton(
-            onPressed: onAddressSearch,
+            onPressed: onSearch,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryPurple,
               minimumSize: const Size(100, 50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text(
-              '주소 검색',
-              style: TextStyle(
-                color: Colors.white,
-                fontFamily: 'Jua',
-              ),
-            ),
+            child: const Text('주소 검색', style: TextStyle(color: Colors.white, fontFamily: 'Jua')),
           ),
         ],
       ),
@@ -321,12 +219,13 @@ Widget buildAddressInputField(String labelText, TextEditingController controller
   );
 }
 
+// 회원가입 UI with 이미지 선택
 class SignupPageUI extends StatelessWidget {
   final TextEditingController emailController;
   final TextEditingController passwordController;
   final TextEditingController confirmPasswordController;
   final TextEditingController nicknameController;
-  final TextEditingController nameController;
+  final TextEditingController usernameController;
   final TextEditingController phoneController;
   final TextEditingController birthDateController;
   final TextEditingController addressController;
@@ -336,6 +235,10 @@ class SignupPageUI extends StatelessWidget {
   final Future<void> Function(BuildContext) onSelectDate;
   final Function(String?) onGenderChanged;
   final VoidCallback onAddressSearch;
+  final VoidCallback onPickImage;
+  final File? selectedImage;
+  final String? emailError;
+  final String? nicknameError;
 
   const SignupPageUI({
     Key? key,
@@ -343,7 +246,7 @@ class SignupPageUI extends StatelessWidget {
     required this.passwordController,
     required this.confirmPasswordController,
     required this.nicknameController,
-    required this.nameController,
+    required this.usernameController,
     required this.phoneController,
     required this.birthDateController,
     required this.addressController,
@@ -353,6 +256,10 @@ class SignupPageUI extends StatelessWidget {
     required this.onSelectDate,
     required this.onGenderChanged,
     required this.onAddressSearch,
+    required this.onPickImage,
+    required this.selectedImage,
+    required this.emailError,
+    required this.nicknameError,
   }) : super(key: key);
 
   @override
@@ -364,20 +271,59 @@ class SignupPageUI extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 15),
-            Image.asset(
-              'assets/logo1.png',
-              width: 100,
-            ),
+            Image.asset('assets/logo1.png', width: 100),
             const SizedBox(height: 15),
-            buildSignupInputField('이메일', emailController, TextInputType.emailAddress, false),
+
+            Column(
+              children: [
+                Container(
+                  width: 110,
+                  height: 110,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: selectedImage != null
+                        ? Image.file(selectedImage!, fit: BoxFit.cover)
+                        : const Icon(Icons.person, size: 60, color: AppTheme.primaryPurple),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton.icon(
+                  onPressed: onPickImage,
+                  icon: const Icon(Icons.photo, color: Colors.white),
+                  label: const Text('이미지 선택', style: TextStyle(fontFamily: 'Jua')),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: AppTheme.primaryPurple,
+                    elevation: 3,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+            buildSignupInputField('이메일', emailController, TextInputType.emailAddress, false, errorText: emailError),
             const SizedBox(height: 15),
             buildSignupInputField('비밀번호', passwordController, TextInputType.text, true),
             const SizedBox(height: 15),
             buildSignupInputField('비밀번호 확인', confirmPasswordController, TextInputType.text, true),
             const SizedBox(height: 15),
-            buildNicknameInputField('닉네임', nicknameController, onDuplicateNicknameCheck),
+            buildNicknameInputField('닉네임', nicknameController, onDuplicateNicknameCheck, errorText: nicknameError),
             const SizedBox(height: 15),
-            buildSignupInputField('이름', nameController, TextInputType.text, false),
+            buildSignupInputField('이름', usernameController, TextInputType.text, false),
             const SizedBox(height: 15),
             buildSignupInputField('전화번호', phoneController, TextInputType.phone, false),
             const SizedBox(height: 15),
@@ -392,18 +338,11 @@ class SignupPageUI extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryPurple,
                 minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               child: const Text(
                 '회원가입',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  fontFamily: 'Jua',
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Jua'),
               ),
             ),
             const SizedBox(height: 40),

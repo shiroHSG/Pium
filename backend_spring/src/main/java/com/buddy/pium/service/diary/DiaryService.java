@@ -102,9 +102,9 @@ public class DiaryService {
 
     public Diary validateDiaryOwner(Long diaryId, Member member) {
         Diary diary = validateDiary(diaryId);
-
-        if (!diary.getMember().equals(member)) {
-            throw new AccessDeniedException("수정 권한 없음");
+        Member owner = diary.getMember();
+        if (!owner.equals(member) && !owner.equals(member.getMateInfo())) {
+            throw new AccessDeniedException("권한이 없습니다.");
         }
         return diary;
     }

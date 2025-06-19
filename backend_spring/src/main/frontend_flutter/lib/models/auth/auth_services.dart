@@ -5,6 +5,38 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService {
   static const String baseUrl = 'http://10.0.2.2:8080'; // 하드코딩
 
+  // 이메일 닉네임 중복
+  Future<String?> signUp(Map<String, dynamic> memberData, {http.MultipartFile? imageFile}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/member/register');
+      final request = http.MultipartRequest('POST', uri);
+
+      // JSON 문자열로 변환해서 필드에 담기
+      request.fields['memberData'] = jsonEncode(memberData);
+
+      // 이미지가 있으면 추가
+      if (imageFile != null) {
+        request.files.add(imageFile);
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        return null; // 성공 시 에러 메시지 없음
+      } else {
+        final decoded = utf8.decode(response.bodyBytes);
+        final Map<String, dynamic> errorData = jsonDecode(decoded);
+        final rawMessage = errorData['message'] ?? '회원가입 실패';
+        final cleanMessage = rawMessage.toString().replaceFirst('회원가입 실패: ', '');
+        return cleanMessage;
+      }
+    } catch (e) {
+      print('회원가입 오류: $e');
+      return '네트워크 오류';
+    }
+  }
+
   // 로그인
   Future<bool> login(String email, String password) async {
     try {
@@ -78,6 +110,39 @@ class AuthService {
     }
   }
 
+  // 회원 정보 수정
+  Future<bool> updateMemberInfo(Map<String, dynamic> memberData, {http.MultipartFile? imageFile}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/member');
+      final request = http.MultipartRequest('PATCH', uri);
+
+      request.fields['memberData'] = jsonEncode(memberData);
+
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken') ?? '';
+      request.headers['Authorization'] = 'Bearer $token';
+
+      if (imageFile != null) {
+        request.files.add(imageFile);
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        print('✅ 회원 정보 수정 성공');
+        return true;
+      } else {
+        print('❌ 수정 실패: ${response.statusCode}');
+        print('본문: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('회원 정보 수정 오류: $e');
+      return false;
+    }
+  }
+
   // 로그아웃
   Future<bool> logout() async {
     try {
@@ -142,4 +207,40 @@ class AuthService {
       return null;
     }
   }
+
+  // 회원 탈퇴
+  Future<bool> deleteMember() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? accessToken = prefs.getString('accessToken');
+
+      if (accessToken == null) {
+        print('회원 탈퇴 실패: 토큰 없음');
+        return false;
+      }
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/member'),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        await prefs.remove('accessToken');
+        await prefs.remove('refreshToken');
+        print('회원 탈퇴 완료');
+        return true;
+      } else {
+        print('회원 탈퇴 실패: ${response.statusCode}, ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('회원 탈퇴 에러: $e');
+      return false;
+    }
+  }
+
 }

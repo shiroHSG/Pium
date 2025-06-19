@@ -5,6 +5,7 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 
 import '../../models/calendar/calendar_api.dart';
 import '../../screens/calendar/add_schedule_ui.dart';
+import '../../screens/calendar/calendar_page_ui.dart';
 
 class AddSchedulePopup extends StatefulWidget {
   final DateTime initialDate;
@@ -31,11 +32,11 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
 
     _titleController.text = existing?.title ?? '';
     _memoController.text = existing?.content ?? '';
-    _dateController.text = DateFormat('yyyy-MM-dd')
+    _dateController.text = DateFormat('yyyy년 MM월 dd일')
         .format(existing?.startTime ?? widget.initialDate);
 
     _timeController.text = existing != null
-        ? DateFormat('HH:mm').format(existing.startTime)
+        ? formatToAmPm(existing.startTime)
         : '';
 
     _selectedColor = existing != null
@@ -66,42 +67,49 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
       return;
     }
 
-    final date = DateFormat('yyyy-MM-dd').parse(_dateController.text);
-    final timeParts = _timeController.text.split(':');
-    final hour = int.tryParse(timeParts[0]) ?? 0;
-    final minute = int.tryParse(timeParts[1]) ?? 0;
-    final startTime = DateTime(date.year, date.month, date.day, hour, minute);
-    final endTime = startTime.add(const Duration(hours: 1));
-
-    final Schedule newSchedule = Schedule(
-      id: widget.existingSchedule?.id, // 수정 시 id 유지
-      title: _titleController.text,
-      content: _memoController.text.isEmpty ? '' : _memoController.text,
-      startTime: startTime,
-      endTime: endTime,
-      colorTag: '#${(_selectedColor ?? AppTheme.primaryPurple).value.toRadixString(16).padLeft(8, '0').substring(2)}',
-    );
-
     try {
-      if (widget.existingSchedule != null) {
-        // ✅ 수정
-        await CalendarApi.updateSchedule(newSchedule);
-      } else {
-        // ✅ 추가
-        final saved = await CalendarApi.postSchedule(newSchedule);
-        Navigator.of(context).pop(saved);
-        return;
+      final date = DateFormat('yyyy년 MM월 dd일').parse(_dateController.text);
+
+      // 오전/오후 + 시, 분 파싱
+      final timeText = _timeController.text.trim();
+      final amPmMatch = RegExp(r'^(오전|오후)').firstMatch(timeText);
+      final timeMatch = RegExp(r'(\d+)시\s*(\d+)?분?').firstMatch(timeText);
+
+      if (amPmMatch == null || timeMatch == null) {
+        throw FormatException('시간 형식이 올바르지 않습니다.');
       }
 
-      // ✅ 수정된 일정 반환
-      Navigator.of(context).pop(newSchedule);
+      final amPm = amPmMatch.group(0); // 오전 or 오후
+      int hour = int.parse(timeMatch.group(1)!);
+      final minute = int.tryParse(timeMatch.group(2) ?? '0') ?? 0;
+
+      // 오전/오후 처리
+      if (amPm == '오후' && hour != 12) hour += 12;
+      if (amPm == '오전' && hour == 12) hour = 0;
+
+      final startTime = DateTime(date.year, date.month, date.day, hour, minute);
+
+      final Schedule newSchedule = Schedule(
+        id: widget.existingSchedule?.id,
+        title: _titleController.text,
+        content: _memoController.text,
+        startTime: startTime,
+        colorTag: '#${(_selectedColor ?? AppTheme.primaryPurple).value.toRadixString(16).padLeft(8, '0').substring(2)}',
+      );
+
+      if (widget.existingSchedule != null) {
+        await CalendarApi.updateSchedule(newSchedule);
+        Navigator.of(context).pop(newSchedule);
+      } else {
+        final saved = await CalendarApi.postSchedule(newSchedule);
+        Navigator.of(context).pop(saved);
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('일정 저장 실패: $e')),
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -114,15 +122,13 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
       _selectedColor,
       _onColorSelected,
       _saveSchedule,
-      _selectDate,
-      _selectTime,
     );
   }
 
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: DateFormat('yyyy-MM-dd').parse(_dateController.text),
+      initialDate: DateFormat('yyyy년 MM월 dd일').parse(_dateController.text),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
       builder: (context, child) {
@@ -145,7 +151,7 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
     );
     if (pickedDate != null) {
       setState(() {
-        _dateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+        _dateController.text = DateFormat('yyyy년 MM월 dd일').format(pickedDate);
       });
     }
   }

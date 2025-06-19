@@ -94,7 +94,8 @@ public class ChildService {
     public Child validateChild(Long childId, Member member) {
         Child child = childRepository.findById(childId)
                 .orElseThrow(() -> new ResourceNotFoundException("아이를 찾을 수 없습니다."));
-        if (!child.getMember().equals(member)) {
+        Member owner = child.getMember();
+        if (!owner.equals(member) && !owner.equals(member.getMateInfo())) {
             throw new AccessDeniedException("권한이 없습니다.");
         }
         return child;

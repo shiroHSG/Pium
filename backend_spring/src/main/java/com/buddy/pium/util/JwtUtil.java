@@ -75,6 +75,17 @@ public class JwtUtil {
         }
     }
 
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parser()
+                    .setSigningKey(getSigningKey())
+                    .parseClaimsJws(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
     /**
      * 토큰에서 memberId(Long) 추출
      */

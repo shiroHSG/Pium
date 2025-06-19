@@ -19,4 +19,5 @@ public class MemberUpdateDto {
     private LocalDate birth;
     private Enum.Gender gender;
     private String profileImageUrl;
+    private String mateInfo;
 }

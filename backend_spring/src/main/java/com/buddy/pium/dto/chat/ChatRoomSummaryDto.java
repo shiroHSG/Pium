@@ -1,9 +1,6 @@
 package com.buddy.pium.dto.chat;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -11,9 +8,10 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class ChatRoomSummaryDto {
-    private Long roomId;
+    private Long chatRoomId;
     private String lastMessage;
-    private int unreadCount;
     private LocalDateTime lastSentAt;
+    private int unreadCount;
 }

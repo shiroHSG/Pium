@@ -1,22 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:frontend_flutter/pages/auth/login.dart';
-import 'package:frontend_flutter/pages/my_page/profile_edit_page.dart';
-import 'package:frontend_flutter/pages/my_page/babyProfile_page.dart';
+import 'package:frontend_flutter/pages/my_page/baby_profile/babyProfile_page.dart';
+import 'package:frontend_flutter/pages/my_page/my_activity/my_activity_page.dart';
+import 'package:frontend_flutter/pages/my_page/profile_edit/profile_edit_page.dart';
+import 'package:frontend_flutter/pages/my_page/setting_page/setting_page.dart';
 
-class MyPageUI extends StatelessWidget {
+import '../../models/auth/auth_services.dart';
+import '../../widgets/protected_image.dart';
+
+class MyPageUI extends StatefulWidget {
   const MyPageUI({Key? key}) : super(key: key);
+
+  @override
+  State<MyPageUI> createState() => _MyPageUIState();
+}
+
+class _MyPageUIState extends State<MyPageUI> {
+  String nickname = '로딩 중...';
+  String? profileImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    final data = await AuthService().fetchMemberInfo();
+    if (data != null && mounted) {
+      final imagePath = data['profileImageUrl'];
+      print('📸 프로필 이미지 경로: ${data['profileImageUrl']}');
+      final fullImageUrl = (imagePath != null && imagePath.isNotEmpty)
+          ? 'http://10.0.2.2:8080${imagePath.startsWith('/') ? imagePath : '/$imagePath'}?t=${DateTime.now().millisecondsSinceEpoch}'
+          : null;
+
+      print('🧪 최종 설정할 전체 URL: $fullImageUrl');
+      setState(() {
+        nickname = data['nickname'] ?? data['email'] ?? '알 수 없음';
+        profileImageUrl = fullImageUrl;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(context),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const _MyPageHeader(),
+            _MyPageHeader(nickname: nickname, profileImageUrl: profileImageUrl),
             const SizedBox(height: 60),
-            _MyPageButtonsGrid(),
+            _MyPageButtonsGrid(onProfileUpdated: _loadUserInfo),
             const SizedBox(height: 30),
           ],
         ),
@@ -26,7 +60,14 @@ class MyPageUI extends StatelessWidget {
 }
 
 class _MyPageHeader extends StatelessWidget {
-  const _MyPageHeader();
+  final String nickname;
+  final String? profileImageUrl;
+
+  const _MyPageHeader({
+    Key? key,
+    required this.nickname,
+    this.profileImageUrl,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -37,45 +78,43 @@ class _MyPageHeader extends StatelessWidget {
         color: AppTheme.lightPink,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
       ),
-      child: Column(
-        children: [
-          Container(
-            width: 150,
-            height: 150,
-            decoration: const BoxDecoration(
-              color: AppTheme.primaryPurple,
-              shape: BoxShape.circle,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 50.0),
+        child: Column(
+          children: [
+            profileImageUrl != null && profileImageUrl!.isNotEmpty
+                ? ProtectedImage(
+              imageUrl: profileImageUrl!,
+              size: 150,
+            )
+                : const SizedBox(
+              width: 150,
+              height: 150,
+              child: Center(child: CircularProgressIndicator()),
             ),
-            child: const Center(
+
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 40.0),
               child: Text(
-                '프로필\n사진',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
+                nickname,
+                style: const TextStyle(
+                  fontSize: 24,
+                  color: AppTheme.textPurple,
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 40.0),
-            child: Text(
-              '아이디',
-              style: TextStyle(
-                fontSize: 24,
-                color: AppTheme.textPurple,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
 class _MyPageButtonsGrid extends StatelessWidget {
-  const _MyPageButtonsGrid();
+  final VoidCallback onProfileUpdated;
+
+  const _MyPageButtonsGrid({required this.onProfileUpdated});
 
   @override
   Widget build(BuildContext context) {
@@ -89,20 +128,21 @@ class _MyPageButtonsGrid extends StatelessWidget {
         crossAxisSpacing: 12.0,
         childAspectRatio: 1.4,
         children: [
-          _buildMyPageButton(
-            context,
-            icon: Icons.person_outline,
-            label: '프로필',
-            iconSize: 30,
-            textSize: 14,
-            onTap: () {
-              print('프로필');
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfileEditPage()),
-              );
-            },
-          ),
+        _buildMyPageButton(
+        context,
+        icon: Icons.person_outline,
+        label: '프로필',
+          onTap: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileEditPage()),
+            );
+            if (result == 'updated') {
+              await Future.delayed(Duration(milliseconds: 100));
+              if (context.mounted) onProfileUpdated();
+            }
+          },
+        ),
           _buildMyPageButton(
             context,
             icon: Icons.child_care_outlined,
@@ -110,31 +150,23 @@ class _MyPageButtonsGrid extends StatelessWidget {
             iconSize: 30,
             textSize: 14,
             onTap: () {
-              print('아이 정보 수정');
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const BabyProfilePage()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const BabyProfilePage()));
             },
           ),
           _buildMyPageButton(
             context,
             icon: Icons.thumb_up_alt_outlined,
             label: '내 활동',
-            iconSize: 30,
-            textSize: 14,
             onTap: () {
-              print('내 활동');
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const MyActivityPage()));
             },
           ),
           _buildMyPageButton(
             context,
             icon: Icons.settings_outlined,
             label: '환경설정',
-            iconSize: 30,
-            textSize: 14,
             onTap: () {
-              print('환경설정');
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsPage()));
             },
           ),
         ],
@@ -142,22 +174,21 @@ class _MyPageButtonsGrid extends StatelessWidget {
     );
   }
 
-  Widget _buildMyPageButton(BuildContext context, {
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    double iconSize = 30,
-    double textSize = 14,
-  }) {
+  Widget _buildMyPageButton(
+      BuildContext context, {
+        required IconData icon,
+        required String label,
+        required VoidCallback onTap,
+        double iconSize = 30,
+        double textSize = 14,
+      }) {
     return SizedBox(
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primaryPurple,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
           elevation: 2,
           padding: EdgeInsets.zero,
         ),
@@ -166,102 +197,10 @@ class _MyPageButtonsGrid extends StatelessWidget {
           children: [
             Icon(icon, size: iconSize),
             const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(fontSize: textSize, fontWeight: FontWeight.bold),
-            ),
+            Text(label, style: TextStyle(fontSize: textSize, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
     );
   }
-}
-
-AppBar _buildAppBar(BuildContext context) {
-  return AppBar(
-    backgroundColor: AppTheme.lightPink,
-    elevation: 0,
-    centerTitle: true,
-    actions: [
-      IconButton(
-        icon: const Icon(Icons.logout, color: AppTheme.textPurple),
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext dialogContext) {
-              return AlertDialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                ),
-                contentPadding: EdgeInsets.zero,
-                content: Container(
-                  width: MediaQuery.of(context).size.width * 0.7,
-                  padding: const EdgeInsets.symmetric(vertical: 30.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        '로그아웃 하시겠습니까?',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(dialogContext).pop();
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(builder: (context) => Login()),
-                                    (Route<dynamic> route) => false,
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFde95ba),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                            ),
-                            child: const Text(
-                              '예',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(dialogContext).pop();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFde95ba),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                            ),
-                            child: const Text(
-                              '아니오',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-        tooltip: '로그아웃',
-      ),
-    ],
-  );
 }

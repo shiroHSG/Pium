@@ -1,5 +1,7 @@
 package com.buddy.pium.service.chat;
 
+import com.buddy.pium.dto.chat.ChatRoomSummaryDto;
+import com.buddy.pium.websocket.ChatWebSocketBroadcaster;
 import com.buddy.pium.dto.chat.MessageResponseDto;
 import com.buddy.pium.entity.chat.ChatRoom;
 import com.buddy.pium.entity.chat.ChatRoomMember;
@@ -32,6 +34,7 @@ public class MessageService {
     private final ChatRoomService chatRoomService;
     private final ChatRoomMemberService chatRoomMemberService;
     private final MemberService memberService;
+    private final ChatWebSocketBroadcaster chatWebSocketBroadcaster;
 
     // 메세지 전송
     @Transactional
@@ -52,9 +55,31 @@ public class MessageService {
         chatRoom.setLastMessageSentAt(LocalDateTime.now());
         chatRoomRepository.save(chatRoom);
 
-        // 마지막으로 읽은 메시지를 현재 메시지로 갱신
+        // 보낸 사람은 즉시 읽음 처리
         senderMember.setLastReadMessageId(message.getId());
         chatRoomMemberRepository.save(senderMember);
+
+        // WebSocket 브로드캐스트 (해당 채팅방 참여자에게 실시간 전달)
+        MessageResponseDto responseDto = toDTO(message, sender);
+        chatWebSocketBroadcaster.broadcastMessage(chatRoomId, responseDto);
+
+        // 수신자에게 채팅방 요약 브로드캐스트
+        List<ChatRoomMember> otherMembers = chatRoomMemberRepository.findByChatRoomId(chatRoomId).stream()
+                .filter(m -> !m.getMember().getId().equals(sender.getId()))
+                .toList();
+
+        for (ChatRoomMember receiver : otherMembers) {
+            int unreadCount = messageRepository.countUnreadMessagesForMember(chatRoomId, receiver.getMember().getId());
+
+            ChatRoomSummaryDto summary = ChatRoomSummaryDto.builder()
+                    .chatRoomId(chatRoomId)
+                    .lastMessage(content)
+                    .lastSentAt(message.getSentAt())
+                    .unreadCount(unreadCount)
+                    .build();
+
+            chatWebSocketBroadcaster.broadcastChatSummary(receiver.getMember().getId(), summary);
+        }
 
         return toDTO(message, sender);
     }
@@ -96,6 +121,27 @@ public class MessageService {
 
                 if (chatRoomMember.getLastReadMessageId() == null || chatRoomMember.getLastReadMessageId() < newLastReadMessageId) {
                     chatRoomMember.setLastReadMessageId(newLastReadMessageId);
+
+                    // 메세지 조회 브로드캐스트
+                    chatWebSocketBroadcaster.broadcastReadStatus(chatRoomId, sender.getId(), newLastReadMessageId);
+
+                    // ✅ 마지막 메시지의 발신자에게 summary 갱신 브로드캐스트
+                    Message lastMessage = messages.get(messages.size() - 1);
+                    Member lasMessageSender = lastMessage.getSender();
+
+                    if (!lasMessageSender.equals(sender)) {
+                        int updatedUnreadCount = messageRepository.countUnreadMessagesForMember(chatRoomId, lasMessageSender.getId());
+
+                        ChatRoomSummaryDto summary = ChatRoomSummaryDto.builder()
+                                .chatRoomId(chatRoomId)
+                                .lastMessage(lastMessage.getContent())
+                                .lastSentAt(lastMessage.getSentAt())
+                                .unreadCount(updatedUnreadCount)
+                                .build();
+
+                        chatWebSocketBroadcaster.broadcastChatSummary(lasMessageSender.getId(), summary);
+                    }
+
                 }
             }
 
@@ -124,6 +170,7 @@ public class MessageService {
                 .messageId(message.getId())
                 .senderId(message.getSender().getId())
                 .senderNickname(message.getSender().getNickname())
+                .senderProfileImageUrl(message.getSender().getProfileImageUrl())
                 .content(message.getContent())
                 .sentAt(message.getSentAt())
                 .unreadCount(unreadCount)
