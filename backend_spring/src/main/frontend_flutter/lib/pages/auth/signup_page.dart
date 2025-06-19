@@ -21,7 +21,7 @@ class _SignupPageState extends State<SignupPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _nicknameController = TextEditingController();
-  final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _birthDateController = TextEditingController();
   final _addressController = TextEditingController();
@@ -65,7 +65,7 @@ class _SignupPageState extends State<SignupPage> {
     }
 
     final memberData = {
-      'username': _emailController.text,
+      'username': _usernameController.text,
       'email': _emailController.text,
       'password': _passwordController.text,
       'nickname': _nicknameController.text,
@@ -201,7 +201,7 @@ class _SignupPageState extends State<SignupPage> {
         passwordController: _passwordController,
         confirmPasswordController: _confirmPasswordController,
         nicknameController: _nicknameController,
-        nameController: _nameController,
+        usernameController: _usernameController,
         phoneController: _phoneController,
         birthDateController: _birthDateController,
         addressController: _addressController,

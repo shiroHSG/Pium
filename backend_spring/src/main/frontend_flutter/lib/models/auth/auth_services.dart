@@ -110,6 +110,39 @@ class AuthService {
     }
   }
 
+  // 회원 정보 수정
+  Future<bool> updateMemberInfo(Map<String, dynamic> memberData, {http.MultipartFile? imageFile}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/member');
+      final request = http.MultipartRequest('PATCH', uri);
+
+      request.fields['memberData'] = jsonEncode(memberData);
+
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken') ?? '';
+      request.headers['Authorization'] = 'Bearer $token';
+
+      if (imageFile != null) {
+        request.files.add(imageFile);
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        print('✅ 회원 정보 수정 성공');
+        return true;
+      } else {
+        print('❌ 수정 실패: ${response.statusCode}');
+        print('본문: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('회원 정보 수정 오류: $e');
+      return false;
+    }
+  }
+
   // 로그아웃
   Future<bool> logout() async {
     try {
