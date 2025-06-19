@@ -100,11 +100,13 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _navigateToCalendarPage() {
-    Navigator.push(
+  Future<void> _navigateToCalendarPage() async {
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const CalendarPage()),
     );
+    // 캘린더 페이지에서 돌아왔을 때 일정 다시 로드
+    await _loadSchedules();
   }
 
   Future<void> _showAddSchedulePopup() async {
