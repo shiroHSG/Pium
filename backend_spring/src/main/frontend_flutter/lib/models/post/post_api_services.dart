@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'post_response.dart';
 
 class PostApiService {
-  static const String baseUrl = 'http://10.0.2.2:8080/posts';
+  static const String baseUrl = 'http://10.0.2.2:8080/api/posts';
 
   static Future<List<PostResponse>> fetchPosts(
       String category, {
@@ -21,7 +21,7 @@ class PostApiService {
     });
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = prefs.getString('accessToken');
 
     if (token == null) {
       throw Exception('로그인 토큰이 없습니다. 로그인 해주세요.');
@@ -45,35 +45,33 @@ class PostApiService {
   }
 
   // PostRequest 객체를 매개변수로 받도록 수정하고, writer는 제거
-  static Future<PostResponse> createPost({
+  static Future<void> createPost({
     required PostRequest postRequest,
+    http.MultipartFile? imageFile,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    print("저장된 토큰: $token");
+    final token = prefs.getString('accessToken');
 
     if (token == null) {
-      throw Exception('로그인 토큰이 없습니다. 로그인 해주세요.');
+      throw Exception('로그인 토큰이 없습니다.');
     }
 
-    final url = Uri.parse('$baseUrl');
-    final response = await http.post(
-      url,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
-      // PostRequest 객체의 toJson() 메서드를 사용하여 JSON으로 변환
-      body: jsonEncode(postRequest.toJson()),
-    );
+    final uri = Uri.parse('http://10.0.2.2:8080/api/posts');
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['postData'] = jsonEncode(postRequest.toJson());
 
-    // 201: 생성 성공(새로운 것을 성공적으로 생성), 200: 일반 요청 성공(요청을 설공적으로 처리)
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      print("PostApiServices 게시글 작성 성공");
-      return PostResponse.fromJson(jsonDecode(response.body));
+    if (imageFile != null) {
+      request.files.add(imageFile); 
+    }
+
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      print('✅ 게시글 생성 성공');
     } else {
-      print('PostApiServices 게시글 작성 실패: ${response.statusCode} ${response.body}');
-      throw Exception('PostApiServices 게시글 작성에 실패했습니다: ${response.statusCode} ${response.body}');
+      final res = await http.Response.fromStream(response);
+      print('❌ 게시글 생성 실패: ${response.statusCode}, ${res.body}');
+      throw Exception('게시글 생성 실패: ${response.statusCode}');
     }
   }
-}
