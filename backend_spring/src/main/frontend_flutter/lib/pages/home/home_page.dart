@@ -18,7 +18,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/calendar/calendar_api.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  final int initialIndex;  // 외부에서 전달받을 초기 탭 인덱스
+
+  const MyHomePage({
+    Key? key,
+    this.initialIndex = 0, // 기본값 설정
+  }) : super(key: key);
+
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -40,6 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex;  // 외부에서 받은 값을 내부에서 실제 선택된 탭으로 설정
     _checkLoginStatus(); // 로그인 상태 체크
     _loadBabyProfile(); // 아기정보 불러오기
     _loadSchedules(); //  일정 불러오기

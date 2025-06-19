@@ -3,6 +3,8 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/screens/chatting/chatting_message_page_ui.dart';
 import 'package:frontend_flutter/models/chat_message.dart';
 
+import 'chatting_userlist_page.dart';
+
 class ChatRoomPage extends StatefulWidget {
   const ChatRoomPage({Key? key}) : super(key: key);
 
@@ -100,7 +102,28 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
           IconButton(
             icon: const Icon(Icons.more_vert, color: AppTheme.textPurple),
             onPressed: () {
-              // 더보기 기능
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChattingUserlistPage(
+                    roomName: '육아 친구들',
+                    onCopyInviteLink: () {
+                      // TODO: 클립보드 복사 로직 구현
+                      print('초대링크 복사');
+                    },
+                    onLeaveChatRoom: () {
+                      // TODO: 채팅방 나가기 로직 구현
+                      print('채팅방 나가기');
+                    },
+                    participants: [
+                      {'nickname': '작성자 아이디', 'profileImageUrl': null},
+                      {'nickname': '참여자1', 'profileImageUrl': null},
+                      {'nickname': '참여자2', 'profileImageUrl': null},
+                      {'nickname': '참여자3', 'profileImageUrl': null},
+                    ],
+                  ),
+                ),
+              );
             },
           ),
         ],
