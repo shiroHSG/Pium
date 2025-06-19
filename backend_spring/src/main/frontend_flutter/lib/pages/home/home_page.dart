@@ -264,6 +264,7 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
     );
+  }
 
   // 캘린더 일정 불러오기
   Future<void> _loadSchedules() async {
