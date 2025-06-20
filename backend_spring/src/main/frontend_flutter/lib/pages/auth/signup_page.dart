@@ -170,9 +170,21 @@ class _SignupPageState extends State<SignupPage> {
       MaterialPageRoute(builder: (_) => const AddressSearchPage()),
     );
 
-    if (selectedAddress != null) {
+    if (selectedAddress != null && selectedAddress is String) {
+      final parts = selectedAddress.split(' ');
+
+      String shortAddress = selectedAddress; // 기본값: 전체 주소
+
+      if (parts.length >= 3) {
+        if (parts[0].endsWith('도')) {
+          shortAddress = '${parts[0]} ${parts[1]} ${parts[2]}';
+        } else {
+          shortAddress = '${parts[0]} ${parts[1]} ${parts[2]}';
+        }
+      }
+      
       setState(() {
-        _addressController.text = selectedAddress;
+        _addressController.text = shortAddress;
       });
     }
   }
