@@ -244,7 +244,7 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
                     return Row(
                       children: [
                         fullImageUrl != null
-                            ? ProtectedImage(imageUrl: fullImageUrl, size: 24)
+                            ? ProtectedImage(imageUrl: fullImageUrl)
                             : const CircleAvatar(
                           radius: 12,
                           backgroundColor: AppTheme.primaryPurple,

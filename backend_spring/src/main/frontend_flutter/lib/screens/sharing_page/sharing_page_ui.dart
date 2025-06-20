@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
+import '../../widgets/protected_image.dart';
 
 class SharingAppBar extends StatelessWidget implements PreferredSizeWidget {
   const SharingAppBar({Key? key}) : super(key: key);
@@ -48,13 +49,22 @@ class SharingCategoryDropdown extends StatelessWidget {
           value: selectedCategory,
           dropdownColor: Colors.white,
           icon: const Icon(Icons.arrow_drop_down, color: Colors.white, size: 20),
-          style: const TextStyle(color: AppTheme.textPurple, fontSize: 14, fontWeight: FontWeight.w500),
+          style: const TextStyle(
+            color: AppTheme.textPurple,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
           items: ['나눔', '품앗이'].map((String value) {
             return DropdownMenuItem<String>(
               value: value,
               child: Text(
                 value,
-                style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Jua'),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'Jua',
+                ),
               ),
             );
           }).toList(),
@@ -82,10 +92,13 @@ class SharingListItem extends StatefulWidget {
 }
 
 class _SharingListItemState extends State<SharingListItem> {
-  bool _isFavorited = false; // 찜 상태를 관리하는 변수
+  bool _isFavorited = false;
 
   @override
   Widget build(BuildContext context) {
+    final imageUrl = widget.item.imageUrl;
+    final hasImage = imageUrl != null && imageUrl.trim().isNotEmpty;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -102,23 +115,12 @@ class _SharingListItemState extends State<SharingListItem> {
                 height: 80,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: widget.item.imageUrl != null
-                      ? Image.network(
-                    widget.item.imageUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: const Color(0xFFf9d9e7),
-                        child: const Center(
-                          child: Text('이미지 없음', style: TextStyle(color: Colors.grey)),
-                        ),
-                      );
-                    },
-                  )
+                  child: hasImage
+                      ? ProtectedImage(imageUrl: imageUrl!)
                       : Container(
                     color: const Color(0xFFf9d9e7),
                     child: const Center(
-                      child: Text('제품 이미지', style: TextStyle(color: Colors.grey)),
+                      child: Text('이미지 없음', style: TextStyle(color: Colors.grey)),
                     ),
                   ),
                 ),
@@ -141,9 +143,9 @@ class _SharingListItemState extends State<SharingListItem> {
                 ),
                 onPressed: () {
                   setState(() {
-                    _isFavorited = !_isFavorited; // 상태를 토글
+                    _isFavorited = !_isFavorited;
                   });
-                  widget.onFavoriteTap(); // 원래 찜 기능 콜백 호출
+                  widget.onFavoriteTap();
                 },
               ),
             ],
