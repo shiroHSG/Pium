@@ -126,7 +126,6 @@ public class ChatRoomService {
     private ChatRoomResponseDto toResponseDTO(ChatRoom chatRoom, Member currentUser) {
         String otherNickname = null;
         String otherProfileImageUrl = null;
-        String sharePostTitle = null;
 
         ChatRoomMember chatRoomMember = validateChatRoomMember(chatRoom, currentUser);
         Long lastReadMessageId = chatRoomMember.getLastReadMessageId();
@@ -155,11 +154,6 @@ public class ChatRoomService {
             }
         }
 
-
-        if (chatRoom.getType() == Enum.ChatRoomType.SHARE && chatRoom.getShare() != null) {
-            sharePostTitle = chatRoom.getShare().getTitle(); // 🔹 제목 가져오기
-        }
-
         return ChatRoomResponseDto.builder()
                 .chatRoomId(chatRoom.getId())
                 .type(chatRoom.getType())
@@ -168,7 +162,6 @@ public class ChatRoomService {
                 .lastMessage(chatRoom.getLastMessageContent())
                 .lastSentAt(chatRoom.getLastMessageSentAt())
                 .sharePostId(chatRoom.getShare() != null ? chatRoom.getShare().getId() : null)
-                .sharePostTitle(sharePostTitle)
                 .otherNickname(otherNickname)
                 .otherProfileImageUrl(otherProfileImageUrl)
                 .unreadCount(unreadCount)
@@ -183,7 +176,6 @@ public class ChatRoomService {
         if (dto.getChatRoomName() != null) {
             chatRoom.setChatRoomName(dto.getChatRoomName());
         }
-
         if (dto.getPassword() != null) {
             chatRoom.setPassword(dto.getPassword());
         }

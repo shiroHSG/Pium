@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:intl/intl.dart';
-import 'package:frontend_flutter/models/chat/message.dart';
+import 'package:frontend_flutter/models/chat_message.dart';
 
 class ChattingMessagePageUI extends StatelessWidget {
   final List<ChatMessage> messages;
@@ -77,28 +77,28 @@ class ChattingMessagePageUI extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: Text(
-                    message.content, // ✅ 변경: text → content
+                    message.text,
                     style: TextStyle(color: message.isMe ? AppTheme.textPurple : Colors.white),
                   ),
                 ),
                 Row(
                   mainAxisAlignment: message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
                   children: [
-                    if (message.isMe && message.unreadCount > 0)
+                    if (message.isMe && message.readCount > 0)
                       Text(
-                        '${message.unreadCount}', // ✅ 변경: readCount → unreadCount
+                        '${message.readCount}',
                         style: const TextStyle(fontSize: 10, color: Colors.grey),
                       ),
-                    if (message.isMe && message.unreadCount > 0)
+                    if (message.isMe && message.readCount > 0)
                       const SizedBox(width: 4),
                     Text(
-                      DateFormat('a h:mm').format(message.sentAt), // ✅ 변경: time → sentAt
+                      DateFormat('a h:mm').format(message.time),
                       style: const TextStyle(fontSize: 10, color: Colors.grey),
                     ),
                     const SizedBox(width: 4),
-                    if (!message.isMe && message.unreadCount > 0)
+                    if (!message.isMe && message.readCount > 0)
                       Text(
-                        '${message.unreadCount}', // ✅ 동일하게 변경
+                        '${message.readCount}',
                         style: const TextStyle(fontSize: 10, color: Colors.grey),
                       ),
                   ],

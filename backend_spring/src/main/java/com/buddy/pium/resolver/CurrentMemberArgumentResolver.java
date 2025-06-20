@@ -32,7 +32,7 @@ public class CurrentMemberArgumentResolver implements HandlerMethodArgumentResol
                                   WebDataBinderFactory binderFactory) {
 
         Authentication auth = (Authentication) webRequest.getUserPrincipal();
-        System.out.println(auth);
+
         if (auth == null || auth.getPrincipal() == null) {
             throw new IllegalStateException("인증 정보가 존재하지 않습니다.");
         }

@@ -41,16 +41,12 @@ class ConfirmDialog extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildButton(context, confirmText, onConfirm), // 예 버튼
+                _buildButton(context, confirmText, onConfirm),
                 const SizedBox(width: 20),
-                _buildButton(
-                  context,
-                  cancelText,
-                      () {
-                    if (onCancel != null) onCancel!();
-                  },
-                  shouldCloseDialog: true,
-                ), // 아니오 버튼
+                _buildButton(context, cancelText, () {
+                  Navigator.of(context).pop();
+                  if (onCancel != null) onCancel!();
+                }),
               ],
             ),
           ],
@@ -59,13 +55,13 @@ class ConfirmDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildButton(BuildContext context, String text, VoidCallback onPressed, {bool shouldCloseDialog = true}) {
+  Widget _buildButton(BuildContext context, String text, VoidCallback onPressed) {
     return SizedBox(
       width: 80,
       height: 36,
       child: ElevatedButton(
         onPressed: () {
-          if (shouldCloseDialog) Navigator.of(context).pop();
+          Navigator.of(context).pop(); // 다이얼로그 먼저 닫기
           onPressed();
         },
         style: ElevatedButton.styleFrom(

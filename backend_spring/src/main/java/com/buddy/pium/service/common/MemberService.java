@@ -154,7 +154,6 @@ public class MemberService {
                 return LoginResponseDto.builder()
                         .accessToken(accessToken)
                         .refreshToken(refreshToken)
-                        .memberId(member.getId())
                         .build();
             } else {
                 System.out.println("[Service] 비밀번호 불일치");
