@@ -21,7 +21,7 @@ class PeopleSearchInput extends StatelessWidget {
             child: TextField(
               controller: searchController,
               decoration: InputDecoration(
-                hintText: '사람 찾기',
+                hintText: '사람 찾기2',
                 hintStyle: TextStyle(color: Colors.grey[600]),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
