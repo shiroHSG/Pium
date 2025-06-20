@@ -10,12 +10,15 @@ import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
 import 'package:frontend_flutter/models/calendar/schedule.dart';
 import 'package:frontend_flutter/pages/calendar_page/calendar_page.dart';
 import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart';
-import 'package:frontend_flutter/pages/chatting/chatting_page.dart';
+import 'package:frontend_flutter/pages/chat/chatting_page.dart';
 import 'package:frontend_flutter/screens/home/home_page_ui.dart';
 import 'package:frontend_flutter/pages/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/calendar/calendar_api.dart';
+import '../../models/chat/chat_service.dart';
+import '../../models/child/child_api.dart';
+import '../../models/webSocket/connectWebSocket.dart';
 
 class MyHomePage extends StatefulWidget {
   final int initialIndex;
@@ -226,6 +229,7 @@ class _MyHomePageState extends State<MyHomePage> {
       bottomNavigationBar: CustomBottomNavigationBar(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
+        unreadCount: _unreadCount,
       ),
     );
   }

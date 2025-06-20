@@ -3,7 +3,7 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/protected_image.dart';
 import '../home/home_page.dart';
-import 'chatting_page.dart';
+import '../chat/chatting_page.dart';
 
 class ChattingUserlistPage extends StatefulWidget {
   final String roomName;
