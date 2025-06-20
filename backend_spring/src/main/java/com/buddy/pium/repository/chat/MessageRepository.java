@@ -43,4 +43,17 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 """)
     int countUnreadMessagesForMember(@Param("chatRoomId") Long chatRoomId,
                                      @Param("memberId") Long memberId);
+
+    @Query("""
+    SELECT COUNT(m)
+    FROM Message m
+    WHERE m.chatRoom = :chatRoom
+      AND m.id > :lastReadMessageId
+      AND m.sender <> :member
+""")
+    int countUnreadMessagesAfterMessageId(@Param("chatRoom") ChatRoom chatRoom,
+                                          @Param("lastReadMessageId") Long lastReadMessageId,
+                                          @Param("member") Member member);
+
+    int countByChatRoomAndSenderNot(ChatRoom chatRoom, Member member);
 }

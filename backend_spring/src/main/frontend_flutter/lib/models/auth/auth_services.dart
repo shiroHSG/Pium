@@ -56,10 +56,13 @@ class AuthService {
         final Map<String, dynamic> data = jsonDecode(response.body);
         final String accessToken = data['accessToken'];
         final String refreshToken = data['refreshToken'];
+        final memberId = data['memberId'];
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('accessToken', accessToken);
         await prefs.setString('refreshToken', refreshToken);
+        await prefs.setInt('memberId', memberId);
+
         print("저장된 accessToken: $accessToken");
         print("저장된 refreshToken: $refreshToken");
         return true;
@@ -169,6 +172,8 @@ class AuthService {
       if (response.statusCode == 200) {
         await prefs.remove('accessToken');
         await prefs.remove('refreshToken');
+        await prefs.remove('memberId');
+        print('로그아웃 완료');
         return true;
       } else {
         print('응답 상태 코드: ${response.statusCode}');
@@ -231,6 +236,7 @@ class AuthService {
       if (response.statusCode == 200) {
         await prefs.remove('accessToken');
         await prefs.remove('refreshToken');
+        await prefs.remove('memberId');
         print('회원 탈퇴 완료');
         return true;
       } else {
