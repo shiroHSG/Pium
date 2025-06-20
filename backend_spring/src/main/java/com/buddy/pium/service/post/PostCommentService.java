@@ -1,14 +1,16 @@
 package com.buddy.pium.service.post;
 
-import com.buddy.pium.dto.post.PostCommentRequest;
-import com.buddy.pium.dto.post.PostCommentResponse;
+import com.buddy.pium.dto.post.PostCommentRequestDto;
+import com.buddy.pium.dto.post.PostCommentResponseDto;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.Post;
 import com.buddy.pium.entity.post.PostComment;
+import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.repository.post.PostCommentRepository;
 import com.buddy.pium.repository.post.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,11 +25,10 @@ public class PostCommentService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
 
-    public void create(Long postId, Long memberId, PostCommentRequest dto) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글 없음"));
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("회원 없음"));
+    private final PostService postService;
+
+    public void create(Long postId, Member member, PostCommentRequestDto dto) {
+        Post post = postService.validatePostOwner(postId, member);
 
         PostComment comment = PostComment.builder()
                 .post(post)
@@ -38,13 +39,12 @@ public class PostCommentService {
         postCommentRepository.save(comment);
     }
 
-    public List<PostCommentResponse> getComments(Long postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글 없음"));
+    public List<PostCommentResponseDto> getComments(Long postId) {
+        Post post = postService.validatePost(postId);
 
         return postCommentRepository.findByPost(post)
                 .stream()
-                .map(c -> PostCommentResponse.builder()
+                .map(c -> PostCommentResponseDto.builder()
                         .id(c.getId())
                         .content(c.getContent())
                         .writer(c.getMember().getNickname())
@@ -54,26 +54,23 @@ public class PostCommentService {
     }
 
     @Transactional
-    public void update(Long commentId, Long memberId, PostCommentRequest dto) {
-        PostComment comment = postCommentRepository.findById(commentId)
-                .orElseThrow(() -> new RuntimeException("댓글 없음"));
-
-        if (!comment.getMember().getId().equals(memberId)) {
-            throw new RuntimeException("수정 권한 없음");
-        }
-
+    public void update(Long commentId, Member member, PostCommentRequestDto dto) {
+        PostComment comment = validateCommentOwner(commentId, member);
         comment.setContent(dto.getContent());
     }
 
     @Transactional
-    public void delete(Long commentId, Long memberId) {
-        PostComment comment = postCommentRepository.findById(commentId)
-                .orElseThrow(() -> new RuntimeException("댓글 없음"));
-
-        if (!comment.getMember().getId().equals(memberId)) {
-            throw new RuntimeException("삭제 권한 없음");
-        }
-
+    public void delete(Long commentId, Member member) {
+        PostComment comment = validateCommentOwner(commentId, member);
         postCommentRepository.delete(comment);
+    }
+
+    public PostComment validateCommentOwner(Long commentId, Member member) {
+        PostComment comment = postCommentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("댓글이 없습니다."));
+        if (!comment.getMember().equals(member)) {
+            throw new AccessDeniedException("권한이 없습니다.");
+        }
+        return comment;
     }
 }

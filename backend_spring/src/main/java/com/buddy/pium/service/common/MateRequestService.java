@@ -4,6 +4,7 @@ import com.buddy.pium.dto.common.MateResponseDto;
 import com.buddy.pium.entity.common.Enum.MateRequestStatus;
 import com.buddy.pium.entity.common.MateRequest;
 import com.buddy.pium.entity.common.Member;
+import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MateRequestRepository;
 import com.buddy.pium.repository.common.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,15 +22,11 @@ public class MateRequestService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public void requestMate(Long senderId, Long receiverId) {
-        if (senderId.equals(receiverId)) {
+    public void requestMate(Member receiver, Long receiverId) {
+        Member sender = validateMember(receiverId);
+        if(sender.equals(receiver)) {
             throw new IllegalArgumentException("자기 자신에게 Mate 요청을 보낼 수 없습니다.");
         }
-
-        Member sender = memberRepository.findById(senderId)
-                .orElseThrow(() -> new IllegalArgumentException("요청자 정보를 찾을 수 없습니다."));
-        Member receiver = memberRepository.findById(receiverId)
-                .orElseThrow(() -> new IllegalArgumentException("상대방 정보를 찾을 수 없습니다."));
 
         if (sender.getMateInfo() != null || receiver.getMateInfo() != null) {
             throw new IllegalStateException("상대방 또는 본인은 이미 Mate로 연결되어 있습니다.");
@@ -51,9 +48,9 @@ public class MateRequestService {
     }
 
     @Transactional
-    public void acceptMateBySender(Long senderId, Long receiverId) {
+    public void acceptMateBySender(Long senderId, Member member) {
         MateRequest request = mateRequestRepository
-                .findBySenderIdAndReceiverIdAndStatus(senderId, receiverId, MateRequestStatus.PENDING)
+                .findBySenderIdAndReceiverIdAndStatus(senderId, member.getId(), MateRequestStatus.PENDING)
                 .orElseThrow(() -> new IllegalArgumentException("해당 Mate 요청이 존재하지 않거나 이미 처리되었습니다."));
 
         Member sender = request.getSender();
@@ -73,18 +70,15 @@ public class MateRequestService {
     }
 
     @Transactional
-    public void rejectMateBySender(Long senderId, Long receiverId) {
+    public void rejectMateBySender(Long senderId, Member member) {
         MateRequest request = mateRequestRepository
-                .findBySenderIdAndReceiverIdAndStatus(senderId, receiverId, MateRequestStatus.PENDING)
+                .findBySenderIdAndReceiverIdAndStatus(senderId, member.getId(), MateRequestStatus.PENDING)
                 .orElseThrow(() -> new IllegalArgumentException("해당 Mate 요청이 존재하지 않거나 이미 처리되었습니다."));
 
         request.setStatus(MateRequestStatus.REJECTED);
     }
 
-    public List<MateResponseDto> getPendingRequests(Long receiverId) {
-        Member receiver = memberRepository.findById(receiverId)
-                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
-
+    public List<MateResponseDto> getPendingRequests(Member receiver) {
         return mateRequestRepository.findByReceiverAndStatus(receiver, MateRequestStatus.PENDING)
                 .stream()
                 .map(req -> MateResponseDto.builder()
@@ -98,10 +92,7 @@ public class MateRequestService {
                 .collect(Collectors.toList());
     }
 
-    public List<MateResponseDto> getSentRequests(Long senderId) {
-        Member sender = memberRepository.findById(senderId)
-                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
-
+    public List<MateResponseDto> getSentRequests(Member sender) {
         return mateRequestRepository.findBySenderAndStatus(sender, MateRequestStatus.PENDING)
                 .stream()
                 .map(req -> MateResponseDto.builder()
@@ -116,21 +107,18 @@ public class MateRequestService {
     }
 
     @Transactional
-    public void cancelRequest(Long senderId, Long receiverId) {
+    public void cancelRequest(Member member, Long receiverId) {
         MateRequest request = mateRequestRepository
-                .findBySenderIdAndReceiverIdAndStatus(senderId, receiverId, MateRequestStatus.PENDING)
+                .findBySenderIdAndReceiverIdAndStatus(member.getId(), receiverId, MateRequestStatus.PENDING)
                 .orElseThrow(() -> new IllegalArgumentException("해당 Mate 요청이 존재하지 않거나 이미 처리되었습니다."));
 
         mateRequestRepository.delete(request);
     }
 
     @Transactional
-    public void disconnectMate(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
-
+    public void disconnectMate(Member member) {
         if (member.getMateInfo() == null) {
-            throw new IllegalStateException("Mate가 설정되어 있지 않습니다.");
+            throw new IllegalArgumentException("Mate가 설정되어 있지 않습니다.");
         }
 
         Member mate = memberRepository.findById(member.getMateInfo())
@@ -141,5 +129,10 @@ public class MateRequestService {
 
         memberRepository.save(member);
         memberRepository.save(mate);
+    }
+
+    public Member validateMember(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new ResourceNotFoundException("회원 정보를 찾을 수 없습니다."));
     }
 }

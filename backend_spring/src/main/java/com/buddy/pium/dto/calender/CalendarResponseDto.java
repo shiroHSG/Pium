@@ -1,9 +1,11 @@
 package com.buddy.pium.dto.calender;
 
+import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 public class CalendarResponseDto {
     private Long id;
     private String title;

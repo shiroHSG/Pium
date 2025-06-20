@@ -39,7 +39,6 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
                            @Param("messageId") Long messageId,
                            @Param("currentMemberId") Long currentMemberId);
 
-    Optional<ChatRoomMember> findByChatRoomIdAndMemberId(Long chatRoomId, Long memberId);
 
     Optional<ChatRoomMember> findByChatRoomAndMemberId(ChatRoom chatRoom, Long memberId);
 
@@ -48,4 +47,6 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
     Optional<Object> findByChatRoomIdAndMember(Long chatRoomId, Member member);
 
     boolean existsByChatRoomAndMember(ChatRoom chatRoom, Member member);
+
+    List<ChatRoomMember> findByMember(Member member);
 }

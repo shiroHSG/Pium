@@ -5,6 +5,15 @@ import 'package:frontend_flutter/models/calendar/schedule.dart';
 import '../../models/calendar/calendar_api.dart';
 import '../../pages/calendar_page/add_schedule.dart';
 
+String formatToAmPm(DateTime dateTime) {
+  final hour = dateTime.hour;
+  final minute = dateTime.minute;
+  final isAm = hour < 12;
+  final displayHour = hour % 12 == 0 ? 12 : hour % 12;
+  final amPm = isAm ? '오전' : '오후';
+  return '$amPm $displayHour시 ${minute.toString().padLeft(2, '0')}분';
+}
+
 class CalendarHeader extends StatelessWidget {
   final DateTime focusedDay;
   final VoidCallback onPreviousMonth;
@@ -92,26 +101,13 @@ class CalendarDaysGrid extends StatelessWidget {
     required this.schedules,
   }) : super(key: key);
 
-  int _getDaysInMonth(DateTime date) {
-    return DateUtils.getDaysInMonth(date.year, date.month);
-  }
-
-  DateTime _getFirstDayOfMonth(DateTime date) {
-    return DateTime(date.year, date.month, 1);
-  }
-
-  int _getFirstDayOfWeekOfMonth(DateTime date) {
-    return _getFirstDayOfMonth(date).weekday % 7;
-  }
-
-  List<Schedule> _getSchedulesForDay(DateTime day) {
-    return schedules[DateTime(day.year, day.month, day.day)] ?? [];
-  }
+  int _getDaysInMonth(DateTime date) => DateUtils.getDaysInMonth(date.year, date.month);
+  DateTime _getFirstDayOfMonth(DateTime date) => DateTime(date.year, date.month, 1);
+  int _getFirstDayOfWeekOfMonth(DateTime date) => _getFirstDayOfMonth(date).weekday % 7;
+  List<Schedule> _getSchedulesForDay(DateTime day) => schedules[DateTime(day.year, day.month, day.day)] ?? [];
 
   bool isSameDay(DateTime? a, DateTime? b) {
-    if (a == null || b == null) {
-      return false;
-    }
+    if (a == null || b == null) return false;
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
@@ -120,7 +116,6 @@ class CalendarDaysGrid extends StatelessWidget {
     final int firstDayOfWeek = DateTime.sunday;
     final int daysInMonth = _getDaysInMonth(focusedDay);
     final int firstWeekdayOfMonth = _getFirstDayOfWeekOfMonth(focusedDay);
-
     final List<int> daysList = List.generate(daysInMonth, (i) => i + 1);
     final int leadingEmptyDays = (firstWeekdayOfMonth - firstDayOfWeek + 7) % 7;
     final int trailingEmptyDays = (7 - ((leadingEmptyDays + daysInMonth) % 7)) % 7;
@@ -144,9 +139,7 @@ class CalendarDaysGrid extends StatelessWidget {
         ),
         itemBuilder: (context, index) {
           final day = calendarItems.elementAt(index);
-          final currentDate = day != null
-              ? DateTime(focusedDay.year, focusedDay.month, day)
-              : null;
+          final currentDate = day != null ? DateTime(focusedDay.year, focusedDay.month, day) : null;
           final isSelected = isSameDay(selectedDay, currentDate);
           final isToday = isSameDay(DateTime.now(), currentDate);
           final isSameMonth = currentDate != null && currentDate.month == focusedDay.month;
@@ -210,9 +203,9 @@ class CalendarDaysGrid extends StatelessWidget {
 class SelectedDaySchedules extends StatelessWidget {
   final DateTime? selectedDay;
   final Map<DateTime, List<Schedule>> schedules;
-  final Function(Schedule) onScheduleAdded;  // 일정 추가
-  final Function(Schedule) onScheduleDeleted;  // 일정 삭제
-  final Function(Schedule) onScheduleEdited; // 일정 수정
+  final Function(Schedule) onScheduleAdded;
+  final Function(Schedule) onScheduleDeleted;
+  final Function(Schedule) onScheduleEdited;
 
   const SelectedDaySchedules({
     Key? key,
@@ -229,16 +222,13 @@ class SelectedDaySchedules extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (selectedDay == null) {
-      return const SizedBox.shrink();
-    }
-
+    if (selectedDay == null) return const SizedBox.shrink();
     final schedulesForSelectedDay = _getSchedulesForDay(selectedDay!);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 50.0),
       child: Container(
-        height: 230, // 높이 조금 늘림
+        height: 230,
         padding: const EdgeInsets.all(16.0),
         margin: const EdgeInsets.fromLTRB(30.0, 0, 30.0, 15.0),
         decoration: BoxDecoration(
@@ -250,7 +240,6 @@ class SelectedDaySchedules extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 상단에 날짜 + 추가 아이콘 정렬
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -263,18 +252,15 @@ class SelectedDaySchedules extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.add_circle_outline, size: 25,),
+                    icon: const Icon(Icons.add_circle_outline, size: 25),
                     color: AppTheme.textPurple,
                     onPressed: () async {
                       final newSchedule = await showDialog<Schedule>(
                         context: context,
-                        builder: (_) => AddSchedulePopup(
-                          initialDate: selectedDay!,
-                        ),
+                        builder: (_) => AddSchedulePopup(initialDate: selectedDay!),
                       );
                       if (newSchedule != null) {
-                        onScheduleAdded(newSchedule); // 상위에서 상태 반영하도록 콜백 호출
-
+                        onScheduleAdded(newSchedule);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('일정이 추가되었습니다.')),
                         );
@@ -312,7 +298,7 @@ class SelectedDaySchedules extends StatelessWidget {
                           ),
                           Expanded(
                             child: Text(
-                              '${schedule.title} - ${schedule.time}',
+                              '${schedule.title} - ${formatToAmPm(schedule.startTime)}',
                               style: const TextStyle(
                                 fontSize: 16,
                                 color: AppTheme.textPurple,
@@ -321,14 +307,10 @@ class SelectedDaySchedules extends StatelessWidget {
                           ),
                           Row(
                             children: [
-                              // 수정 버튼
                               IconButton(
                                 icon: const Icon(Icons.edit, size: 20),
                                 padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(
-                                  minWidth: 10,
-                                  minHeight: 30,
-                                ),
+                                constraints: const BoxConstraints(minWidth: 10, minHeight: 30),
                                 onPressed: () async {
                                   final editedSchedule = await showDialog<Schedule>(
                                     context: context,
@@ -337,43 +319,37 @@ class SelectedDaySchedules extends StatelessWidget {
                                       existingSchedule: schedule,
                                     ),
                                   );
-
                                   if (editedSchedule != null) {
-                                    onScheduleEdited(editedSchedule);                                  }
+                                    onScheduleEdited(editedSchedule);
+                                  }
                                 },
                               ),
-                              // 삭제 버튼
                               IconButton(
                                 icon: const Icon(Icons.delete, size: 20, color: Colors.redAccent),
                                 padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(
-                                  minWidth: 10,
-                                  minHeight: 30,
-                                ),
-                                  onPressed: () async {
-                                    if (schedule.id == null) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('삭제할 수 없는 일정입니다 (id가 없음)')),
-                                      );
-                                      return;
-                                    }
-
-                                    try {
-                                      await CalendarApi.deleteSchedule(schedule.id!);
-                                      onScheduleDeleted(schedule);
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('일정이 삭제되었습니다.')),
-                                      );
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('삭제 실패: $e')),
-                                      );
-                                    }
-                                  },
+                                constraints: const BoxConstraints(minWidth: 10, minHeight: 30),
+                                onPressed: () async {
+                                  if (schedule.id == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('삭제할 수 없는 일정입니다 (id가 없음)')),
+                                    );
+                                    return;
+                                  }
+                                  try {
+                                    await CalendarApi.deleteSchedule(schedule.id!);
+                                    onScheduleDeleted(schedule);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('일정이 삭제되었습니다.')),
+                                    );
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('삭제 실패: $e')),
+                                    );
+                                  }
+                                },
                               ),
                             ],
                           ),
-
                         ],
                       ),
                     );
@@ -413,7 +389,6 @@ class AddScheduleButton extends StatelessWidget {
                 return AddSchedulePopup(initialDate: initialDateForPopup);
               },
             );
-
             if (newSchedule != null) {
               onScheduleAdded(newSchedule);
             }

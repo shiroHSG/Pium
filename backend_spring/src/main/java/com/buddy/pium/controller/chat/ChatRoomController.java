@@ -1,10 +1,7 @@
 package com.buddy.pium.controller.chat;
 
 import com.buddy.pium.annotation.CurrentMember;
-import com.buddy.pium.dto.chat.ChatRoomRequestDTO;
-import com.buddy.pium.dto.chat.ChatRoomResponseDTO;
-import com.buddy.pium.dto.chat.InviteCheckResponseDTO;
-import com.buddy.pium.dto.chat.InviteLinkResponseDTO;
+import com.buddy.pium.dto.chat.*;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.chat.ChatRoomService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +23,7 @@ public class ChatRoomController {
 
     // 기존 채팅방 반환 또는 생성
     // DIRECT : type, receiverId
-    // SHARE : type, receiverId, sharePostId
+    // SHARE : type, receiverId, shareId
     // GROUP : type, password, chatRoomName
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> getOrCreateChatRoom(
@@ -36,9 +33,9 @@ public class ChatRoomController {
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            ChatRoomRequestDTO dto = mapper.readValue(chatRoomDataJson, ChatRoomRequestDTO.class);
+            ChatRoomRequestDto dto = mapper.readValue(chatRoomDataJson, ChatRoomRequestDto.class);
 
-            ChatRoomResponseDTO responseDTO = chatRoomService.getOrCreateChatRoom(dto, image, member);
+            ChatRoomResponseDto responseDTO = chatRoomService.getOrCreateChatRoom(dto, image, member);
 
             return ResponseEntity.ok(responseDTO);
         } catch (Exception e) {
@@ -49,10 +46,11 @@ public class ChatRoomController {
 
     // 채팅방 리스트 조회
     @GetMapping
-    public ResponseEntity<List<ChatRoomResponseDTO>> getMyChatRooms(
+    public ResponseEntity<List<ChatRoomResponseDto>> getMyChatRooms(
             @CurrentMember Member member
     ) {
-        List<ChatRoomResponseDTO> chatRooms = chatRoomService.getChatRoomsForMember(member);
+        System.out.println("채팅방리스트 조회 controller");
+        List<ChatRoomResponseDto> chatRooms = chatRoomService.getChatRoomsForMember(member);
         return ResponseEntity.ok(chatRooms);
     }
 
@@ -66,7 +64,7 @@ public class ChatRoomController {
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            ChatRoomRequestDTO dto = mapper.readValue(chatRoomDataJson, ChatRoomRequestDTO.class);
+            ChatRoomRequestDto dto = mapper.readValue(chatRoomDataJson, ChatRoomRequestDto.class);
 
             chatRoomService.updateGroupChatRoom(chatRoomId, dto, image, member);
             return ResponseEntity.ok(Map.of("message", "채팅방 수정 완료"));
@@ -107,22 +105,22 @@ public class ChatRoomController {
         }
     }
 
-    // 초대 링크 가져오기
+    // 초대 링크 조회
     @GetMapping("{chatRoomId}/invite-link")
     public ResponseEntity<?> getInviteLink(
             @PathVariable Long chatRoomId,
             @CurrentMember Member member) {
-        InviteLinkResponseDTO response = chatRoomService.getInviteLink(chatRoomId, member);
+        InviteLinkResponseDto response = chatRoomService.getInviteLink(chatRoomId, member);
         return ResponseEntity.ok(response);
     }
 
     // 초대 링크 정보 조회
     //alreadyJoined == true -> 바로 메세지 api 호출
     @GetMapping("/invite/{inviteCode}")
-    public ResponseEntity<InviteCheckResponseDTO> checkInvite(
+    public ResponseEntity<InviteCheckResponseDto> checkInvite(
             @PathVariable String inviteCode,
             @CurrentMember Member member) {
-        InviteCheckResponseDTO response = chatRoomService.checkInviteAccess(inviteCode, member);
+        InviteCheckResponseDto response = chatRoomService.checkInviteAccess(inviteCode, member);
         return ResponseEntity.ok(response);
     }
 
@@ -137,4 +135,10 @@ public class ChatRoomController {
         return ResponseEntity.ok(chatRoomId);
     }
 
+    // 총 안읽은 메세지 수 반환(footer)
+    @GetMapping("/unread-count")
+    public ResponseEntity<?> getTotalUnreadCount(@CurrentMember Member member) {
+        int count = chatRoomService.getTotalUnreadCount(member);
+        return ResponseEntity.ok(count);
+    }
 }

@@ -1,5 +1,3 @@
-// lib/models/baby_profile.dart
-
 import 'package:intl/intl.dart';
 
 enum Gender { MALE, FEMALE }
@@ -9,10 +7,11 @@ class BabyProfile {
   String name;
   DateTime birthDate;
   Gender? gender;
-  double? height;             // cm
-  double? weight;             // kg
-  String? allergy;            // 알레르기
-  String? developmentStep;    // 발달 단계
+  double? height;
+  double? weight;
+  String? allergy;
+  String? developmentStep;
+  final String? profileImageUrl; // ✅ 이미지 경로 필드
 
   BabyProfile({
     this.childId,
@@ -23,15 +22,16 @@ class BabyProfile {
     this.weight,
     this.allergy,
     this.developmentStep,
+    this.profileImageUrl, // ✅ 생성자에 포함
   });
 
   factory BabyProfile.fromJson(Map<String, dynamic> json) {
     return BabyProfile(
       childId: json['childId'] ?? json['id'],
-      name: json['name'] ?? '', // null이면 빈 문자열
+      name: json['name'] ?? '',
       birthDate: json['birthDate'] != null
           ? DateTime.parse(json['birthDate'])
-          : DateTime.now(), // 기본값으로 현재 시간 (또는 throw 처리 가능)
+          : DateTime.now(),
       gender: _parseGender(json['gender']),
       height: json['height'] != null
           ? double.tryParse(json['height'].toString())
@@ -39,8 +39,9 @@ class BabyProfile {
       weight: json['weight'] != null
           ? double.tryParse(json['weight'].toString())
           : null,
-      allergy: json['allergy']?.toString(), // null 가능성 대비
-      developmentStep: json['developmentStep']?.toString(), // null 가능성 대비
+      allergy: json['sensitiveInfo']?.toString(),
+      developmentStep: json['developmentStep']?.toString(),
+      profileImageUrl: json['profileImgUrl']?.toString(), // ✅ 추가
     );
   }
 
@@ -59,8 +60,10 @@ class BabyProfile {
       'gender': gender == Gender.MALE ? 'M' : 'F',
       if (height != null) 'height': height,
       if (weight != null) 'weight': weight,
-      if (allergy != null) 'allergy': allergy,
+      if (allergy != null) 'sensitiveInfo': allergy,
       if (developmentStep != null) 'developmentStep': developmentStep,
+      if (profileImageUrl != null && profileImageUrl!.startsWith('/uploads'))
+        'profileImgUrl': profileImageUrl, // ✅ 서버 저장 경로만 전송
     };
   }
 
@@ -73,6 +76,7 @@ class BabyProfile {
     double? weight,
     String? allergy,
     String? developmentStep,
+    String? profileImageUrl, // ✅ 추가
   }) {
     return BabyProfile(
       childId: childId ?? this.childId,
@@ -83,6 +87,7 @@ class BabyProfile {
       weight: weight ?? this.weight,
       allergy: allergy ?? this.allergy,
       developmentStep: developmentStep ?? this.developmentStep,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl, // ✅ 추가
     );
   }
 
@@ -97,7 +102,8 @@ class BabyProfile {
               height == other.height &&
               weight == other.weight &&
               allergy == other.allergy &&
-              developmentStep == other.developmentStep;
+              developmentStep == other.developmentStep &&
+              profileImageUrl == other.profileImageUrl; // ✅ 비교 추가
 
   @override
   int get hashCode =>
@@ -107,5 +113,6 @@ class BabyProfile {
       height.hashCode ^
       weight.hashCode ^
       allergy.hashCode ^
-      developmentStep.hashCode;
+      developmentStep.hashCode ^
+      profileImageUrl.hashCode; // ✅ 해시 추가
 }

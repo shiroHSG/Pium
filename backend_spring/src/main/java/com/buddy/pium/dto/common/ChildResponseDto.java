@@ -24,6 +24,7 @@ public class ChildResponseDto {
     private LocalDateTime updatedAt;  // ✅ 추가
 
     public static ChildResponseDto from(Child child) {
+
         return ChildResponseDto.builder()
                 .id(child.getId())
                 .name(child.getName())

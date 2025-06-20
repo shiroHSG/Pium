@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.Map;
 
@@ -29,6 +30,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException e) {
         return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+    }
+
+    // 400 - 그룹 채팅방 유효성 검증 실패
+    @ExceptionHandler(InvalidChatRoomOperationException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidChatRoomOperation(InvalidChatRoomOperationException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", e.getMessage()));
     }
 
     // 400 - 유효성 검증 실패
@@ -64,6 +73,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "해당 이메일의 사용자가 존재하지 않습니다."));
     }
 
+    // 403 - 채팅방 password 불일치
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidPassword(InvalidPasswordException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
+    }
+
     // 403 - 권한 없음
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleAccessDeniedException(AccessDeniedException e) {
@@ -74,6 +90,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleResourceNotFoundException(ResourceNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+    }
+
+    //  404 - 지원하지않는 uri
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(NoHandlerFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("message", "존재하지 않는 API 요청입니다."));
     }
 
     // 405 - 지원되지 않는 HTTP 메서드

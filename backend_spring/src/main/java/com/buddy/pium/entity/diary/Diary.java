@@ -31,11 +31,18 @@ public class Diary {
     @JoinColumn(name = "child_id", nullable = false)
     private Child child;
 
+    private String title;
+
     @Lob
-    @Column(nullable = false)
     private String content;
 
+    @Lob
+    private String publicContent;
+
     private String imageUrl;
+
+    @Column(nullable = false)
+    private boolean published;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false)

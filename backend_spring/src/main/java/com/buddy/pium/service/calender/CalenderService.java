@@ -6,6 +6,7 @@ import com.buddy.pium.entity.calender.Calender;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.repository.calender.CalenderRepository;
 import com.buddy.pium.repository.common.MemberRepository;
+import com.buddy.pium.service.common.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -21,12 +22,12 @@ public class CalenderService {
 
     private final CalenderRepository calenderRepository;
     private final MemberRepository memberRepository;
+    private final MemberService memberService;
 
-    public List<CalendarResponseDto> getCalendersWithMate(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow();
+    public List<CalendarResponseDto> getCalendersWithMate(Member member) {
         Long mateId = member.getMateInfo();
 
-        List<Calender> result = calenderRepository.findByMemberId(memberId);
+        List<Calender> result = calenderRepository.findByMember(member);
         if (mateId != null) {
             result.addAll(calenderRepository.findByMemberId(mateId));
         }
@@ -34,10 +35,7 @@ public class CalenderService {
         return result.stream().map(this::toDto).collect(Collectors.toList());
     }
 
-    public CalendarResponseDto createCalendar(Long memberId, CalendarRequestDto dto) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-
+    public CalendarResponseDto createCalendar(Member member, CalendarRequestDto dto) {
         Calender calender = Calender.builder()
                 .member(member)
                 .title(dto.getTitle())
@@ -52,13 +50,9 @@ public class CalenderService {
     }
 
     @Transactional
-    public CalendarResponseDto updateCalendar(Long calendarId, CalendarRequestDto dto, Long memberId) {
-        Calender calender = calenderRepository.findById(calendarId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 캘린더입니다."));
-
-        if (!calender.getMember().getId().equals(memberId)) {
-            throw new AccessDeniedException("수정 권한이 없습니다.");
-        }
+    public CalendarResponseDto updateCalendar(Long calendarId, CalendarRequestDto dto, Member member) {
+        Calender calender = validateCalender(calendarId);
+        authCalenderMember(calender, member);
 
         if (dto.getTitle() != null) calender.setTitle(dto.getTitle());
         if (dto.getContent() != null) calender.setContent(dto.getContent());
@@ -70,26 +64,34 @@ public class CalenderService {
         return toDto(calenderRepository.save(calender));
     }
 
-    public void deleteCalendar(Long calendarId, Long memberId) {
-        Calender calender = calenderRepository.findById(calendarId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 캘린더입니다."));
-
-        if (!calender.getMember().getId().equals(memberId)) {
-            throw new AccessDeniedException("삭제 권한이 없습니다.");
-        }
+    public void deleteCalendar(Long calendarId, Member member) {
+        Calender calender = validateCalender(calendarId);
+        authCalenderMember(calender, member);
 
         calenderRepository.deleteById(calendarId);
     }
 
     private CalendarResponseDto toDto(Calender cal) {
-        CalendarResponseDto dto = new CalendarResponseDto();
-        dto.setId(cal.getId());
-        dto.setTitle(cal.getTitle());
-        dto.setContent(cal.getContent());
-        dto.setStartTime(cal.getStartTime());
-        dto.setColorTag(cal.getColorTag());
-        dto.setCreatedAt(cal.getCreatedAt());  // ✅ 수정: toLocalDateTime 제거
-        dto.setUpdatedAt(cal.getUpdatedAt());  // ✅ 수정: toLocalDateTime 제거
-        return dto;
+        return CalendarResponseDto.builder()
+                .id(cal.getId())
+                .title(cal.getTitle())
+                .content(cal.getContent())
+                .startTime(cal.getStartTime())
+                .colorTag(cal.getColorTag())
+                .createdAt(cal.getCreatedAt())   // ✅ toLocalDateTime 제거된 그대로 유지
+                .updatedAt(cal.getUpdatedAt())   // ✅ toLocalDateTime 제거된 그대로 유지
+                .build();
+    }
+
+    public Calender validateCalender(Long calendarId) {
+        return calenderRepository.findById(calendarId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 캘린더입니다."));
+    }
+
+    public void authCalenderMember(Calender calender, Member member) {
+        Member owner = calender.getMember();
+        if (!owner.equals(member) && !owner.equals(member.getMateInfo())) {
+            throw new AccessDeniedException("권한이 없습니다.");
+        }
     }
 }

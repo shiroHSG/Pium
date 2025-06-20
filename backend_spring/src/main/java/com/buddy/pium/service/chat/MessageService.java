@@ -1,6 +1,8 @@
 package com.buddy.pium.service.chat;
 
-import com.buddy.pium.dto.chat.MessageResponseDTO;
+import com.buddy.pium.dto.chat.ChatRoomSummaryDto;
+import com.buddy.pium.websocket.ChatWebSocketBroadcaster;
+import com.buddy.pium.dto.chat.MessageResponseDto;
 import com.buddy.pium.entity.chat.ChatRoom;
 import com.buddy.pium.entity.chat.ChatRoomMember;
 import com.buddy.pium.entity.chat.Message;
@@ -9,9 +11,9 @@ import com.buddy.pium.repository.chat.ChatRoomMemberRepository;
 import com.buddy.pium.repository.chat.ChatRoomRepository;
 import com.buddy.pium.repository.chat.MessageRepository;
 import com.buddy.pium.repository.common.MemberRepository;
+import com.buddy.pium.service.common.MemberService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,15 +31,17 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
 
+    private final ChatRoomService chatRoomService;
+    private final ChatRoomMemberService chatRoomMemberService;
+    private final MemberService memberService;
+    private final ChatWebSocketBroadcaster chatWebSocketBroadcaster;
+
     // 메세지 전송
     @Transactional
-    public MessageResponseDTO sendMessage(Long chatRoomId, Long senderId, String content) {
-        // 채팅방 조회
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다."));
-        // 멤버 조회
-        Member sender = memberRepository.findById(senderId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+    public MessageResponseDto sendMessage(Long chatRoomId, Member sender, String content) {
+        System.out.println("message 전송 service");
+        ChatRoom chatRoom = chatRoomService.validateChatRoom(chatRoomId);
+        ChatRoomMember senderMember = chatRoomMemberService.validateChatRoomMember(chatRoom, sender);
 
         Message message = Message.builder()
                 .chatRoom(chatRoom)
@@ -49,45 +53,55 @@ public class MessageService {
 
         // 채팅방 최신 메시지 갱신
         chatRoom.setLastMessageContent(content);
-        chatRoom.setLastMessageSentAt(LocalDateTime.now());
-
+        chatRoom.setLastMessageSentAt(message.getSentAt());
         chatRoomRepository.save(chatRoom);
 
-        // 본인의 ChatRoomMember 조회
-        ChatRoomMember senderMember = chatRoomMemberRepository
-                .findByChatRoomAndMember(chatRoom, sender)
-                .orElseThrow(() -> new IllegalStateException("채팅방 멤버가 아닙니다."));
-
-        // 마지막으로 읽은 메시지를 현재 메시지로 갱신
+        // 보낸 사람은 즉시 읽음 처리
         senderMember.setLastReadMessageId(message.getId());
         chatRoomMemberRepository.save(senderMember);
 
-        return toDTO(message, senderId);
+        // 참여자별 summary(채팅방) 전송 (보낸 사람 제외)
+        List<ChatRoomMember> members = chatRoomMemberRepository.findByChatRoomId(chatRoomId);
+        for (ChatRoomMember crm : members) {
+            Member target = crm.getMember();
+
+            if (target.equals(sender)) continue; // 👈 객체 비교로 바뀜 (더 안전하고 직관적)
+
+            int unreadCount = calculateUnreadCountByChatRoom(chatRoom, target); // ✅ Member 객체 그대로 전달
+
+            ChatRoomSummaryDto summary = ChatRoomSummaryDto.builder()
+                    .chatRoomId(chatRoomId)
+                    .lastMessage(content)
+                    .lastSentAt(message.getSentAt())
+                    .unreadCount(unreadCount)
+                    .build();
+
+            chatWebSocketBroadcaster.broadcastChatSummary(target.getId(), summary);
+
+            // ✅ 사이드바 뱃지용 전체 unreadCount도 추가로 전송
+            chatWebSocketBroadcaster.broadcastUnreadCount(target.getId());
+        }
+
+        // 실시간 메시지 broadcast
+        MessageResponseDto dto = toDTO(message, sender);
+        chatWebSocketBroadcaster.broadcastMessage(chatRoomId, dto);
+
+        return dto;
     }
 
     // 메세지 조회
     @Transactional
-    public List<MessageResponseDTO> getMessages(
-            Long chatRoomId,
-            Long memberId,
-            Long pivotId,
-            String direction
-    ) {
-        // 1. 채팅방 존재 여부 확인
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다."));
-
-        // 2. 참여 여부 확인 + joinedAt 조회
-        ChatRoomMember crm = chatRoomMemberRepository.findByChatRoomIdAndMemberId(chatRoomId, memberId)
-                .orElseThrow(() -> new AccessDeniedException("이 채팅방에 접근할 수 없습니다."));
-        LocalDateTime joinedAt = crm.getJoinedAt();
+    public List<MessageResponseDto> getMessages(Long chatRoomId, Member member, Long pivotId, String direction) {
+        ChatRoom chatRoom = chatRoomService.validateChatRoom(chatRoomId);
+        ChatRoomMember chatRoomMember = chatRoomMemberService.validateChatRoomMember(chatRoom, member);
+        LocalDateTime joinedAt = chatRoomMember.getJoinedAt();
 
         List<Message> messages;
 
-        // 3. 최신순으로 가져온 후 다시 역정렬 (오래된순으로 보여주기 위함)
+        // 최신순으로 가져온 후 다시 역정렬 (오래된순으로 보여주기 위함)
         if (pivotId == null || direction.equals("latest")) {
 
-            Long lastReadMessageId = crm.getLastReadMessageId();
+            Long lastReadMessageId = chatRoomMember.getLastReadMessageId();
 
             if (lastReadMessageId == null) {
                 // 🔹 처음 입장 → joinedAt 이후 메시지 전체
@@ -110,9 +124,25 @@ public class MessageService {
             if (!messages.isEmpty()) {
                 Long newLastReadMessageId = messages.get(messages.size() - 1).getId();
 
-                if (crm.getLastReadMessageId() == null || crm.getLastReadMessageId() < newLastReadMessageId) {
-                    crm.setLastReadMessageId(newLastReadMessageId);
+                if (chatRoomMember.getLastReadMessageId() == null || chatRoomMember.getLastReadMessageId() < newLastReadMessageId) {
+                    chatRoomMember.setLastReadMessageId(newLastReadMessageId);
+
+                    // 읽음 브로드캐스트 (읽은 사람 → 같은 방의 다른 사람들에게)
+                    List<ChatRoomMember> members = chatRoomMemberRepository.findByChatRoomId(chatRoomId);
+                    for (ChatRoomMember crm : members) {
+                        Member other = crm.getMember();
+                        if (other.equals(member)) continue; // 본인은 제외
+
+                        chatWebSocketBroadcaster.broadcastReadStatus(
+                                chatRoomId,
+                                member.getId(),              // 읽은 사람 ID
+                                newLastReadMessageId         // 마지막으로 읽은 메시지 ID
+                        );
+                    }
+
+                    chatWebSocketBroadcaster.broadcastUnreadCount(member.getId());
                 }
+
             }
 
         } else if ("prev".equals(direction)) {
@@ -125,24 +155,42 @@ public class MessageService {
         }
 
         return messages.stream()
-                .map(message -> toDTO(message, memberId))
+                .map(message -> toDTO(message, member))
                 .collect(Collectors.toList());
     }
 
-    private MessageResponseDTO toDTO(Message message, Long currentMemberId) {
-        int unreadCount = chatRoomMemberRepository.countUnreadMembers(
-                message.getChatRoom().getId(),
-                message.getId(),
-                currentMemberId  // 👈 이건 쿼리에서 본인 제외에 필요
-        );
+    private MessageResponseDto toDTO(Message message, Member sender) {
+        int unreadCount = calculateUnreadCount(message, sender);
 
-        return MessageResponseDTO.builder()
+        return MessageResponseDto.builder()
                 .messageId(message.getId())
                 .senderId(message.getSender().getId())
                 .senderNickname(message.getSender().getNickname())
+                .senderProfileImageUrl(message.getSender().getProfileImageUrl())
                 .content(message.getContent())
                 .sentAt(message.getSentAt())
                 .unreadCount(unreadCount)
                 .build();
     }
+
+    public int calculateUnreadCount(Message message, Member target) {
+        return chatRoomMemberRepository.countUnreadMembers(
+                message.getChatRoom().getId(),
+                message.getId(),
+                target.getId()
+        );
+    }
+
+    public int calculateUnreadCountByChatRoom(ChatRoom chatRoom, Member member) {
+        ChatRoomMember crm = chatRoomMemberRepository.findByChatRoomAndMember(chatRoom, member)
+                .orElseThrow(() -> new RuntimeException("참여 정보 없음"));
+
+        Long lastReadMessageId = crm.getLastReadMessageId();
+        if (lastReadMessageId == null) {
+            // 아직 한 번도 읽은 적 없으면 전체 메시지 수 계산
+            return messageRepository.countByChatRoomAndSenderNot(chatRoom, member);
+        }
+        return messageRepository.countUnreadMessagesAfterMessageId(chatRoom, lastReadMessageId, member);
+    }
+
 }

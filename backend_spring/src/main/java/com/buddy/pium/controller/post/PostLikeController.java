@@ -1,5 +1,7 @@
 package com.buddy.pium.controller.post;
 
+import com.buddy.pium.annotation.CurrentMember;
+import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.post.PostLikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,15 +17,16 @@ public class PostLikeController {
 
     // 좋아요 토글 API
     @PostMapping
-    public ResponseEntity<String> toggleLike(@PathVariable Long postId, Authentication auth) {
-        Long memberId = (Long) auth.getPrincipal();
-        boolean liked = postLikeService.toggleLike(postId, memberId);
-        return liked ? ResponseEntity.ok("좋아요 추가됨") : ResponseEntity.ok("좋아요 취소됨");
+    public ResponseEntity<?> toggleLike(@PathVariable Long postId,
+                                             @CurrentMember Member member) {
+        boolean liked = postLikeService.toggleLike(postId, member);
+        return ResponseEntity.ok(liked ? "liked" : "unliked");
     }
 
     // 좋아유 수 반환
     @GetMapping
-    public ResponseEntity<?> countLikes(@PathVariable Long postId, Authentication auth) {
+    public ResponseEntity<?> countLikes(@PathVariable Long postId,
+                                        @CurrentMember Member member) {
         long count = postLikeService.countLikes(postId);
         return ResponseEntity.ok(count);
     }

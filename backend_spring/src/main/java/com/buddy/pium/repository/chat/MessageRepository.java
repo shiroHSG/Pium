@@ -13,10 +13,9 @@ import java.util.List;
 
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
+    int countByChatRoomAndSentAtAfterAndSenderNot(ChatRoom chatRoom, LocalDateTime joinedAt, Member currentUser);
 
-    int countByChatRoomAndIdGreaterThanAndSenderNot(ChatRoom chatRoom, Long id, Member sender);
-
-    int countByChatRoomAndSenderNot(ChatRoom chatRoom, Member sender);
+    int countByChatRoomAndIdGreaterThanAndSentAtAfterAndSenderNot(ChatRoom chatRoom, Long lastReadMessageId, LocalDateTime joinedAt, Member currentUser);
 
     // 처음 입장 시
     List<Message> findByChatRoomIdAndSentAtAfterOrderByIdAsc(Long chatRoomId, LocalDateTime joinedAt);
@@ -29,4 +28,32 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     // prev 무한스크롤
     List<Message> findTop100ByChatRoomIdAndIdLessThanAndSentAtAfterOrderByIdDesc(Long chatRoomId, Long pivotId, LocalDateTime joinedAt);
+
+
+    @Query("""
+    SELECT COUNT(m)
+    FROM Message m
+    WHERE m.chatRoom.id = :chatRoomId
+      AND m.id > (
+          SELECT COALESCE(crm.lastReadMessageId, 0)
+          FROM ChatRoomMember crm
+          WHERE crm.chatRoom.id = :chatRoomId
+            AND crm.member.id = :memberId
+      )
+""")
+    int countUnreadMessagesForMember(@Param("chatRoomId") Long chatRoomId,
+                                     @Param("memberId") Long memberId);
+
+    @Query("""
+    SELECT COUNT(m)
+    FROM Message m
+    WHERE m.chatRoom = :chatRoom
+      AND m.id > :lastReadMessageId
+      AND m.sender <> :member
+""")
+    int countUnreadMessagesAfterMessageId(@Param("chatRoom") ChatRoom chatRoom,
+                                          @Param("lastReadMessageId") Long lastReadMessageId,
+                                          @Param("member") Member member);
+
+    int countByChatRoomAndSenderNot(ChatRoom chatRoom, Member member);
 }
