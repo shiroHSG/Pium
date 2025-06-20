@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend_flutter/models/baby_profile.dart';
-import 'package:frontend_flutter/models/calendar/schedule.dart';
-import 'package:frontend_flutter/models/child/child_api.dart';
-import 'package:frontend_flutter/models/calendar/calendar_api.dart';
-
 import 'package:frontend_flutter/pages/baby_record/baby_record_page.dart';
+import 'package:frontend_flutter/pages/search/people_search_page.dart';
 import 'package:frontend_flutter/pages/my_page/my_page.dart';
-import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
-import 'package:frontend_flutter/pages/calendar_page/calendar_page.dart';
-import 'package:frontend_flutter/pages/chatting/chatting_page.dart';
-import 'package:frontend_flutter/pages/auth/login.dart';
-
 import 'package:frontend_flutter/widgets/custom_app_bar.dart';
 import 'package:frontend_flutter/widgets/custom_bottom_bar.dart';
 import 'package:frontend_flutter/widgets/custom_drawer.dart';
+import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
+import 'package:frontend_flutter/models/calendar/schedule.dart';
+import 'package:frontend_flutter/pages/calendar_page/calendar_page.dart';
+import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart';
+import 'package:frontend_flutter/pages/chat/chatting_page.dart';
+import 'package:frontend_flutter/screens/home/home_page_ui.dart';
+import 'package:frontend_flutter/pages/auth/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../screens/home/home_page_ui.dart';
-import '../community/community_page.dart';
+import '../../models/calendar/calendar_api.dart';
+import '../../models/chat/chat_service.dart';
+import '../../models/child/child_api.dart';
+import '../../models/webSocket/connectWebSocket.dart';
 
 class MyHomePage extends StatefulWidget {
   final int initialIndex;
@@ -31,6 +32,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex = 0;
   int _currentPage = 0;
+  int _unreadCount = 0;
   final PageController _pageController = PageController();
 
   List<BabyProfile> _children = [];
@@ -40,9 +42,11 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
-    _checkLoginStatus();
-    _loadBabyProfile();
-    _loadSchedules();
+    _checkLoginStatus(); // 로그인 상태 체크
+    _loadBabyProfile(); // 아기정보 불러오기
+    _loadSchedules(); //  일정 불러오기
+    _fetchUnreadCount();
+    _connectWebSocket();
   }
 
   Future<void> _checkLoginStatus() async {
@@ -55,6 +59,41 @@ class _MyHomePageState extends State<MyHomePage> {
             (route) => false,
       );
     }
+  }
+
+  Future<void> _connectWebSocket() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString('accessToken');
+    final int? myId = prefs.getInt('memberId');
+
+    print('📦 토큰: $token, 아이디: $myId');
+
+    if (token != null && myId != null) {
+      connectStomp(token, myId, _updateUnreadCount);
+    } else {
+      print('❌ WebSocket 연결 실패: token 또는 memberId 없음');
+    }
+  }
+
+  void _updateUnreadCount(int count) {
+    print('📩 새로 받은 안읽은 수: $count');
+    setState(() {
+      _unreadCount = count;
+    });
+  }
+
+  void updateSidebarBadge(dynamic data) {
+    final int newUnreadCount = data['unreadCount'];
+    setState(() {
+      _unreadCount = newUnreadCount;
+    });
+  }
+
+  Future<void> _fetchUnreadCount() async {
+    final count = await getUnreadCount();
+    setState(() {
+      _unreadCount = count;
+    });
   }
 
   Future<void> _loadBabyProfile() async {
@@ -106,6 +145,20 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     // 캘린더 페이지에서 돌아왔을 때 일정 다시 로드
     await _loadSchedules();
+  }
+
+  Future<void> _showAddSchedulePopup() async {
+    final newSchedule = await showDialog<Schedule>(
+      context: context,
+      builder: (context) => AddSchedulePopup(initialDate: DateTime.now()),
+    );
+
+    if (newSchedule != null) {
+      setState(() {
+        _schedules.add(newSchedule);
+        _schedules.sort((a, b) => a.startTime.compareTo(b.startTime));
+      });
+    }
   }
 
   Future<void> _showEditDialogForChild(BabyProfile child) async {
@@ -175,10 +228,11 @@ class _MyHomePageState extends State<MyHomePage> {
         onItemSelected: _onItemTapped,
         onLoginStatusChanged: _onLoginStatusChanged,
       ),
-      body: _getPageContent(todaySchedules),
+      body: _getPageContent(todaySchedules),  // 선택된 탭(인덱스)에 따라 화면을 바꿔줌
       bottomNavigationBar: CustomBottomNavigationBar(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
+        unreadCount: _unreadCount,
       ),
     );
   }
@@ -237,7 +291,7 @@ class _MyHomePageState extends State<MyHomePage> {
       case 2:
         return ChattingPage();
       case 3:
-        return const CommunityPage();
+        return const PeopleSearchPage();
       case 4:
         return const MyPage();
       case 5:
