@@ -73,6 +73,7 @@ class _CommunityPageState extends State<CommunityPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const CommunityAppBar(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
