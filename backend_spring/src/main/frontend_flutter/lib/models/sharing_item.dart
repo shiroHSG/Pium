@@ -7,6 +7,7 @@ class SharingItem {
   final int views;
   final String postDate;
   final String details;
+  final int likes;
 
   SharingItem({
     required this.id,
@@ -17,6 +18,7 @@ class SharingItem {
     required this.views,
     required this.postDate,
     required this.details,
+    required this.likes,
   });
 
   factory SharingItem.fromJson(Map<String, dynamic> json) {
@@ -26,10 +28,7 @@ class SharingItem {
     if (createdAtRaw is String) {
       formattedDate = createdAtRaw.substring(0, 10);
     } else if (createdAtRaw is List && createdAtRaw.length >= 3) {
-      final year = createdAtRaw[0];
-      final month = createdAtRaw[1].toString().padLeft(2, '0');
-      final day = createdAtRaw[2].toString().padLeft(2, '0');
-      formattedDate = '$year-$month-$day';
+      formattedDate = '${createdAtRaw[0]}-${createdAtRaw[1].toString().padLeft(2, '0')}-${createdAtRaw[2].toString().padLeft(2, '0')}';
     }
 
     return SharingItem(
@@ -41,6 +40,7 @@ class SharingItem {
       views: json['viewCount'] ?? 0,
       postDate: formattedDate,
       details: '조회수 ${json['viewCount'] ?? 0}회 · $formattedDate',
+      likes: json['likes'] ?? 0,
     );
   }
 }

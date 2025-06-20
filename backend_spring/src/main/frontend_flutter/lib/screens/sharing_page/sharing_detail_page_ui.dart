@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
 
-Widget SharingDetailPageUI(BuildContext context, SharingItem item) {
+Widget SharingDetailPageUI(
+    BuildContext context,
+    SharingItem item,
+    int likeCount,
+    bool isLiked,
+    VoidCallback onLikePressed,
+    ) {
   return Scaffold(
     appBar: AppBar(
       backgroundColor: AppTheme.primaryPurple,
@@ -89,7 +95,7 @@ Widget SharingDetailPageUI(BuildContext context, SharingItem item) {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '작성일 : \${item.postDate}',
+                            '작성일 : ${item.postDate}',
                             style: const TextStyle(fontSize: 14, color: Colors.grey),
                           ),
                         ],
@@ -102,12 +108,14 @@ Widget SharingDetailPageUI(BuildContext context, SharingItem item) {
                       Row(
                         children: [
                           IconButton(
-                            icon: Icon(Icons.favorite_border, color: AppTheme.primaryPurple, size: 20),
-                            onPressed: () {
-                              print('하트 버튼이 클릭되었습니다!');
-                            },
+                            icon: Icon(
+                              isLiked ? Icons.favorite : Icons.favorite_border,
+                              color: AppTheme.primaryPurple,
+                              size: 20,
+                            ),
+                            onPressed: onLikePressed,
                           ),
-                          Text('\${item.likes}'),
+                          Text('$likeCount'),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -115,7 +123,7 @@ Widget SharingDetailPageUI(BuildContext context, SharingItem item) {
                         children: [
                           const Icon(Icons.remove_red_eye_outlined, color: Colors.grey, size: 20),
                           const SizedBox(width: 4),
-                          Text('\${item.views}'),
+                          Text('${item.views}'),
                         ],
                       ),
                     ],
@@ -148,7 +156,7 @@ Widget SharingDetailPageUI(BuildContext context, SharingItem item) {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // 채팅하기 기능 구현
+                  // 채팅하기 기능 구현 예정
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryPurple,

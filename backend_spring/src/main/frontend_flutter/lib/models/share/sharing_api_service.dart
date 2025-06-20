@@ -62,4 +62,61 @@ class SharingApiService {
       throw Exception('글 작성 실패: ${response.body}');
     }
   }
+
+  // 좋아요 수 불러오기
+  static Future<int> fetchLikes(int postId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/$postId/like'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      return int.parse(response.body);
+    } else {
+      throw Exception('좋아요 수 불러오기 실패');
+    }
+  }
+
+  // 좋아요 토글
+  static Future<bool> toggleLike(int postId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/$postId/like'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      return response.body == 'liked';
+    } else {
+      throw Exception('좋아요 토글 실패');
+    }
+  }
+
+  // 조회수
+  static Future<SharingItem> fetchShareDetail(int postId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    final uri = Uri.parse('$baseUrl/$postId');
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(utf8.decode(response.bodyBytes));
+      return SharingItem.fromJson(jsonData);
+    } else {
+      throw Exception('게시글 상세 조회 실패: ${response.statusCode}');
+    }
+  }
+
+
 }

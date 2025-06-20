@@ -20,12 +20,12 @@ class _SharingPageState extends State<SharingPage> {
   @override
   void initState() {
     super.initState();
-    _loadSharingItems(); // ✨ 페이지 시작 시 API 호출
+    _loadSharingItems(); // 페이지 시작 시 API 호출
   }
 
   Future<void> _loadSharingItems() async {
     try {
-      final items = await SharingApiService.fetchAllShares(); // ✨ API 호출
+      final items = await SharingApiService.fetchAllShares(); // API 호출
       setState(() {
         _sharingItems = items;
       });
