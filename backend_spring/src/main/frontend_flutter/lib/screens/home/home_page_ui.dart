@@ -162,6 +162,8 @@ class _TodayScheduleCardState extends State<TodayScheduleCard> {
 
   @override
   Widget build(BuildContext context) {
+    final isToday = DateUtils.isSameDay(currentDate, DateTime.now());
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40.0),
       child: GestureDetector(
@@ -305,7 +307,6 @@ class PopularPostsSection extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 30),
       ],
     );
   }

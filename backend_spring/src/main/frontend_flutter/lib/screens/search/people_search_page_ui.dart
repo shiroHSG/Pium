@@ -1,15 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
+import 'package:frontend_flutter/models/people_search/member_api.dart';
 
 class PeopleSearchInput extends StatelessWidget {
   final TextEditingController searchController;
-  final VoidCallback onSearchPressed;
+  final Function(List<Map<String, String>>) onSearchResults;
 
   const PeopleSearchInput({
     Key? key,
     required this.searchController,
-    required this.onSearchPressed,
+    required this.onSearchResults,
   }) : super(key: key);
+
+  Future<void> _performSearch() async {
+    final query = searchController.text.trim();
+    if (query.isEmpty) {
+      onSearchResults([]);
+      return;
+    }
+
+    try {
+      final results = await MemberApi.searchMembers(query);
+      onSearchResults(results.map((member) => {
+        'nickname': member.nickname,
+        'location': member.address,
+        'profileImageUrl': member.profileImageUrl ?? '',
+      }).toList());
+    } catch (e) {
+      print('검색 실패: $e');
+      onSearchResults([]);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,8 +41,9 @@ class PeopleSearchInput extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: searchController,
+              onSubmitted: (_) => _performSearch(),
               decoration: InputDecoration(
-                hintText: '사람 찾기2',
+                hintText: '사람 찾기',
                 hintStyle: TextStyle(color: Colors.grey[600]),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
@@ -29,15 +51,18 @@ class PeopleSearchInput extends StatelessWidget {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
-                  borderSide: const BorderSide(color: AppTheme.lightPink, width: 2.0),
+                  borderSide:
+                  const BorderSide(color: AppTheme.lightPink, width: 2.0),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
-                  borderSide: const BorderSide(color: AppTheme.primaryPurple, width: 2.0),
+                  borderSide:
+                  const BorderSide(color: AppTheme.primaryPurple, width: 2.0),
                 ),
                 filled: true,
                 fillColor: Colors.grey[50],
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
             ),
           ),
@@ -48,8 +73,8 @@ class PeopleSearchInput extends StatelessWidget {
               borderRadius: BorderRadius.circular(10.0),
             ),
             child: IconButton(
-              icon: Icon(Icons.search, color: Colors.grey[700]), // 검색 아이콘 색상
-              onPressed: onSearchPressed,
+              icon: Icon(Icons.search, color: Colors.grey[700]),
+              onPressed: _performSearch,
             ),
           ),
         ],
@@ -59,7 +84,7 @@ class PeopleSearchInput extends StatelessWidget {
 }
 
 class PeopleSearchResultItem extends StatelessWidget {
-  final Map<String, String> user;
+  final Map<String, dynamic> user;
   final VoidCallback onMateButtonPressed;
   final VoidCallback onMessageButtonPressed;
 
@@ -77,7 +102,7 @@ class PeopleSearchResultItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12.0),
         decoration: BoxDecoration(
-          color: Colors.white, // 카드 배경색
+          color: Colors.white,
           borderRadius: BorderRadius.circular(15.0),
           boxShadow: [
             BoxShadow(
@@ -90,14 +115,24 @@ class PeopleSearchResultItem extends StatelessWidget {
         ),
         child: Row(
           children: [
+            // 프로필 이미지
             Container(
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: AppTheme.lightPink, // 프로필 사진 배경색
                 shape: BoxShape.circle,
+                color: AppTheme.lightPink,
+                image: user['profileImageUrl'] != null &&
+                    user['profileImageUrl'].toString().isNotEmpty
+                    ? DecorationImage(
+                  image: NetworkImage(user['profileImageUrl']),
+                  fit: BoxFit.cover,
+                )
+                    : null,
               ),
-              child: const Center(
+              child: user['profileImageUrl'] == null ||
+                  user['profileImageUrl'].toString().isEmpty
+                  ? const Center(
                 child: Text(
                   '프로필\n사진',
                   textAlign: TextAlign.center,
@@ -106,23 +141,25 @@ class PeopleSearchResultItem extends StatelessWidget {
                     fontSize: 12,
                   ),
                 ),
-              ),
+              )
+                  : null,
             ),
             const SizedBox(width: 16),
+            // 닉네임 + 주소
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    user['nickname']!,
-                    style: TextStyle(
+                    user['nickname'] ?? '',
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.textPurple,
                     ),
                   ),
                   Text(
-                    user['location']!,
+                    user['location'] ?? '',
                     style: TextStyle(
                       fontSize: 11,
                       color: Colors.grey[600],
@@ -132,10 +169,11 @@ class PeopleSearchResultItem extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
+            // 버튼 2개
             ElevatedButton(
               onPressed: onMateButtonPressed,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryPurple, // 메이트 맺기 버튼 배경색
+                backgroundColor: AppTheme.primaryPurple,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
@@ -149,7 +187,7 @@ class PeopleSearchResultItem extends StatelessWidget {
             ElevatedButton(
               onPressed: onMessageButtonPressed,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryPurple, // 메시지 보내기 버튼 배경색
+                backgroundColor: AppTheme.primaryPurple,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),

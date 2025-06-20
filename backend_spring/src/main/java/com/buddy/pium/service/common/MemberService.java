@@ -154,7 +154,6 @@ public class MemberService {
                 return LoginResponseDto.builder()
                         .accessToken(accessToken)
                         .refreshToken(refreshToken)
-                        .memberId(member.getId())
                         .build();
             } else {
                 System.out.println("[Service] 비밀번호 불일치");
@@ -212,5 +211,14 @@ public class MemberService {
     public Member validateMember(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("회원 정보를 찾을 수 없습니다."));
+    }
+
+    // 닉네임 또는 주소로 회원 검색
+    public List<MemberResponseDto> searchMembers(String query) {
+        return memberRepository
+                .findByNicknameContainingIgnoreCaseOrAddressContainingIgnoreCase(query, query)
+                .stream()
+                .map(this::toResponseDto)
+                .collect(Collectors.toList());
     }
 }

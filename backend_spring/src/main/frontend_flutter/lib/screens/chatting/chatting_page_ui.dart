@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:intl/intl.dart';
-
-import '../../models/chat/chatroom.dart';
 
 class ChattingAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String selectedMode;  //선택모드 ->  type
@@ -74,108 +71,57 @@ class ChattingAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class ChattingListItem extends StatelessWidget {
-  final ChatRoom chatRoom;
+  final int index;
+  final String selectedMode;
   final VoidCallback onTap;
 
   const ChattingListItem({
     Key? key,
-    required this.chatRoom,
+    required this.index,
+    required this.selectedMode,
     required this.onTap,
   }) : super(key: key);
 
-  String _formatTime(DateTime? dateTime) {
-    if (dateTime == null) return '';
-
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inDays == 0) {
-      return '${_twoDigits(dateTime.hour)}:${_twoDigits(dateTime.minute)}';
-    } else if (difference.inDays < 7) {
-      const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
-      return weekdays[dateTime.weekday - 1];
-    } else {
-      return '${dateTime.year}.${_twoDigits(dateTime.month)}.${_twoDigits(dateTime.day)}';
-    }
-  }
-
-  String _twoDigits(int n) => n.toString().padLeft(2, '0');
-
   @override
   Widget build(BuildContext context) {
-    final profileImage = chatRoom.imageUrl ??
-        chatRoom.otherProfileImageUrl ?? ''; // 없으면 공백
-
-    final name = (chatRoom.type == 'SHARE' &&
-        chatRoom.otherNickname != null &&
-        chatRoom.sharePostTitle != null)
-        ? '${chatRoom.otherNickname}[${chatRoom.sharePostTitle}]'
-        : (chatRoom.chatRoomName ?? chatRoom.otherNickname ?? '이름 없음');
-
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 25,
-              backgroundImage: profileImage.isNotEmpty
-                  ? NetworkImage(profileImage)
-                  : null,
-              backgroundColor: Colors.grey[300],
-              child: profileImage.isEmpty
-                  ? const Icon(Icons.person, color: Colors.grey)
-                  : null,
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey[300],
+              ),
+              child: const Center(
+                child: Icon(Icons.person, color: Colors.grey),
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: const [
                   Text(
-                    name,
-                    style: const TextStyle(
+                    '제목',
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       color: AppTheme.textPurple,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
-                    chatRoom.lastMessage,
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    '내용 요약',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                if (chatRoom.lastSentAt != null)
-                  Text(
-                    _formatTime(chatRoom.lastSentAt!),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                const SizedBox(height: 4),
-                if (chatRoom.unreadCount > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${chatRoom.unreadCount}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-              ],
             ),
           ],
         ),

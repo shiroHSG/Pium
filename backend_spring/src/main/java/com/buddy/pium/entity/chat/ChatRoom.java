@@ -35,7 +35,7 @@ public class ChatRoom {
     private Share share;
 
     // GROUP일 때만 사용
-    @Column(name = "chatroom_name")
+    @Column(name = "chatroom_name", nullable = false)
     private String chatRoomName;
     private String password;
     private String imageUrl;

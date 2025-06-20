@@ -25,7 +25,6 @@ public class MessageController {
             @RequestBody MessageRequestDto dto,
             @CurrentMember Member member
     ) {
-        System.out.println();
         MessageResponseDto response = messageService.sendMessage(chatRoomId, member, dto.getContent());
         return ResponseEntity.ok(response);
     }
@@ -36,8 +35,8 @@ public class MessageController {
     @GetMapping
     public ResponseEntity<List<MessageResponseDto>> getMessages(
             @PathVariable Long chatRoomId,
-            @RequestParam(name = "pivotId", required = false) Long pivotId,
-            @RequestParam(name = "direction") String direction,
+            @RequestParam(required = false) Long pivotId,
+            @RequestParam String direction,
             @CurrentMember Member member
     ) {
         List<MessageResponseDto> messages = messageService.getMessages(chatRoomId, member, pivotId, direction);
