@@ -54,8 +54,8 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
   }
 
   void _handleMessageButton(String nickname) {
-    print('메세지 보내기 버튼 클릭: $nickname');
-    // TODO: 메세지 보내기 로직
+
+
   }
 
   @override

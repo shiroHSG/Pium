@@ -74,23 +74,12 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     _messageController.clear();
 
     try {
-      final newMessage = await sendMessageToServer(
+      await sendMessageToServer(
         chatRoomId: widget.chatRoomId,
         content: text,
         senderId: myId!,
       );
 
-      setState(() {
-        _messages.add(newMessage);
-      });
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent + 60,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      });
     } catch (e) {
       print('❌ 메시지 전송 실패: $e');
     }
