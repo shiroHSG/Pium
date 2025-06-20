@@ -26,10 +26,11 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   @override
   void initState() {
     super.initState();
-    _loadMessagesAndSubscribe();
+    _loadMessages();         // 메시지만 불러오기
+    _subscribeMessages();    // WebSocket 구독 따로
   }
 
-  Future<void> _loadMessagesAndSubscribe() async {
+  Future<void> _loadMessages() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       myId = prefs.getInt('memberId');
@@ -43,28 +44,38 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
         currentUserId: myId!,
       );
 
-      // ✅ 구독 설정은 myId를 가져온 이후에만 가능
-      subscribeChatRoomMessages(widget.chatRoomId, (data) {
-        final message = ChatMessage.fromJson(data, myId!);
-        setState(() {
-          _messages.add(message);
-        });
-      });
-
       setState(() {
         _messages.addAll(messages);
         _isLoading = false;
       });
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-      });
+      // 스크롤
+      _scrollToBottom();
     } catch (e) {
       print('❌ 메시지 불러오기 오류: $e');
       setState(() {
         _isLoading = false;
       });
     }
+  }
+  void _subscribeMessages() async {
+    if (myId == null) {
+      final prefs = await SharedPreferences.getInstance();
+      myId = prefs.getInt('memberId');
+      if (myId == null) {
+        print('❌ 구독 실패: 사용자 ID가 없습니다.');
+        return;
+      }
+    }
+
+    subscribeChatRoomMessages(widget.chatRoomId, (data) {
+      final message = ChatMessage.fromJson(data, myId!);
+      setState(() {
+        _messages.add(message);
+      });
+      // 스크롤
+      _scrollToBottom();
+    });
   }
 
   void _sendMessage() async {
@@ -80,9 +91,18 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
         senderId: myId!,
       );
 
+      _scrollToBottom();
     } catch (e) {
       print('❌ 메시지 전송 실패: $e');
     }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+      }
+    });
   }
 
   @override
