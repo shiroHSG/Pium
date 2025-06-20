@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
 
+import '../../widgets/protected_image.dart';
+
 Widget SharingDetailPageUI(
     BuildContext context,
     SharingItem item,
@@ -41,19 +43,12 @@ Widget SharingDetailPageUI(
                 width: double.infinity,
                 height: 250,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                   child: item.imageUrl != null
-                      ? Image.network(
-                    item.imageUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: const Color(0xFFf9d9e7),
-                        child: const Center(
-                          child: Text('이미지 로드 실패', style: TextStyle(color: Colors.grey)),
-                        ),
-                      );
-                    },
+                      ? ProtectedImage(
+                    imageUrl: item.imageUrl!.startsWith('http')
+                        ? item.imageUrl!
+                        : 'http://10.0.2.2:8080${item.imageUrl!}',
                   )
                       : Container(
                     color: AppTheme.lightPink,

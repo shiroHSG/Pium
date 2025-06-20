@@ -120,6 +120,25 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
             const SizedBox(height: 14),
             WriteSharingDetailsInput(detailsController: _detailsController),
             const SizedBox(height: 20),
+
+            // 이미지 미리보기: 왼쪽 정렬 + 크기 줄임
+            if (_selectedImage != null)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    image: DecorationImage(
+                      image: FileImage(_selectedImage!),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ),
+
             WriteSharingActionButtons(
               onAttachPhotoPressed: _handleAttachPhoto,
               onCompletePressed: _handleComplete,

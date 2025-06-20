@@ -5,12 +5,10 @@ import 'dart:typed_data';
 
 class ProtectedImage extends StatefulWidget {
   final String imageUrl;
-  final double size;
 
   const ProtectedImage({
     super.key,
     required this.imageUrl,
-    this.size = 150,
   });
 
   @override
@@ -43,9 +41,7 @@ class _ProtectedImageState extends State<ProtectedImage> {
     print('📦 요청 URL: ${widget.imageUrl}');
 
     if (widget.imageUrl.isEmpty) {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
       return;
     }
 
@@ -54,64 +50,51 @@ class _ProtectedImageState extends State<ProtectedImage> {
 
     if (token == null) {
       print('❌ 토큰 없음 → 요청 중단');
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
       return;
     }
 
     try {
-      print('🟡 이미지 요청 보냄: ${widget.imageUrl}');
       final response = await http.get(
         Uri.parse(widget.imageUrl),
         headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
-        print('✅ 이미지 로드 성공');
         setState(() {
           imageBytes = response.bodyBytes;
           isLoading = false;
         });
       } else {
         print('❌ 이미지 로드 실패 - 응답 본문: ${response.body}');
-        setState(() {
-          isLoading = false;
-        });
+        setState(() => isLoading = false);
       }
     } catch (e) {
       print('🔥 이미지 요청 예외 발생: $e');
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: widget.size,
-      height: widget.size,
-      child: ClipOval(
-        child: Container(
-          color: Colors.grey[200],
-          child: isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : imageBytes != null
-              ? Image.memory(
-            imageBytes!,
-            fit: BoxFit.cover,
-            key: ValueKey(widget.imageUrl), // 이미지 URL 변경 시 리렌더링
-          )
-              : const Center(
-            child: Text(
-              '이미지 없음',
-              style: TextStyle(fontSize: 14, color: Colors.black54),
-              textAlign: TextAlign.center,
-            ),
-          ),
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (imageBytes == null) {
+      return const Center(
+        child: Text(
+          '이미지 없음',
+          style: TextStyle(fontSize: 14, color: Colors.black54),
+          textAlign: TextAlign.center,
         ),
-      ),
+      );
+    }
+
+    return Image.memory(
+      imageBytes!,
+      fit: BoxFit.contain, // 원본 비율 유지
+      key: ValueKey(widget.imageUrl),
     );
   }
 }
