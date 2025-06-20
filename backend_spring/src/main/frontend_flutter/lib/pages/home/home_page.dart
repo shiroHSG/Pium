@@ -41,9 +41,12 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex;
     _checkLoginStatus(); // 로그인 상태 체크
     _loadBabyProfile(); // 아기정보 불러오기
     _loadSchedules(); //  일정 불러오기
+    _fetchUnreadCount();
+    _connectWebSocket();
   }
 
   Future<void> _checkLoginStatus() async {
@@ -225,7 +228,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onItemSelected: _onItemTapped,
         onLoginStatusChanged: _onLoginStatusChanged,
       ),
-      body: _getPageContent(_selectedIndex),  // 선택된 탭(인덱스)에 따라 화면을 바꿔줌
+      body: _getPageContent(todaySchedules),  // 선택된 탭(인덱스)에 따라 화면을 바꿔줌
       bottomNavigationBar: CustomBottomNavigationBar(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
