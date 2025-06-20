@@ -43,7 +43,7 @@ class PeopleSearchInput extends StatelessWidget {
               controller: searchController,
               onSubmitted: (_) => _performSearch(),
               decoration: InputDecoration(
-                hintText: '사람 찾기2',
+                hintText: '사람 찾기',
                 hintStyle: TextStyle(color: Colors.grey[600]),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
