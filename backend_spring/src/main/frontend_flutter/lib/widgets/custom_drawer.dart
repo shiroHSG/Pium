@@ -4,8 +4,8 @@ import '../pages/calendar_page/calendar_page.dart';
 import '../pages/my_page/baby_profile/babyProfile_page.dart';
 import '../pages/my_page/my_activity/my_activity_page.dart';
 import '../pages/policy_page/policy_page.dart';
+import '../pages/search/people_search_page.dart';
 import '../pages/sharing_page/sharing_page.dart';
-import '../pages/community/community_page.dart';
 import 'confirm_dialog.dart';
 
 class CustomDrawer extends StatelessWidget {
@@ -90,13 +90,13 @@ class CustomDrawer extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.group),
-              title: const Text('커뮤니티'),
+              leading: const Icon(Icons.search),
+              title: const Text('사람찾기'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const CommunityPage()),
+                  MaterialPageRoute(builder: (context) => const PeopleSearchPage()),
                 );
               },
             ),

@@ -58,8 +58,21 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
               );
             },
           ),
-        ),
-      ],
+          Expanded(
+            child: ListView.builder(
+              itemCount: _users.length,
+              itemBuilder: (context, index) {
+                final user = _users[index];
+                return PeopleSearchResultItem(
+                  user: user,
+                  onMateButtonPressed: () => _handleMateButton(user['nickname']!),
+                  onMessageButtonPressed: () => _handleMessageButton(user['nickname']!),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

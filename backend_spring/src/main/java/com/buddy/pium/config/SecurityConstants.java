@@ -12,6 +12,7 @@ public class SecurityConstants {
             "/api/member/delete/**",
             "/api/shares/**",
             "/api/policies/**",
-            "/uploads/**"
+            "/uploads/**",
+            "/ws/**"
     );
 }

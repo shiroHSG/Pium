@@ -33,7 +33,7 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
         },
       )
       ..loadRequest(
-        Uri.parse('https://hansy225.github.io/kakao-address-search/kakao_address_search.html')
+        Uri.parse('https://hansy225.github.io/kakao-address-search/kakao_address_search.html?v=2'), // 쿼리 스트링 추가
     );
 
     setState(() {
