@@ -10,12 +10,15 @@ import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
 import 'package:frontend_flutter/models/calendar/schedule.dart';
 import 'package:frontend_flutter/pages/calendar_page/calendar_page.dart';
 import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart';
-import 'package:frontend_flutter/pages/chatting/chatting_page.dart';
+import 'package:frontend_flutter/pages/chat/chatting_page.dart';
 import 'package:frontend_flutter/screens/home/home_page_ui.dart';
 import 'package:frontend_flutter/pages/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/calendar/calendar_api.dart';
+import '../../models/chat/chat_service.dart';
+import '../../models/child/child_api.dart';
+import '../../models/webSocket/connectWebSocket.dart';
 
 class MyHomePage extends StatefulWidget {
   final int initialIndex;
@@ -38,9 +41,12 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex;
     _checkLoginStatus(); // 로그인 상태 체크
     _loadBabyProfile(); // 아기정보 불러오기
     _loadSchedules(); //  일정 불러오기
+    _fetchUnreadCount();
+    _connectWebSocket();
   }
 
   Future<void> _checkLoginStatus() async {
@@ -222,10 +228,11 @@ class _MyHomePageState extends State<MyHomePage> {
         onItemSelected: _onItemTapped,
         onLoginStatusChanged: _onLoginStatusChanged,
       ),
-      body: _getPageContent(_selectedIndex),  // 선택된 탭(인덱스)에 따라 화면을 바꿔줌
+      body: _getPageContent(todaySchedules),  // 선택된 탭(인덱스)에 따라 화면을 바꿔줌
       bottomNavigationBar: CustomBottomNavigationBar(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
+        unreadCount: _unreadCount,
       ),
     );
   }
