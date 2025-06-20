@@ -20,6 +20,7 @@ public class ChatRoomResponseDto {
     private String otherProfileImageUrl;
     // SHARE
     private Long sharePostId;
+    private String sharePostTitle;
 
     // GROUP
     private String chatRoomName;
