@@ -14,7 +14,7 @@ class SharingPage extends StatefulWidget {
 }
 
 class _SharingPageState extends State<SharingPage> {
-  List<SharingItem> _sharingItems = []; // ✨ 빈 리스트로 초기화
+  List<SharingItem> _sharingItems = []; // 빈 리스트로 초기화
   String selectedCategory = '나눔';
 
   @override

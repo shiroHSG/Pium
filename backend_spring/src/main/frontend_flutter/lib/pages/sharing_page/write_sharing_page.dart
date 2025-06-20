@@ -1,6 +1,8 @@
-// lib/pages/sharing_page/write_sharing_page.dart
+import 'dart:io';
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
+import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../models/share/sharing_api_service.dart';
 import 'package:frontend_flutter/widgets/custom_drawer.dart';
 import 'package:frontend_flutter/screens/sharing_page/write_sharing_page_ui.dart';
 
@@ -14,41 +16,76 @@ class WriteSharingPostPage extends StatefulWidget {
 class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _detailsController = TextEditingController();
+  File? _selectedImage;
 
   bool _isLoggedIn = true;
   int _selectedIndex = 0;
-
   String _selectedCategory = '나눔';
 
   void _onItemSelected(int index) {
     setState(() {
-      _selectedIndex = index;  // 아이템 선택
+      _selectedIndex = index;
     });
   }
 
   void _onLoginStatusChanged(bool status) {
     setState(() {
-      _isLoggedIn = status;  // 로그인 상태 변경
+      _isLoggedIn = status;
     });
   }
 
   void _handleCategoryChanged(String? newValue) {
     if (newValue != null) {
       setState(() {
-        _selectedCategory = newValue;  // 카테고리 변경
+        _selectedCategory = newValue;
       });
     }
   }
 
-  void _handleAttachPhoto() {
-    // TODO: 사진 첨부 기능 구현
-    print('사진 첨부');
+  Future<void> _handleAttachPhoto() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _selectedImage = File(picked.path);
+      });
+      print('선택된 이미지 경로: ${picked.path}');
+    }
   }
 
-  void _handleComplete() {
-    // TODO: 작성 완료 및 저장 로직 구현
-    print('제목: ${_titleController.text}, 상세 내용: ${_detailsController.text}, 카테고리: $_selectedCategory');
-    Navigator.pop(context);
+  void _handleComplete() async {
+    final title = _titleController.text.trim();
+    final content = _detailsController.text.trim();
+
+    if (title.isEmpty || content.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('제목과 내용을 모두 입력해 주세요.')),
+      );
+      return;
+    }
+
+    try {
+      await SharingApiService.createShare(
+        title: title,
+        content: content,
+        imageFile: _selectedImage,
+      );
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const SharingPage()),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('나눔 글이 등록되었습니다.')),
+        );
+      }
+    } catch (e) {
+      print('글 등록 실패: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('글 등록에 실패했습니다.')),
+      );
+    }
   }
 
   @override

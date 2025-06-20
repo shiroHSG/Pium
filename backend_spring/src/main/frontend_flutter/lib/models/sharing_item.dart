@@ -20,6 +20,18 @@ class SharingItem {
   });
 
   factory SharingItem.fromJson(Map<String, dynamic> json) {
+    final createdAtRaw = json['createdAt'];
+    String formattedDate = '';
+
+    if (createdAtRaw is String) {
+      formattedDate = createdAtRaw.substring(0, 10);
+    } else if (createdAtRaw is List && createdAtRaw.length >= 3) {
+      final year = createdAtRaw[0];
+      final month = createdAtRaw[1].toString().padLeft(2, '0');
+      final day = createdAtRaw[2].toString().padLeft(2, '0');
+      formattedDate = '$year-$month-$day';
+    }
+
     return SharingItem(
       id: json['id'],
       name: json['title'],
@@ -27,8 +39,8 @@ class SharingItem {
       imageUrl: json['imgUrl'],
       authorId: json['author'],
       views: json['viewCount'] ?? 0,
-      postDate: json['createdAt']?.substring(0, 10) ?? '',
-      details: '조회수 ${json['viewCount'] ?? 0}회 · ${json['createdAt']?.substring(0, 10) ?? ''}', // 임시 생성 방식
+      postDate: formattedDate,
+      details: '조회수 ${json['viewCount'] ?? 0}회 · $formattedDate',
     );
   }
 }
