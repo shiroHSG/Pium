@@ -1,21 +1,34 @@
 class SharingItem {
+  final int id;
   final String name;
-  final String details;
+  final String content;
   final String? imageUrl;
   final String authorId;
-  final String content;
-  final int likes;
   final int views;
   final String postDate;
+  final String details;
 
   SharingItem({
+    required this.id,
     required this.name,
-    required this.details,
+    required this.content,
     this.imageUrl,
-    this.authorId = '작성자 아이디',
-    this.content = '상세 내용입니다. 여기에 제품에 대한 자세한 설명이 들어갑니다. 나눔하고자 하는 물품의 상태, 사용 기간, 주의사항 등을 기재할 수 있습니다.',
-    this.likes = 0,
-    this.views = 0,
+    required this.authorId,
+    required this.views,
     required this.postDate,
+    required this.details,
   });
+
+  factory SharingItem.fromJson(Map<String, dynamic> json) {
+    return SharingItem(
+      id: json['id'],
+      name: json['title'],
+      content: json['content'],
+      imageUrl: json['imgUrl'],
+      authorId: json['author'],
+      views: json['viewCount'] ?? 0,
+      postDate: json['createdAt']?.substring(0, 10) ?? '',
+      details: '조회수 ${json['viewCount'] ?? 0}회 · ${json['createdAt']?.substring(0, 10) ?? ''}', // 임시 생성 방식
+    );
+  }
 }

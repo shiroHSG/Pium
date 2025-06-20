@@ -4,6 +4,8 @@ import 'package:frontend_flutter/models/sharing_item.dart';
 import 'package:frontend_flutter/pages/sharing_page/write_sharing_page.dart';
 import 'package:frontend_flutter/screens/sharing_page/sharing_page_ui.dart';
 
+import '../../models/share/sharing_api_service.dart';
+
 class SharingPage extends StatefulWidget {
   const SharingPage({Key? key}) : super(key: key);
 
@@ -12,58 +14,23 @@ class SharingPage extends StatefulWidget {
 }
 
 class _SharingPageState extends State<SharingPage> {
-  final List<SharingItem> _sharingItems = [
-    SharingItem(
-      name: '[나눔] 아기 바운서 (뉴나 Leaf Curv)',
-      details: '직거래, 서울 성북구',
-      imageUrl: 'https://via.placeholder.com/150/f0f0f0/000000?Text=Baouncer',
-      authorId: '행복육아맘',
-      content: '아기가 커서 더 이상 사용하지 않게 된 바운서입니다. 사용 기간은 6개월 정도이며, 깨끗하게 사용했습니다. 직접 오셔서 가져가셔야 합니다.',
-      likes: 25,
-      views: 300,
-      postDate: '2025년 05월 18일',
-    ),
-    SharingItem(
-      name: '[나눔] 기저귀 (하기스 네이처메이드 3단계, 40개 남음)',
-      details: '착불 택배',
-      imageUrl: 'https://via.placeholder.com/150/e0e0e0/000000?Text=Diapers',
-      authorId: '아름엄마',
-      content: '사이즈 미스로 남은 기저귀입니다. 뜯지 않은 새 제품이고, 40개 정도 남았습니다. 착불 택배로 보내드려요.',
-      likes: 15,
-      views: 250,
-      postDate: '2025년 05월 15일',
-    ),
-    SharingItem(
-      name: '[나눔] 아기띠 (에르고 베이비)',
-      details: '직거래, 경기 고양시',
-      imageUrl: null,
-      authorId: '나눔천사',
-      content: '출산 선물로 받았으나 다른 아기띠가 있어서 사용하지 않은 새 제품입니다. 깨끗하게 보관되어 있습니다.',
-      likes: 8,
-      views: 90,
-      postDate: '2025년 05월 12일',
-    ),
-    SharingItem(
-      name: '[나눔] 유아용 장난감 세트',
-      details: '택배 가능',
-      imageUrl: 'https://via.placeholder.com/150/d0d0d0/000000?Text=Toys',
-      authorId: '장난감부자',
-      content: '사용감 있지만 상태 좋은 유아용 장난감 세트입니다. 아이들이 좋아할 만한 다양한 종류가 있어요.',
-      likes: 5,
-      views: 70,
-      postDate: '2025년 05월 10일',
-    ),
-  ];
-
+  List<SharingItem> _sharingItems = []; // ✨ 빈 리스트로 초기화
   String selectedCategory = '나눔';
 
-  void _handleCategoryChanged(String? newValue) {
-    if (newValue != null) {
+  @override
+  void initState() {
+    super.initState();
+    _loadSharingItems(); // ✨ 페이지 시작 시 API 호출
+  }
+
+  Future<void> _loadSharingItems() async {
+    try {
+      final items = await SharingApiService.fetchAllShares(); // ✨ API 호출
       setState(() {
-        selectedCategory = newValue;
+        _sharingItems = items;
       });
-      // TODO: 선택된 카테고리에 따라 아이템 필터링 또는 API 호출 등의 로직 추가
-      print('선택된 카테고리: $selectedCategory');
+    } catch (e) {
+      print('나눔글 불러오기 실패: $e');
     }
   }
 
@@ -89,6 +56,16 @@ class _SharingPageState extends State<SharingPage> {
   void _handleFavorite(SharingItem item) {
     // TODO: 찜 기능 구현
     print('${item.name} 찜하기');
+  }
+
+  void _handleCategoryChanged(String? newValue) {
+    if (newValue != null) {
+      setState(() {
+        selectedCategory = newValue;
+      });
+      // TODO: 카테고리별 필터링이 필요하다면 여기에 API 재요청 로직도 추가 가능
+      print('선택된 카테고리: $selectedCategory');
+    }
   }
 
   @override
