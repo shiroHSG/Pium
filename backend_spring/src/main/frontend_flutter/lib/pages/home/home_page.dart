@@ -9,7 +9,6 @@ import 'package:frontend_flutter/pages/baby_record/baby_record_page.dart';
 import 'package:frontend_flutter/pages/my_page/my_page.dart';
 import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
 import 'package:frontend_flutter/pages/calendar_page/calendar_page.dart';
-import 'package:frontend_flutter/pages/calendar_page/add_schedule.dart';
 import 'package:frontend_flutter/pages/chatting/chatting_page.dart';
 import 'package:frontend_flutter/pages/auth/login.dart';
 
@@ -107,19 +106,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     // 캘린더 페이지에서 돌아왔을 때 일정 다시 로드
     await _loadSchedules();
-  }
-
-  Future<void> _showAddSchedulePopup() async {
-    final newSchedule = await showDialog<Schedule>(
-      context: context,
-      builder: (context) => AddSchedulePopup(initialDate: DateTime.now()),
-    );
-    if (newSchedule != null) {
-      setState(() {
-        _schedules.add(newSchedule);
-        _schedules.sort((a, b) => a.startTime.compareTo(b.startTime));
-      });
-    }
   }
 
   Future<void> _showEditDialogForChild(BabyProfile child) async {

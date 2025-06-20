@@ -7,12 +7,11 @@ import 'post_response.dart';
 class PostApiService {
   static const String baseUrl = 'http://10.0.2.2:8080/api/posts';
 
-  static Future<List<PostResponse>> fetchPosts(
-      String category, {
-        String? type,
-        String? keyword,
-        String? sort,
-      }) async {
+  static Future<List<PostResponse>> fetchPosts(String category, {
+    String? type,
+    String? keyword,
+    String? sort,
+  }) async {
     final Uri uri = Uri.parse('$baseUrl').replace(queryParameters: {
       'category': category,
       if (type != null) 'type': type,
@@ -62,7 +61,7 @@ class PostApiService {
       ..fields['postData'] = jsonEncode(postRequest.toJson());
 
     if (imageFile != null) {
-      request.files.add(imageFile); 
+      request.files.add(imageFile);
     }
 
     final response = await request.send();
@@ -75,3 +74,4 @@ class PostApiService {
       throw Exception('게시글 생성 실패: ${response.statusCode}');
     }
   }
+}
