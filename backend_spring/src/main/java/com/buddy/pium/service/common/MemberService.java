@@ -213,4 +213,13 @@ public class MemberService {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("회원 정보를 찾을 수 없습니다."));
     }
+
+    // 닉네임 또는 주소로 회원 검색
+    public List<MemberResponseDto> searchMembers(String query) {
+        return memberRepository
+                .findByNicknameContainingIgnoreCaseOrAddressContainingIgnoreCase(query, query)
+                .stream()
+                .map(this::toResponseDto)
+                .collect(Collectors.toList());
+    }
 }
