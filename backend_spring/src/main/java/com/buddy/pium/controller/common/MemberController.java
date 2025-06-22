@@ -186,4 +186,14 @@ public class MemberController {
             return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
+
+    /**
+     * 닉네임 또는 주소 기반 검색
+     */
+    // 검색의 경우 특정 리소스를 조회하는 것이 아닌, 조건에 해당하는 목록을 필터링 하는 것으로 RESTful API 원칙에 맞추기 위해 query 사용
+    @GetMapping("/search")
+    public ResponseEntity<List<MemberResponseDto>> searchMembers(@RequestParam String query) {
+        List<MemberResponseDto> results = memberService.searchMembers(query);
+        return ResponseEntity.ok(results);
+    }
 }
