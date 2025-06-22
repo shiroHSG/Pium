@@ -29,6 +29,48 @@ class BabyProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+
+    // 등록된 아이 없음일 경우 → 정중앙 문구 UI 반환
+    if (babyProfile.name == '등록된 아이 없음') {
+      return GestureDetector(
+        onTap: onEditPressed,
+        child: Container(
+          width: screenWidth,
+          height: 250,
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          decoration: const BoxDecoration(
+            color: AppTheme.lightPink,
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
+          ),
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '등록된 아이 없음',
+                  style: TextStyle(
+                    fontSize: 24,
+                    color: Colors.grey,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  '아이 정보를 등록해주세요.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 아이 정보가 있는 경우 기존 구성 유지
     return GestureDetector(
       onTap: onEditPressed,
       child: Container(
@@ -56,15 +98,6 @@ class BabyProfileHeader extends StatelessWidget {
                         ? DecorationImage(image: babyImage!, fit: BoxFit.cover)
                         : null,
                   ),
-                  child: babyImage == null
-                      ? const Center(
-                    child: Text(
-                      '아이\n사진',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                  )
-                      : null,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -77,11 +110,11 @@ class BabyProfileHeader extends StatelessWidget {
                           fontSize: 24,
                           color: AppTheme.textPurple,
                         ),
-                        overflow: TextOverflow.ellipsis, // ✅ 너무 긴 텍스트 방지
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${formatDate(babyProfile.birthDate)} / '
+                        '${formatDate(babyProfile.birthDate)}\n'
                             '${babyProfile.height?.toStringAsFixed(1) ?? '??'} cm / '
                             '${babyProfile.weight?.toStringAsFixed(1) ?? '??'} kg',
                         style: const TextStyle(
@@ -108,9 +141,11 @@ class BabyProfileHeader extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
-                  babyProfile.developmentStep ?? '성장 발달 내용이 없습니다.',
+                  (babyProfile.developmentStep == null || babyProfile.developmentStep!.trim().isEmpty)
+                      ? '성장 발달 내용이 없습니다.'
+                      : babyProfile.developmentStep!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  style: const TextStyle(color: Colors.grey, fontSize: 14),
                 ),
               ),
             ),
@@ -162,8 +197,6 @@ class _TodayScheduleCardState extends State<TodayScheduleCard> {
 
   @override
   Widget build(BuildContext context) {
-    final isToday = DateUtils.isSameDay(currentDate, DateTime.now());
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40.0),
       child: GestureDetector(
@@ -307,6 +340,7 @@ class PopularPostsSection extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(height: 30),
       ],
     );
   }

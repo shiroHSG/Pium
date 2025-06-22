@@ -56,15 +56,24 @@ class AuthService {
         final Map<String, dynamic> data = jsonDecode(response.body);
         final String accessToken = data['accessToken'];
         final String refreshToken = data['refreshToken'];
-        final memberId = data['memberId'];
+
+        final dynamic rawId = data['memberId'] ?? data['id'];
+        if (rawId == null || rawId is! int) {
+          print('❗ 오류: memberId가 null이거나 int 타입이 아님 → $rawId');
+          return false;
+        }
+
+        final int memberId = (rawId as num).toInt(); // int 또는 double 대응
 
         final prefs = await SharedPreferences.getInstance();
+        print('🟢 로그인 후 저장된 memberId: ${prefs.getInt("memberId")}');
         await prefs.setString('accessToken', accessToken);
         await prefs.setString('refreshToken', refreshToken);
         await prefs.setInt('memberId', memberId);
 
         print("저장된 accessToken: $accessToken");
         print("저장된 refreshToken: $refreshToken");
+        print("저장된 memberId: $memberId");
         return true;
       } else {
         print('응답 상태 코드: ${response.statusCode}');

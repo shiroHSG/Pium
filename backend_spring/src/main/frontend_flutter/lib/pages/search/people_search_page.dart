@@ -60,26 +60,32 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        PeopleSearchInput(
-          searchController: _searchController,
-          onSearchPressed: _handleSearch,
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: _users.length,
-            itemBuilder: (context, index) {
-              final user = _users[index];
-              return PeopleSearchResultItem(
-                user: user,
-                onMateButtonPressed: () => _handleMateButton(user['nickname']!),
-                onMessageButtonPressed: () => _handleMessageButton(user['nickname']!),
-              );
-            },
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('메이트 찾기'),
+        backgroundColor: AppTheme.primaryPurple,
+      ),
+      body: Column(
+        children: [
+          PeopleSearchInput(
+            searchController: _searchController,
+            onSearchPressed: _handleSearch,
           ),
-        ),
-      ],
+          Expanded(
+            child: ListView.builder(
+              itemCount: _users.length,
+              itemBuilder: (context, index) {
+                final user = _users[index];
+                return PeopleSearchResultItem(
+                  user: user,
+                  onMateButtonPressed: () => _handleMateButton(user['nickname']!),
+                  onMessageButtonPressed: () => _handleMessageButton(user['nickname']!),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
