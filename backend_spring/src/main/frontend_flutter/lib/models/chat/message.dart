@@ -7,7 +7,6 @@ class ChatMessage {
   final DateTime sentAt;
   final int unreadCount;
 
-  // ✅ 현재 로그인 유저가 보낸 메시지인지 확인하는데 사용
   final bool isMe;
 
   ChatMessage({
@@ -26,7 +25,7 @@ class ChatMessage {
       messageId: json['messageId'],
       senderId: json['senderId'],
       senderNickname: json['senderNickname'],
-      senderProfileImageUrl: json['senderProfileImageUrl'] ?? '',
+      senderProfileImageUrl: _resolveImageUrl(json['senderProfileImageUrl']),
       content: json['content'],
       sentAt: _parseDateTime(json['sentAt']),
       unreadCount: json['unreadCount'],
@@ -34,25 +33,27 @@ class ChatMessage {
     );
   }
 
+  /// ✅ 이미지 경로를 절대 URL로 보정
+  static String _resolveImageUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    return 'http://10.0.2.2:8080${path.startsWith('/') ? path : '/$path'}'
+        '?t=${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  /// ✅ 날짜 파싱
   static DateTime _parseDateTime(dynamic value) {
     if (value == null) return DateTime.fromMillisecondsSinceEpoch(0);
 
     if (value is String) {
-      return DateTime.parse(value); // e.g., "2025-06-18T16:35:30"
+      return DateTime.parse(value);
     }
 
     if (value is List && value.length >= 6) {
       return DateTime(
-        value[0], // year
-        value[1], // month
-        value[2], // day
-        value[3], // hour
-        value[4], // minute
-        value[5], // second
+        value[0], value[1], value[2], value[3], value[4], value[5],
       );
     }
 
     throw Exception('Invalid sentAt format: $value');
   }
-
 }

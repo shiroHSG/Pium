@@ -2,7 +2,7 @@ class ChatRoom {
   final int chatRoomId;
   final String type;
 
-  // DM/SHARE
+  // DM / SHARE
   final String? otherNickname;
   final String? otherProfileImageUrl;
 
@@ -32,38 +32,41 @@ class ChatRoom {
     required this.unreadCount,
   });
 
-  factory ChatRoom.fromJson(Map<String, dynamic> json) {
-    return ChatRoom(
-      chatRoomId: json['chatRoomId'],
-      type: json['type'],
-      otherNickname: json['otherNickname'],
-      otherProfileImageUrl: json['otherProfileImageUrl'],
-      sharePostId: json['sharePostId'],
-      sharePostTitle: json['sharePostTitle'],
-      chatRoomName: json['chatRoomName'],
-      imageUrl: json['imageUrl'],
-      lastMessage: json['lastMessage'] ?? '',
-      lastSentAt: _parseDateTime(json['lastSentAt']),
-      unreadCount: json['unreadCount'] ?? 0,
-    );
+  /// ✅ 공용 이미지 URL 생성기
+  static String? _resolveImageUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    return 'http://10.0.2.2:8080${path.startsWith('/') ? path : '/$path'}'
+        '?t=${DateTime.now().millisecondsSinceEpoch}';
   }
 
+  /// ✅ 날짜 파싱 (String 또는 List[int])
   static DateTime? _parseDateTime(dynamic value) {
-    if (value == null) return null; // ✅ null 유지
-
+    if (value == null) return null;
     if (value is String) {
       return DateTime.tryParse(value);
     }
-
     if (value is List && value.length >= 6) {
       return DateTime(
         value[0], value[1], value[2], value[3], value[4], value[5],
       );
     }
-    return null; // ✅ 잘못된 형식도 null 처리
+    return null;
   }
 
+  /// ✅ JSON → ChatRoom 객체 변환
+  factory ChatRoom.fromJson(Map<String, dynamic> json) {
+    return ChatRoom(
+      chatRoomId: json['chatRoomId'],
+      type: json['type'],
+      otherNickname: json['otherNickname'],
+      otherProfileImageUrl: _resolveImageUrl(json['otherProfileImageUrl']),
+      sharePostId: json['sharePostId'],
+      sharePostTitle: json['sharePostTitle'],
+      chatRoomName: json['chatRoomName'],
+      imageUrl: _resolveImageUrl(json['imageUrl']),
+      lastMessage: json['lastMessage'] ?? '',
+      lastSentAt: _parseDateTime(json['lastSentAt']),
+      unreadCount: json['unreadCount'] ?? 0,
+    );
+  }
 }
-
-
-

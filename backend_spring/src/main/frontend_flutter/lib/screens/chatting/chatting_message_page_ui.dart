@@ -59,9 +59,14 @@ class ChattingMessagePageUI extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   CircleAvatar(
-                    backgroundColor: Colors.grey,
                     radius: 15,
-                    child: const Icon(Icons.person, color: Colors.white, size: 20),
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage: message.senderProfileImageUrl.isNotEmpty
+                        ? NetworkImage(message.senderProfileImageUrl)
+                        : null,
+                    child: message.senderProfileImageUrl.isEmpty
+                        ? const Icon(Icons.person, color: Colors.white, size: 20)
+                        : null,
                   ),
                 ],
               ),

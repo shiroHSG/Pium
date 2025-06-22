@@ -123,11 +123,17 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                 height: 30,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
+                  image: (_messages.isNotEmpty && _messages.last.senderProfileImageUrl.isNotEmpty)
+                      ? DecorationImage(
+                    image: NetworkImage(_messages.last.senderProfileImageUrl),
+                    fit: BoxFit.cover,
+                  )
+                      : null,
                   color: Colors.grey[300],
                 ),
-                child: const Center(
-                  child: Icon(Icons.person, color: Colors.grey, size: 20),
-                ),
+                child: (_messages.isEmpty || _messages.last.senderProfileImageUrl.isEmpty)
+                    ? const Icon(Icons.person, color: Colors.grey, size: 20)
+                    : null,
               ),
               const SizedBox(width: 8),
               const Text(

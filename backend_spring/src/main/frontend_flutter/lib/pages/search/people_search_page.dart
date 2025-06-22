@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:frontend_flutter/models/people_search/member_api.dart';
 import 'package:frontend_flutter/screens/search/people_search_page_ui.dart';
 
+import '../../models/chat/chat_service.dart';
+import '../chat/chat_room_message_page.dart';
+
 class PeopleSearchPage extends StatefulWidget {
   const PeopleSearchPage({Key? key}) : super(key: key);
 
@@ -12,9 +15,9 @@ class PeopleSearchPage extends StatefulWidget {
 
 class _PeopleSearchPageState extends State<PeopleSearchPage> {
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, String>> _searchResults = [];
+  List<Map<String, dynamic>> _searchResults = [];
 
-  void _updateSearchResults(List<Map<String, String>> results) {
+  void _updateSearchResults(List<Map<String, dynamic>> results) {
     setState(() {
       _searchResults = results;
     });
@@ -24,8 +27,23 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
     print('메이트 맺기: \$nickname');
   }
 
-  void _handleMessageButton(String nickname) {
-    print('메세지 보내기: \$nickname');
+  void _handleMessageButton(int receiverId) async {
+    try {
+      final chatRoom = await createOrGetDirectChatRoom(receiverId);
+
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatRoomPage(chatRoomId: chatRoom.chatRoomId),
+        ),
+      );
+    } catch (e) {
+      print('❌ 채팅방 생성 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('채팅방을 생성하는 데 실패했습니다.')),
+      );
+    }
   }
 
   @override
@@ -58,7 +76,7 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
                 return PeopleSearchResultItem(
                   user: user,
                   onMateButtonPressed: () => _handleMateButton(user['nickname']!),
-                  onMessageButtonPressed: () => _handleMessageButton(user['nickname']!),
+                  onMessageButtonPressed: () => _handleMessageButton(user['memberId']),
                 );
               },
             ),
