@@ -15,6 +15,7 @@ public class ShareResponseDto {
     private String imgUrl;
     private String author;           // 닉네임
     private Long authorMemberId;     // ✅ Member ID 추가
+    private String category;
     private Long viewCount;
     private LocalDateTime createdAt;
 
@@ -26,6 +27,7 @@ public class ShareResponseDto {
                 share.getImageUrl(),
                 share.getMember().getNickname(),
                 share.getMember().getId(),      // ✅ Member ID 설정
+                share.getCategory(),
                 share.getViewCount(),
                 share.getCreatedAt()
         );

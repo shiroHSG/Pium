@@ -31,6 +31,9 @@ public class ShareService {
 
     @Transactional
     public void create(ShareRequestDto dto, Member member, MultipartFile image) {
+
+        System.out.println("★ DTO로 받은 category = " + dto.getCategory());
+
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
             imageUrl = fileUploadService.upload(image, "shares"); // 파일 저장 후 URL 리턴
@@ -41,8 +44,11 @@ public class ShareService {
                 .content(dto.getContent())
                 .imageUrl(imageUrl)
                 .member(member)
+                .category(dto.getCategory())
                 .viewCount(0L)
                 .build();
+
+        System.out.println("★ 저장 직전 share.category = " + share.getCategory());
 
         shareRepository.save(share);
     }
@@ -62,7 +68,17 @@ public class ShareService {
                 .toList();
     }
 
-    public void updateShare(Long shareId, Member member, ShareRequestDto dto, MultipartFile image) {
+    public List<ShareResponseDto> getByCategory(String category) {
+        return shareRepository.findByCategory(category).stream()
+                .map(ShareResponseDto::from)
+                .toList();
+    }
+
+    public void updateShare(
+            Long shareId,
+            Member member,
+            ShareRequestDto dto,
+            MultipartFile image) {
         Share share = validateShareOwner(shareId, member);
 
         if (image != null && !image.isEmpty()) {
@@ -75,6 +91,7 @@ public class ShareService {
 
         share.setTitle(dto.getTitle());
         share.setContent(dto.getContent());
+        share.setCategory(dto.getCategory());
     }
 
     public void delete(Long shareId, Member member) {

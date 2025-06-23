@@ -6,7 +6,7 @@ import 'post_response.dart';
 import 'package:frontend_flutter/models/post/post_comment.dart';
 
 class PostApiService {
-  static const String baseUrl = 'http://10.0.2.2:8080/posts';
+  static const String baseUrl = 'http://10.0.2.2:8080/api/posts';
 
   // 게시글 목록 조회
   static Future<List<PostResponse>> fetchPosts(
@@ -145,7 +145,7 @@ class PostApiService {
     }
   }
 
-// 댓글 목록 조회
+  // 댓글 목록 조회
   static Future<List<Comment>> fetchComments(int postId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
@@ -165,7 +165,7 @@ class PostApiService {
     }
   }
 
-  // 수정 삭제
+  // 게시글 삭제
   static Future<bool> deletePost(int postId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
@@ -180,13 +180,17 @@ class PostApiService {
     return response.statusCode == 200 || response.statusCode == 204;
   }
 
-  static Future<bool> updatePost(int postId, {required String title, required String content, String? imgUrl}) async {
+  // 게시글 수정
+  static Future<bool> updatePost(
+      int postId, {
+    required String title, required String content, required String category, String? imgUrl}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
     final url = '$baseUrl/$postId';
     final body = jsonEncode({
       'title': title,
       'content': content,
+      'category': category,
       'imgUrl': imgUrl ?? '',
     });
     final response = await http.put(
@@ -199,5 +203,4 @@ class PostApiService {
     );
     return response.statusCode == 200;
   }
-
 }

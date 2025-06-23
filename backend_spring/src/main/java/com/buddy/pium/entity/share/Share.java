@@ -39,6 +39,8 @@ public class Share {
 
     private String imageUrl;
 
+    private String category;
+
     private Long viewCount;
 
     @Builder.Default

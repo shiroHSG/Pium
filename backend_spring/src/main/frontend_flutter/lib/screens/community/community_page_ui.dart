@@ -192,13 +192,13 @@ class PostList extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // postImg는 nullable이므로 null 체크 필요
-            post.postImg != null && post.postImg!.isNotEmpty
+            post.imgUrl != null && post.imgUrl!.isNotEmpty
                 ? Container(
               width: 80,
               height: 80,
               margin: const EdgeInsets.only(right: 12),
               child: Image.network(
-                '${PostApiService.baseUrl}/${post.postImg!}',
+                '${PostApiService.baseUrl}/${post.imgUrl!}',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(Icons.broken_image, size: 40, color: Colors.grey);
@@ -250,11 +250,11 @@ class PostList extends StatelessWidget {
                       // const SizedBox(width: 12),
                       Icon(Icons.comment, size: 16, color: Colors.grey.shade500),
                       const SizedBox(width: 4),
-                      Text('0', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // TODO: 댓글 수 연동
+                      Text('${post.commentCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // 댓글 수!
                       const SizedBox(width: 12),
                       Icon(Icons.thumb_up, size: 16, color: Colors.grey.shade500),
                       const SizedBox(width: 4),
-                      Text('0', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // TODO: 좋아요 수 연동
+                      Text('${post.likeCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // 좋아요 연동!
                     ],
                   ),
                 ],
@@ -308,7 +308,7 @@ class PostList extends StatelessWidget {
 
 class CreatePostFab extends StatelessWidget {
   final String loggedInUserId;
-  final VoidCallback onPostCreated; // 게시글 작성 성공 시 호출될 콜백 함수
+  final VoidCallback onPostCreated;
 
   const CreatePostFab({
     Key? key,
@@ -320,15 +320,13 @@ class CreatePostFab extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton(
       onPressed: () async {
-        // CreatePostPage로 이동하고 결과(게시글 생성 성공 여부)를 기다립니다.
         final bool? postCreated = await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => CreatePostPage(loggedInUserId: loggedInUserId),
+            builder: (context) => CreatePostPage(mode: PostEditMode.create),
           ),
         );
 
-        // 게시글이 성공적으로 생성되었다면 (true가 반환되었다면) 게시글 목록을 새로고침합니다.
         if (postCreated == true) {
           onPostCreated();
         }

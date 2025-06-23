@@ -1,7 +1,7 @@
 package com.buddy.pium.service.post;
 
-import com.buddy.pium.dto.post.PostCommentRequestDto;
-import com.buddy.pium.dto.post.PostCommentResponseDto;
+import com.buddy.pium.dto.post.PostCommentRequest;
+import com.buddy.pium.dto.post.PostCommentResponse;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.Post;
 import com.buddy.pium.entity.post.PostComment;
@@ -29,7 +29,7 @@ public class PostCommentService {
     private final PostService postService;
     private final NotificationService notificationService;
 
-    public void create(Long postId, Member member, PostCommentRequestDto dto) {
+    public void create(Long postId, Member member, PostCommentRequest dto) {
         Post post = postService.validatePostOwner(postId, member);
 
         PostComment comment = PostComment.builder()
@@ -52,12 +52,12 @@ public class PostCommentService {
         postCommentRepository.save(comment);
     }
 
-    public List<PostCommentResponseDto> getComments(Long postId) {
+    public List<PostCommentResponse> getComments(Long postId) {
         Post post = postService.validatePost(postId);
 
         return postCommentRepository.findByPost(post)
                 .stream()
-                .map(c -> PostCommentResponseDto.builder()
+                .map(c -> PostCommentResponse.builder()
                         .id(c.getId())
                         .content(c.getContent())
                         .writer(c.getMember().getNickname())
@@ -67,7 +67,7 @@ public class PostCommentService {
     }
 
     @Transactional
-    public void update(Long commentId, Member member, PostCommentRequestDto dto) {
+    public void update(Long commentId, Member member, PostCommentRequest dto) {
         PostComment comment = validateCommentOwner(commentId, member);
         comment.setContent(dto.getContent());
     }
