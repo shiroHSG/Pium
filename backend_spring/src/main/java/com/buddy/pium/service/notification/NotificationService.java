@@ -3,9 +3,11 @@ package com.buddy.pium.service.notification;
 import com.buddy.pium.dto.notification.NotificationResponseDto;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.notification.Notification;
+import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.notification.NotificationRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -122,5 +124,27 @@ public class NotificationService {
                 removeEmitter(receiverId);
             }
         }
+    }
+
+    public void deleteNotification(Long notificationId, Long memberId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new ResourceNotFoundException("알림이 존재하지 않습니다."));
+
+        if (!notification.getReceiver().getId().equals(memberId)) {
+            throw new AccessDeniedException("삭제 권한이 없습니다.");
+        }
+        SseEmitter emitter = emitters.get(memberId);
+
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("notificationDeleted")
+                        .data(Map.of("id", notificationId)));
+            } catch (IOException e) {
+                emitters.remove(memberId);
+            }
+        }
+
+        notificationRepository.delete(notification);
     }
 }

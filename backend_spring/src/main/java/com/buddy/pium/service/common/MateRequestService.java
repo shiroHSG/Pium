@@ -4,15 +4,18 @@ import com.buddy.pium.dto.common.MateResponseDto;
 import com.buddy.pium.entity.common.Enum.MateRequestStatus;
 import com.buddy.pium.entity.common.MateRequest;
 import com.buddy.pium.entity.common.Member;
+import com.buddy.pium.entity.notification.Notification;
 import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MateRequestRepository;
 import com.buddy.pium.repository.common.MemberRepository;
+import com.buddy.pium.repository.notification.NotificationRepository;
 import com.buddy.pium.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +25,8 @@ public class MateRequestService {
     private final MateRequestRepository mateRequestRepository;
     private final MemberRepository memberRepository;
     private final NotificationService notificationService;
+
+    private final NotificationRepository notificationRepository;
 
     @Transactional
     public void requestMate(Member sender, Long receiverId) {
@@ -138,6 +143,18 @@ public class MateRequestService {
         if (!request.getSender().getId().equals(sender.getId())) {
             throw new IllegalArgumentException("본인이 보낸 요청만 취소할 수 있습니다.");
         }
+
+        // 알림 제거 대상 찾기
+        Optional<Notification> notificationOpt = notificationRepository
+                .findByTypeAndReceiverIdAndTargetId("MATE_REQUEST", request.getReceiver().getId(), sender.getId());
+
+        // 삭제 후 실시간 전송
+        if (notificationOpt.isPresent()) {
+            Notification notification = notificationOpt.get();
+            // 👉 삭제 이벤트 전송
+            notificationService.deleteNotification(notification.getId(), request.getReceiver().getId());
+        }
+
         mateRequestRepository.delete(request);
     }
 

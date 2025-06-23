@@ -31,6 +31,7 @@ Future<void> fetchUnreadNotifications(String token) async {
       notificationList.clear(); // 기존 알림 제거
       for (var item in data) {
         notificationList.add({
+          'id': item['id'],
           'category': mapTypeToCategory(item['type']),
           'icon': mapTypeToIcon(item['type']),
           'message': item['message'],
@@ -65,6 +66,7 @@ Future<void> subscribeToNotifications(String token) async {
         final data = jsonDecode(event.data!);
 
         final parsed = {
+          'id': data['id'],
           'category': mapTypeToCategory(data['type']),
           'icon': mapTypeToIcon(data['type']),
           'message': data['message'],
@@ -78,6 +80,14 @@ Future<void> subscribeToNotifications(String token) async {
         onNotificationUpdate?.call();
 
         print('📦 알림 데이터 추가됨 → 현재 수: ${notificationList.length}');
+      }
+      // ✅ 알림 삭제 이벤트 처리
+      else if (event.event == 'notificationDeleted') {
+        final data = jsonDecode(event.data!);
+        final idToRemove = data['id'];
+
+        notificationList.removeWhere((n) => n['id'] == idToRemove);
+        onNotificationUpdate?.call();
       }
     });
   } catch (e) {

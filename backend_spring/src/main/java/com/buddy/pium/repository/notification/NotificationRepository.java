@@ -6,8 +6,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     List<Notification> findByReceiverIdAndIsReadFalseOrderByCreatedAtDesc(Long memberId);
+
+    void deleteByTypeAndReceiverIdAndTargetId(String mateRequest, Long id, Long id1);
+
+    Optional<Notification> findByTypeAndReceiverIdAndTargetId(String mateRequest, Long id, Long id1);
 }
