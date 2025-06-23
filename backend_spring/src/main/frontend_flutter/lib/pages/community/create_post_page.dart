@@ -67,6 +67,43 @@ class _CreatePostPageState extends State<CreatePostPage> {
     }
   }
 
+  Future<void> _updatePost() async {
+    final title = _titleController.text.trim();
+    final content = _contentController.text.trim();
+    final category = _selectedCategory;
+    final postImg = _postImgController.text.trim().isEmpty ? null : _postImgController.text.trim();
+
+    if (title.isEmpty || content.isEmpty || category == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('제목, 내용, 카테고리는 필수 입력 항목입니다.')),
+      );
+      return;
+    }
+
+    try {
+      final result = await PostApiService.updatePost(
+        widget.post!.id,
+        title: title,
+        content: content,
+        category: category,
+        imgUrl: postImg,
+      );
+      if (result) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('게시글이 수정되었습니다!')),
+        );
+        Navigator.pop(context, true);
+      } else {
+        throw Exception('수정 실패');
+      }
+    } catch (e) {
+      print('게시글 수정 실패: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('게시글 수정에 실패했습니다: ${e.toString()}')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,8 +168,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 children: [
                   const Spacer(),
                   ElevatedButton(
-                    onPressed: _createPost,
-                    child: const Text('등록하기'),
+                    onPressed: () {
+                      if (widget.mode == PostEditMode.edit) {
+                        _updatePost();       // ← 수정 모드일 때
+                      } else {
+                        _createPost();       // ← 등록 모드일 때
+                      }
+                    },
+                    child: Text(widget.mode == PostEditMode.edit ? '수정하기' : '등록하기'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryPurple,
                       foregroundColor: Colors.white,
