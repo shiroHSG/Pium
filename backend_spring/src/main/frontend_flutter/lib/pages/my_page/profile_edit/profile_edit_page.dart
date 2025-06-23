@@ -166,6 +166,24 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     }
   }
 
+  Future<void> _disconnectMate(BuildContext context) async {
+    try {
+      await MateApi.disconnectMate();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Mate 연결이 해제되었습니다.")),
+      );
+      setState(() {
+        mateName = null;
+        mateNickname = null;
+      });
+    } catch (e) {
+      print("❌ 연결 해제 실패: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("연결 해제에 실패했습니다.")),
+      );
+    }
+  }
+
   void _showMateRequestsModal(BuildContext context) async {
     final received = await MateApi.fetchReceivedRequests();
     final sent = await MateApi.fetchSentRequests();
@@ -217,20 +235,12 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         final req = requests[index];
 
         return ListTile(
-          title: Text(isReceived ? req['senderNickname'] : req['receiverNickname']),
-          subtitle: Text(req['message']),
+          title: Text(isReceived
+              ? '${req['senderUsername']}(${req['senderNickname']})'
+              : '${req['receiverUsername']}(${req['receiverNickname']})'),
+          subtitle: Text(req['message'] ?? ''),
           trailing: isReceived
-          // 받은 요청일 경우 => 취소 버튼 표시
-              ? TextButton(
-            onPressed: () async {
-              await MateApi.cancelMateRequest(req['requestId']); // 새로운 API 필요
-              Navigator.pop(context);
-              _loadUserData(); // 새로고침
-            },
-            child: const Text("취소", style: TextStyle(color: Colors.red)),
-          )
-          // 보낸 요청일 경우 => 수락/거절 버튼 표시
-              : Row(
+              ? Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextButton(
@@ -245,10 +255,19 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                 onPressed: () async {
                   await MateApi.respondMateRequest(req['requestId'], false);
                   Navigator.pop(context);
+                  _loadUserData();
                 },
                 child: const Text("거절"),
               ),
             ],
+          )
+              : TextButton(
+            onPressed: () async {
+              await MateApi.cancelMateRequest(req['requestId']);
+              Navigator.pop(context);
+              _loadUserData();
+            },
+            child: const Text("취소", style: TextStyle(color: Colors.red)),
           ),
         );
       },
@@ -312,6 +331,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           }
         },
         onMateRequestPressed: _showMateRequestsModal,
+        onMateDisconnectPressed: _disconnectMate,
         mateName: mateName,
         mateNickname: mateNickname,
       ),

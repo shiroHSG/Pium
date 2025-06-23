@@ -20,6 +20,7 @@ class ProfileEditPageUI extends StatelessWidget {
   final VoidCallback onAddressSearch;
 
   final void Function(BuildContext) onMateRequestPressed;
+  final void Function(BuildContext) onMateDisconnectPressed;
   final String? mateName;
   final String? mateNickname;
 
@@ -39,6 +40,7 @@ class ProfileEditPageUI extends StatelessWidget {
     required this.onPickImage,
     required this.onAddressSearch,
     required this.onMateRequestPressed,
+    required this.onMateDisconnectPressed,
     required this.mateName,
     required this.mateNickname,
   }) : super(key: key);
@@ -75,7 +77,7 @@ class ProfileEditPageUI extends StatelessWidget {
                   _buildProfileInputField(label: '성별', controller: genderController, readOnly: true),
                   _buildProfileInputField(label: '생년월일', controller: birthController, readOnly: true),
 
-                  /// ✅ 배우자 항목 (수정 가능 상태에서만 버튼 활성화)
+                  /// ✅ 배우자 항목
                   _buildProfileInputField(
                     label: '배우자',
                     controller: TextEditingController(
@@ -86,18 +88,49 @@ class ProfileEditPageUI extends StatelessWidget {
                     readOnly: true,
                     suffixWidget: isEditing
                         ? GestureDetector(
-                      onTap: () => onMateRequestPressed(context),
-                      child: const Icon(Icons.chevron_right, color: AppTheme.textPurple),
+                      onTap: () {
+                        if (mateName != null && mateNickname != null) {
+                          showDialog(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: const Text("Mate 연결 해제"),
+                              content: const Text("정말로 Mate 연결을 해제하시겠습니까?"),
+                              actions: [
+                                TextButton(
+                                  child: const Text("취소"),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                                TextButton(
+                                  child: const Text("연결 해제", style: TextStyle(color: Colors.red)),
+                                  onPressed: () {
+                                    Navigator.pop(context); // 팝업 닫기
+                                    onMateDisconnectPressed(context); // API 호출
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        } else {
+                          onMateRequestPressed(context); // 요청 목록 보기
+                        }
+                      },
+                      child: Icon(
+                        (mateName != null && mateNickname != null)
+                            ? Icons.close
+                            : Icons.chevron_right,
+                        color: AppTheme.textPurple,
+                      ),
                     )
                         : null,
                   ),
 
                   _buildProfileInputField(label: '이름', controller: nameController, readOnly: !isEditing),
                   _buildProfileInputField(
-                      label: '전화번호',
-                      controller: phoneController,
-                      keyboardType: TextInputType.phone,
-                      readOnly: !isEditing),
+                    label: '전화번호',
+                    controller: phoneController,
+                    keyboardType: TextInputType.phone,
+                    readOnly: !isEditing,
+                  ),
                   _buildProfileInputField(
                     label: '주소',
                     controller: addressController,
@@ -109,7 +142,6 @@ class ProfileEditPageUI extends StatelessWidget {
                     )
                         : null,
                   ),
-
                   const SizedBox(height: 40),
                   SizedBox(
                     width: double.infinity,
@@ -125,8 +157,10 @@ class ProfileEditPageUI extends StatelessWidget {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                         elevation: 2,
                       ),
-                      child: Text(isEditing ? '완료' : '수정하기',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      child: Text(
+                        isEditing ? '완료' : '수정하기',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ],
