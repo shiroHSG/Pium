@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../models/share/sharing_api_service.dart';
+import 'package:frontend_flutter/models/share/sharing_api_service.dart';
 import 'package:frontend_flutter/widgets/custom_drawer.dart';
 import 'package:frontend_flutter/screens/sharing_page/write_sharing_page_ui.dart';
 
@@ -68,6 +68,7 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
       await SharingApiService.createShare(
         title: title,
         content: content,
+        category: _selectedCategory,
         imageFile: _selectedImage,
       );
 

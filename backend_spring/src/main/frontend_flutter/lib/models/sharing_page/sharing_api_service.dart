@@ -34,6 +34,7 @@ class SharingApiService {
   static Future<void> createShare({
     required String title,
     required String content,
+    required String category,
     File? imageFile,
   }) async {
     final prefs = await SharedPreferences.getInstance();
@@ -48,6 +49,7 @@ class SharingApiService {
     request.fields['shareData'] = jsonEncode({
       'title': title,
       'content': content,
+      'category': category,
     });
 
     if (imageFile != null) {
