@@ -21,26 +21,26 @@ public class MateRequestController {
     private final MateRequestService mateRequestService;
 
     // Mate 요청 전송
-    @PostMapping("/request/{receiverId}")
-    public ResponseEntity<Map<String, String>> requestMate(@PathVariable Long receiverId,
+    @PostMapping("/request/{requestId}")
+    public ResponseEntity<Map<String, String>> requestMate(@PathVariable Long requestId,
                                                            @CurrentMember Member member) {
-        mateRequestService.requestMate(member, receiverId);
+        mateRequestService.requestMate(member, requestId);
         return messageResponse("Mate 요청이 전송되었습니다.");
     }
 
     // Mate 요청 수락
-    @PostMapping("/accept/{senderId}")
-    public ResponseEntity<Map<String, String>> acceptMateBySender(@PathVariable Long senderId,
+    @PostMapping("/accept/{requestId}")
+    public ResponseEntity<Map<String, String>> acceptMateBySender(@PathVariable Long requestId,
                                                                   @CurrentMember Member member) {
-        mateRequestService.acceptMateBySender(senderId, member);
+        mateRequestService.acceptMateByRequestId(requestId, member);
         return messageResponse("Mate 요청을 수락했습니다. 상대방과 연결되었습니다.");
     }
 
     // Mate 요청 거절
-    @PostMapping("/reject/{senderId}")
-    public ResponseEntity<Map<String, String>> rejectMateBySender(@PathVariable Long senderId,
+    @PostMapping("/reject/{requestId}")
+    public ResponseEntity<Map<String, String>> rejectMateBySender(@PathVariable Long requestId,
                                                                   @CurrentMember Member member) {
-        mateRequestService.rejectMateBySender(senderId, member);
+        mateRequestService.rejectMateByRequestId(requestId, member);
         return messageResponse("Mate 요청을 거절했습니다.");
     }
 
@@ -64,10 +64,10 @@ public class MateRequestController {
     }
 
     // Mate 요청 취소
-    @DeleteMapping("/cancel/{receiverId}")
-    public ResponseEntity<Map<String, String>> cancelRequest(@PathVariable Long receiverId,
+    @DeleteMapping("/cancel/{requestId}")
+    public ResponseEntity<Map<String, String>> cancelRequest(@PathVariable Long requestId,
                                                              @CurrentMember Member member) {
-        mateRequestService.cancelRequest(member, receiverId);
+        mateRequestService.cancelRequest(member, requestId);
         return messageResponse("Mate 요청이 취소되었습니다.");
     }
 

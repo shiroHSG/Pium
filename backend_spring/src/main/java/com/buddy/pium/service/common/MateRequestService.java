@@ -7,6 +7,7 @@ import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MateRequestRepository;
 import com.buddy.pium.repository.common.MemberRepository;
+import com.buddy.pium.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,10 +21,11 @@ public class MateRequestService {
 
     private final MateRequestRepository mateRequestRepository;
     private final MemberRepository memberRepository;
+    private final NotificationService notificationService;
 
     @Transactional
-    public void requestMate(Member receiver, Long receiverId) {
-        Member sender = validateMember(receiverId);
+    public void requestMate(Member sender, Long receiverId) {
+        Member receiver = validateMember(receiverId);
         if(sender.equals(receiver)) {
             throw new IllegalArgumentException("자기 자신에게 Mate 요청을 보낼 수 없습니다.");
         }
@@ -45,16 +47,27 @@ public class MateRequestService {
                 .build();
 
         mateRequestRepository.save(request);
+        // 알림 전송
+        notificationService.sendNotification(
+                receiverId,
+                sender.getNickname() + "님이 Mate 요청을 보냈습니다.",
+                "MATE_REQUEST",
+                "MEMBER",
+                sender.getId()
+        );
     }
 
+    // 수락
     @Transactional
-    public void acceptMateBySender(Long senderId, Member member) {
-        MateRequest request = mateRequestRepository
-                .findBySenderIdAndReceiverIdAndStatus(senderId, member.getId(), MateRequestStatus.PENDING)
-                .orElseThrow(() -> new IllegalArgumentException("해당 Mate 요청이 존재하지 않거나 이미 처리되었습니다."));
+    public void acceptMateByRequestId(Long requestId, Member receiver) {
+        MateRequest request = mateRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 Mate 요청이 존재하지 않습니다."));
+
+        if (!request.getReceiver().getId().equals(receiver.getId())) {
+            throw new SecurityException("자신에게 온 Mate 요청만 수락할 수 있습니다.");
+        }
 
         Member sender = request.getSender();
-        Member receiver = request.getReceiver();
 
         if (sender.getMateInfo() != null || receiver.getMateInfo() != null) {
             throw new IllegalStateException("이미 Mate가 설정된 사용자입니다.");
@@ -69,14 +82,20 @@ public class MateRequestService {
         request.setStatus(MateRequestStatus.ACCEPTED);
     }
 
+
+    // 거절
     @Transactional
-    public void rejectMateBySender(Long senderId, Member member) {
-        MateRequest request = mateRequestRepository
-                .findBySenderIdAndReceiverIdAndStatus(senderId, member.getId(), MateRequestStatus.PENDING)
-                .orElseThrow(() -> new IllegalArgumentException("해당 Mate 요청이 존재하지 않거나 이미 처리되었습니다."));
+    public void rejectMateByRequestId(Long requestId, Member receiver) {
+        MateRequest request = mateRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 Mate 요청이 존재하지 않습니다."));
+
+        if (!request.getReceiver().getId().equals(receiver.getId())) {
+            throw new SecurityException("자신에게 온 Mate 요청만 거절할 수 있습니다.");
+        }
 
         request.setStatus(MateRequestStatus.REJECTED);
     }
+
 
     public List<MateResponseDto> getPendingRequests(Member receiver) {
         return mateRequestRepository.findByReceiverAndStatus(receiver, MateRequestStatus.PENDING)
@@ -84,6 +103,7 @@ public class MateRequestService {
                 .map(req -> MateResponseDto.builder()
                         .requestId(req.getId())
                         .senderId(req.getSender().getId())
+                        .senderUsername(req.getSender().getUsername())
                         .senderNickname(req.getSender().getNickname())
                         .status(req.getStatus())
                         .updatedAt(req.getUpdatedAt())
@@ -97,8 +117,9 @@ public class MateRequestService {
                 .stream()
                 .map(req -> MateResponseDto.builder()
                         .requestId(req.getId())
-                        .senderId(req.getSender().getId())
-                        .senderNickname(req.getSender().getNickname())
+                        .receiverId(req.getReceiver().getId()) // ✅
+                        .receiverUsername(req.getReceiver().getUsername()) // ✅
+                        .receiverNickname(req.getReceiver().getNickname()) // ✅
                         .status(req.getStatus())
                         .updatedAt(req.getUpdatedAt())
                         .message("보낸 Mate 요청 대기 중")
@@ -107,11 +128,14 @@ public class MateRequestService {
     }
 
     @Transactional
-    public void cancelRequest(Member member, Long receiverId) {
-        MateRequest request = mateRequestRepository
-                .findBySenderIdAndReceiverIdAndStatus(member.getId(), receiverId, MateRequestStatus.PENDING)
-                .orElseThrow(() -> new IllegalArgumentException("해당 Mate 요청이 존재하지 않거나 이미 처리되었습니다."));
+    public void cancelRequest(Member sender, Long requestId) {
+        MateRequest request = mateRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("요청이 존재하지 않습니다."));
 
+        // 보낸 사람 확인
+        if (!request.getSender().getId().equals(sender.getId())) {
+            throw new IllegalArgumentException("본인이 보낸 요청만 취소할 수 있습니다.");
+        }
         mateRequestRepository.delete(request);
     }
 
