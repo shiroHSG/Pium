@@ -179,7 +179,7 @@ Future<ChatRoom> createOrGetShareChatRoom({
   final requestDto = {
     'type': 'SHARE',
     'receiverId': receiverId,
-    'sharePostId': sharePostId,
+    'shareId': sharePostId,
   };
 
   final request = http.MultipartRequest(
