@@ -4,6 +4,7 @@ import 'package:frontend_flutter/models/people_search/member_api.dart';
 import 'package:frontend_flutter/screens/search/people_search_page_ui.dart';
 
 import '../../models/chat/chat_service.dart';
+import '../../models/mate/mate_api.dart';
 import '../chat/chat_room_message_page.dart';
 
 class PeopleSearchPage extends StatefulWidget {
