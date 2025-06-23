@@ -44,7 +44,7 @@ class PostDetailPage extends StatelessWidget {
               const SizedBox(height: 13),
               PostDetailContent(content: post.content),
               const SizedBox(height: 16),
-              PostDetailImage(imageUrl: post.postImg),
+              PostDetailImage(imageUrl: post.imgUrl),
               const SizedBox(height: 24),
               const PostDetailCommentsHeader(),
               const SizedBox(height: 12),

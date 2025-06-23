@@ -43,5 +43,12 @@ public class NotificationController {
         notificationService.markAllAsRead(member.getId());
         return ResponseEntity.ok(Map.of("message", "읽음 처리 완료"));
     }
+
+    // ✅ 안 읽은 알림 수 반환
+    @GetMapping("/unread-count")
+    public ResponseEntity<Integer> getUnreadCount(@CurrentMember Member member) {
+        int count = notificationService.getUnreadNotificationCount(member.getId());
+        return ResponseEntity.ok(count);
+    }
 }
 

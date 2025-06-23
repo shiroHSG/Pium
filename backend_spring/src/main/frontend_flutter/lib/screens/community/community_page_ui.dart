@@ -192,13 +192,13 @@ class PostList extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // postImg는 nullable이므로 null 체크 필요
-            post.postImg != null && post.postImg!.isNotEmpty
+            post.imgUrl != null && post.imgUrl!.isNotEmpty
                 ? Container(
               width: 80,
               height: 80,
               margin: const EdgeInsets.only(right: 12),
               child: Image.network(
-                '${PostApiService.baseUrl}/${post.postImg!}',
+                '${PostApiService.baseUrl}/${post.imgUrl!}',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(Icons.broken_image, size: 40, color: Colors.grey);

@@ -91,7 +91,7 @@ public class NotificationService {
         System.out.println("🧹 SSE 연결 정리 완료: memberId = " + memberId);
     }
 
-    // 알람 보내기
+    // 알림 보내기
     public void sendNotification(Long receiverId, String message, String type, String targetType, Long targetId) {
         // DB 저장
         Notification notification = Notification.builder()
@@ -112,15 +112,28 @@ public class NotificationService {
 
         if (emitter != null) {
             try {
+                // 알림 내용 전송
                 NotificationResponseDto dto = NotificationResponseDto.from(notification);
                 emitter.send(SseEmitter.event()
                         .name("notification")
                         .data(dto));
                 System.out.println("알림 전송 : " + dto);
+
+                // unreadCount 전송
+                int unreadCount = notificationRepository.countByReceiverIdAndIsReadFalse(receiverId);
+                emitter.send(SseEmitter.event()
+                        .name("unreadCount")   // ✅ 이벤트 이름: unreadCount
+                        .data(unreadCount));
+                System.out.println("📡 unreadCount 전송: " + unreadCount);
             } catch (IOException e) {
                 System.out.println("💥 알림 전송 실패, emitter 제거: memberId = " + receiverId);
                 removeEmitter(receiverId);
             }
         }
+    }
+
+    // 🔹 안 읽은 알림 개수 조회
+    public int getUnreadNotificationCount(Long memberId) {
+        return notificationRepository.countByReceiverIdAndIsReadFalse(memberId);
     }
 }

@@ -11,7 +11,9 @@ import '../../../models/mate/mate_api.dart';
 import '../../../theme/app_theme.dart';
 
 class ProfileEditPage extends StatefulWidget {
-  const ProfileEditPage({Key? key}) : super(key: key);
+  final bool openMateModal;
+
+  const ProfileEditPage({Key? key, this.openMateModal = false}) : super(key: key);
 
   @override
   State<ProfileEditPage> createState() => _ProfileEditPageState();
@@ -42,7 +44,13 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _loadUserData().then((_) {
+      if (widget.openMateModal) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showMateRequestsModal(context);
+        });
+      }
+    });
   }
 
   Future<void> _pickImage() async {

@@ -6,7 +6,7 @@ import 'post_response.dart';
 import 'package:frontend_flutter/models/post/post_comment.dart';
 
 class PostApiService {
-  static const String baseUrl = 'http://10.0.2.2:8080/posts';
+  static const String baseUrl = 'http://10.0.2.2:8080/api/posts';
 
   // 게시글 목록 조회
   static Future<List<PostResponse>> fetchPosts(

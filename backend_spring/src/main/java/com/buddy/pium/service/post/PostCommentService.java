@@ -30,7 +30,7 @@ public class PostCommentService {
     private final NotificationService notificationService;
 
     public void create(Long postId, Member member, PostCommentRequestDto dto) {
-        Post post = postService.validatePostOwner(postId, member);
+        Post post = postService.validatePost(postId);
 
         PostComment comment = PostComment.builder()
                 .post(post)

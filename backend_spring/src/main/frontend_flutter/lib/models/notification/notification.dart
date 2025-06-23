@@ -10,6 +10,7 @@ List<Map<String, dynamic>> notificationList = [];
 
 /// 🔁 알림 수신 시 UI 갱신을 위한 콜백 함수
 void Function()? onNotificationUpdate;
+Function(int)? onUnreadAlarmCountUpdate; // 알림 전용
 
 EventSource? _eventSource;
 
@@ -35,6 +36,9 @@ Future<void> fetchUnreadNotifications(String token) async {
           'icon': mapTypeToIcon(item['type']),
           'message': item['message'],
           'date': formatDate(item['createdAt']),
+          'type': item['type'],               // ✅ 추가
+          'targetType': item['targetType'],   // ✅ 추가
+          'targetId': item['targetId'],       // ✅ 추가
         });
       }
 
@@ -68,7 +72,10 @@ Future<void> subscribeToNotifications(String token) async {
           'category': mapTypeToCategory(data['type']),
           'icon': mapTypeToIcon(data['type']),
           'message': data['message'],
-          'date': formatDate(data['createdAt']), // 혹은 포맷팅
+          'date': formatDate(data['createdAt']),
+          'type': data['type'],               // ✅
+          'targetType': data['targetType'],   // ✅
+          'targetId': data['targetId'],       // ✅
         };
 
         print('$parsed');
@@ -79,12 +86,23 @@ Future<void> subscribeToNotifications(String token) async {
 
         print('📦 알림 데이터 추가됨 → 현재 수: ${notificationList.length}');
       }
+      // ✅ 새로 추가된 부분: unreadCount 수신
+      else if (event.event == 'unreadCount') {
+        final count = int.tryParse(event.data ?? '0') ?? 0;
+        print('🔢 unreadCount 수신: $count');
+
+        // ✅ 알림 뱃지 전용 콜백 실행
+        if (onUnreadAlarmCountUpdate != null) {
+          onUnreadAlarmCountUpdate!(count);
+        }
+      }
     });
   } catch (e) {
     print('❌ SSE 연결 실패: $e');
   }
 }
 
+// 알림 읽음 처리
 Future<void> markAllNotificationsAsRead(String token) async {
   final url = Uri.parse('$_baseUrl/api/notifications/mark-as-read');
 
@@ -104,6 +122,27 @@ Future<void> markAllNotificationsAsRead(String token) async {
     onNotificationUpdate?.call();
   } else {
     print('❌ 읽음 처리 실패: ${response.statusCode}');
+  }
+}
+
+// 읽지 않은 알림 수 가져오기
+Future<void> fetchUnreadNotificationCount(String token, Function(int) onCountUpdate) async {
+  final url = Uri.parse('$_baseUrl/api/notifications/unread-count');
+
+  final response = await http.get(
+    url,
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final count = int.parse(response.body!);
+    print('📥 안 읽은 알림 개수: $count');
+    onCountUpdate(count); // 상태 업데이트 콜백 실행
+  } else {
+    print('❌ 알림 개수 불러오기 실패: ${response.statusCode}');
   }
 }
 
@@ -135,10 +174,11 @@ String mapTypeToCategory(String type) {
 IconData mapTypeToIcon(String type) {
   switch (type) {
     case 'COMMENT':
-      return Icons.groups;
-    case 'MATE_REQUEST':
       return Icons.chat;
+    case 'MATE_REQUEST':
+      return Icons.groups;
     default:
       return Icons.notifications;
   }
 }
+
