@@ -47,14 +47,24 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
     try {
       final members = await fetchChatRoomMembers(widget.chatRoomId);
 
-      // SharedPreferences에서 내 memberId 가져오기
       final prefs = await SharedPreferences.getInstance();
       myMemberId = prefs.getInt('memberId'); // 토큰에서 파싱해서 저장
 
+      // 각 멤버에 대한 로그 출력
+      for (var p in members) {
+        print('👀 체크 중: id=${p['memberId']}, isAdmin=${p['isAdmin']} (${p['isAdmin'].runtimeType})');
+      }
+
       setState(() {
         _participants = members;
-        isAdmin = _participants.any((p) =>
-        p['memberId'] == myMemberId && p['isAdmin'] == true);
+
+        isAdmin = _participants.any((p) {
+          final idMatch = p['memberId'] == myMemberId;
+          final isAdminValue = p['admin'].toString(); // 문자열 비교
+          return idMatch && (isAdminValue == '1' || isAdminValue.toLowerCase() == 'true');
+        });
+
+        print('🔥 최종 isAdmin: $isAdmin'); // 확인용 로그
       });
     } catch (e) {
       debugPrint('❌ 멤버 불러오기 실패: $e');
@@ -77,7 +87,7 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
   // 채팅방 나가기
   void _leaveChatRoom() async {
     try {
-      await leaveChatRoom(widget.chatRoomId); // ✅ 서버에 나가기 요청
+      await leaveChatRoom(widget.chatRoomId); // 서버에 나가기 요청
       if (!context.mounted) return;
 
       Navigator.pushAndRemoveUntil(
@@ -99,7 +109,7 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
   void _deleteChatRoom(int chatRoomId) async {
     try {
       await deleteGroupChatRoom(chatRoomId); // 삭제 요청
-      debugPrint('✅ 채팅방 삭제 완료');
+      debugPrint('채팅방 삭제 완료');
 
       if (!context.mounted) return; // context가 살아있는지 체크
 
@@ -379,6 +389,7 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
                     const SizedBox(width: 15),
                     ElevatedButton(
                       onPressed: () {
+                        print('🔴 현재 isAdmin 값: $isAdmin');
                         if (isAdmin) {
                           _showLeaveConfirmDialog(); // 방장만 삭제/위임 가능
                         } else {
