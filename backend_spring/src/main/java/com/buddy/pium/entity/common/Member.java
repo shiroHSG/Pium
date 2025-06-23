@@ -5,6 +5,7 @@ import com.buddy.pium.entity.chat.ChatRoomMember;
 import com.buddy.pium.entity.chat.Message;
 import com.buddy.pium.entity.calender.Calender;
 import com.buddy.pium.entity.diary.Diary;
+import com.buddy.pium.entity.notification.Notification;
 import com.buddy.pium.entity.post.Post;
 import com.buddy.pium.entity.post.PostComment;
 import com.buddy.pium.entity.post.PostLike;
@@ -113,6 +114,10 @@ public class Member {
     @Builder.Default
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Share> shares = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications = new ArrayList<>();
 
     @CreatedDate
     @Column(name = "created_at", nullable = false)
