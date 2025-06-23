@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-
 import '../../../widgets/protected_image.dart';
 
 class ProfileEditPageUI extends StatelessWidget {
@@ -12,13 +11,17 @@ class ProfileEditPageUI extends StatelessWidget {
   final TextEditingController birthController;
   final TextEditingController genderController;
   final TextEditingController addressController;
-  final TextEditingController mateController;
+
   final bool isEditing;
   final VoidCallback onToggleEdit;
   final String? profileImageUrl;
   final File? selectedImage;
   final VoidCallback onPickImage;
   final VoidCallback onAddressSearch;
+
+  final void Function(BuildContext) onMateRequestPressed;
+  final String? mateName;
+  final String? mateNickname;
 
   const ProfileEditPageUI({
     Key? key,
@@ -29,13 +32,15 @@ class ProfileEditPageUI extends StatelessWidget {
     required this.birthController,
     required this.genderController,
     required this.addressController,
-    required this.mateController,
     required this.isEditing,
     required this.onToggleEdit,
     required this.profileImageUrl,
     required this.selectedImage,
     required this.onPickImage,
     required this.onAddressSearch,
+    required this.onMateRequestPressed,
+    required this.mateName,
+    required this.mateNickname,
   }) : super(key: key);
 
   @override
@@ -46,14 +51,9 @@ class ProfileEditPageUI extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPurple),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          '프로필',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('프로필', style: TextStyle(color: Colors.white)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -74,8 +74,30 @@ class ProfileEditPageUI extends StatelessWidget {
                   _buildProfileInputField(label: '아이디', controller: usernameController, readOnly: true),
                   _buildProfileInputField(label: '성별', controller: genderController, readOnly: true),
                   _buildProfileInputField(label: '생년월일', controller: birthController, readOnly: true),
+
+                  /// ✅ 배우자 항목 (수정 가능 상태에서만 버튼 활성화)
+                  _buildProfileInputField(
+                    label: '배우자',
+                    controller: TextEditingController(
+                      text: (mateName != null && mateNickname != null)
+                          ? '$mateName($mateNickname)'
+                          : '요청 목록 확인',
+                    ),
+                    readOnly: true,
+                    suffixWidget: isEditing
+                        ? GestureDetector(
+                      onTap: () => onMateRequestPressed(context),
+                      child: const Icon(Icons.chevron_right, color: AppTheme.textPurple),
+                    )
+                        : null,
+                  ),
+
                   _buildProfileInputField(label: '이름', controller: nameController, readOnly: !isEditing),
-                  _buildProfileInputField(label: '전화번호', controller: phoneController, keyboardType: TextInputType.phone, readOnly: !isEditing),
+                  _buildProfileInputField(
+                      label: '전화번호',
+                      controller: phoneController,
+                      keyboardType: TextInputType.phone,
+                      readOnly: !isEditing),
                   _buildProfileInputField(
                     label: '주소',
                     controller: addressController,
@@ -87,7 +109,7 @@ class ProfileEditPageUI extends StatelessWidget {
                     )
                         : null,
                   ),
-                  _buildProfileInputField(label: '배우자', controller: mateController, readOnly: !isEditing),
+
                   const SizedBox(height: 40),
                   SizedBox(
                     width: double.infinity,
@@ -97,16 +119,14 @@ class ProfileEditPageUI extends StatelessWidget {
                         FocusScope.of(context).unfocus();
                         onToggleEdit();
                       },
-                      child: Text(
-                        isEditing ? '완료' : '수정하기',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryPurple,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                         elevation: 2,
                       ),
+                      child: Text(isEditing ? '완료' : '수정하기',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
@@ -163,9 +183,8 @@ class ProfileEditPageUI extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10.0),
                   borderSide: BorderSide.none,
                 ),
-                suffixIcon: suffixWidget ?? (suffixIcon != null
-                    ? Icon(suffixIcon, color: AppTheme.textPurple)
-                    : null),
+                suffixIcon: suffixWidget ??
+                    (suffixIcon != null ? Icon(suffixIcon, color: AppTheme.textPurple) : null),
               ),
             ),
           ),

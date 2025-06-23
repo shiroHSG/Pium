@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:frontend_flutter/models/people_search/member_api.dart';
 import 'package:frontend_flutter/screens/search/people_search_page_ui.dart';
 
+import '../../models/mate/mate_api.dart';
+
 class PeopleSearchPage extends StatefulWidget {
   const PeopleSearchPage({Key? key}) : super(key: key);
 
@@ -12,16 +14,19 @@ class PeopleSearchPage extends StatefulWidget {
 
 class _PeopleSearchPageState extends State<PeopleSearchPage> {
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, String>> _searchResults = [];
+  List<Map<String, dynamic>> _searchResults = [];
 
-  void _updateSearchResults(List<Map<String, String>> results) {
+  void _updateSearchResults(List<Map<String, dynamic>> results) {
     setState(() {
       _searchResults = results;
     });
   }
 
-  void _handleMateButton(String nickname) {
-    print('메이트 맺기: \$nickname');
+  void _handleMateButton(int receiverId) async {
+    await MateApi.requestMate(receiverId);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("메이트 요청을 보냈습니다")),
+    );
   }
 
   void _handleMessageButton(String nickname) {
@@ -44,7 +49,7 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
         children: [
           PeopleSearchInput(
             searchController: _searchController,
-            onSearchResults: _updateSearchResults,
+            onSearchResults: _updateSearchResults, // <- 오류 발생
           ),
           Expanded(
             child: _searchController.text.isEmpty
@@ -57,7 +62,7 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
                 final user = _searchResults[index];
                 return PeopleSearchResultItem(
                   user: user,
-                  onMateButtonPressed: () => _handleMateButton(user['nickname']!),
+                  onMateButtonPressed: () => _handleMateButton(user['id']!),
                   onMessageButtonPressed: () => _handleMessageButton(user['nickname']!),
                 );
               },

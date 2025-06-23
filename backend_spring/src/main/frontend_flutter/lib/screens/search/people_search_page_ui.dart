@@ -4,7 +4,7 @@ import 'package:frontend_flutter/models/people_search/member_api.dart';
 
 class PeopleSearchInput extends StatelessWidget {
   final TextEditingController searchController;
-  final Function(List<Map<String, String>>) onSearchResults;
+  final Function(List<Map<String, dynamic>>) onSearchResults;
 
   const PeopleSearchInput({
     Key? key,
@@ -22,6 +22,7 @@ class PeopleSearchInput extends StatelessWidget {
     try {
       final results = await MemberApi.searchMembers(query);
       onSearchResults(results.map((member) => {
+        'id': member.id,
         'nickname': member.nickname,
         'location': member.address,
         'profileImageUrl': member.profileImageUrl ?? '',
