@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class PostResponse {
+public class PostResponseDto {
     private Long id;
     private String title;
     private String content;
@@ -20,19 +20,16 @@ public class PostResponse {
     private Boolean isLiked;
     private Integer commentCount;
 
-    public static PostResponse from(Post post, Long memberId) {
-        return PostResponse.builder()
+    public static PostResponseDto from(Post post, Long memberId) {
+        return PostResponseDto.builder()
                 .id(post.getId())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .category(post.getCategory())
-                .imgUrl(post.getImgUrl())
                 .author(post.getMember().getNickname())
                 .viewCount(post.getViewCount())
                 .createdAt(post.getCreatedAt().toString())
                 .likeCount(post.getLikes().size())
-                .isLiked(post.isLikedBy(memberId))
-                .commentCount(post.getComments().size())
                 .build();
     }
 }

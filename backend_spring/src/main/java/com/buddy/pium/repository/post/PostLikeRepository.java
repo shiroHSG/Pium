@@ -1,11 +1,15 @@
 // PostLikeRepository.java
 package com.buddy.pium.repository.post;
 
+import com.buddy.pium.entity.common.Member;
+import com.buddy.pium.entity.post.Post;
 import com.buddy.pium.entity.post.PostLike;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
-    boolean existsByPostIdAndMemberId(Long postId, Long memberId);
+import java.util.Optional;
 
-    void deleteByPostIdAndMemberId(Long postId, Long memberId);
+public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
+    Optional<PostLike> findByPostAndMember(Post post, Member member);
+
+    long countByPost(Post post);
 }

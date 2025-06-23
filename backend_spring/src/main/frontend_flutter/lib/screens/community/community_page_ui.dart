@@ -250,11 +250,11 @@ class PostList extends StatelessWidget {
                       // const SizedBox(width: 12),
                       Icon(Icons.comment, size: 16, color: Colors.grey.shade500),
                       const SizedBox(width: 4),
-                      Text('${post.commentCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // 댓글 수!
+                      // Text('${post.commentCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // 댓글 수!
                       const SizedBox(width: 12),
                       Icon(Icons.thumb_up, size: 16, color: Colors.grey.shade500),
                       const SizedBox(width: 4),
-                      Text('${post.likeCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // 좋아요 연동!
+                      // Text('${post.likeCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // 좋아요 연동!
                     ],
                   ),
                 ],

@@ -21,8 +21,8 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
   @override
   void initState() {
     super.initState();
-    isLiked = widget.post.isLiked;
-    likeCount = widget.post.likeCount;
+    // isLiked = widget.post.isLiked;
+    // likeCount = widget.post.likeCount;
   }
 
   Future<void> _toggleLike() async {
@@ -31,8 +31,8 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
     await PostApiService.toggleLike(widget.post.id);
     final refreshed = await PostApiService.fetchPostDetail(widget.post.id);
     setState(() {
-      isLiked = refreshed.isLiked;
-      likeCount = refreshed.likeCount;
+      // isLiked = refreshed.isLiked;
+      // likeCount = refreshed.likeCount;
       isLoading = false;
     });
   }
@@ -64,10 +64,10 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                '조회수 ${widget.post.viewCount}  |  작성일 : ${widget.post.createdAt.split('T').first}',
-                style: TextStyle(fontFamily: 'Jua', fontSize: 12, color: Colors.grey[600]),
-              ),
+              // Text(
+              //   // '조회수 ${widget.post.viewCount}  |  작성일 : ${widget.post.createdAt.split('T').first}',
+              //   // style: TextStyle(fontFamily: 'Jua', fontSize: 12, color: Colors.grey[600]),
+              // ),
             ],
           ),
         ),
