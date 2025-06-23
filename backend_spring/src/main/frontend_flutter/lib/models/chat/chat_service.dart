@@ -242,6 +242,26 @@ Future<ChatRoom> createGroupChatRoom({
   }
 }
 
+// 멤버 불러오기
+Future<List<Map<String, dynamic>>> fetchChatRoomMembers(int chatRoomId) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+
+  final response = await http.get(
+    Uri.parse('http://10.0.2.2:8080/api/chatroom/$chatRoomId/members'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+    return data.cast<Map<String, dynamic>>();
+  } else {
+    throw Exception('멤버 불러오기 실패: ${response.statusCode}');
+  }
+}
 
 // 채팅방 수정, 그룹 채팅방일때만
 Future<void> updateGroupChatRoom({
@@ -336,6 +356,29 @@ Future<void> deleteGroupChatRoom(int chatRoomId) async {
     final body = await response.body;
     print('❌ 채팅방 삭제 실패: ${response.statusCode} - $body');
     throw Exception('채팅방 삭제 실패: ${response.statusCode}');
+  }
+}
+
+// 방장 위임 요청
+Future<void> delegateAdmin(int chatRoomId, int newAdminId) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+
+  if (token == null) {
+    throw Exception('토큰이 없습니다.');
+  }
+
+  final url = Uri.parse('$_baseUrl/api/chatroom/$chatRoomId/members/$newAdminId/delegate');
+
+  final response = await http.patch(url, headers: {
+    'Authorization': 'Bearer $token',
+    'Content-Type': 'application/json',
+  });
+
+  if (response.statusCode != 200) {
+    throw Exception('방장 위임 실패: ${response.statusCode}');
+  } else {
+    print('✅ 방장 위임 성공');
   }
 }
 

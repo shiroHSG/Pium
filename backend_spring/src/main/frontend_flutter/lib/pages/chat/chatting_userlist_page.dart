@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/chat/chat_service.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/protected_image.dart';
@@ -28,11 +29,41 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
   final TextEditingController _roomNameController = TextEditingController();
   String? selectedUser;
 
+  List<Map<String, dynamic>> _participants = [];
+
+  int? myMemberId;
+  bool isAdmin = false;
+
   @override
   void initState() {
     super.initState();
     currentRoomName = widget.roomName;
     _roomNameController.text = currentRoomName;
+    _loadParticipants();  // 멤버 불러오기
+  }
+
+  // 채팅방 멤버 불러오기
+  void _loadParticipants() async {
+    try {
+      final members = await fetchChatRoomMembers(widget.chatRoomId);
+
+      // SharedPreferences에서 내 memberId 가져오기
+      final prefs = await SharedPreferences.getInstance();
+      myMemberId = prefs.getInt('memberId'); // 토큰에서 파싱해서 저장
+
+      setState(() {
+        _participants = members;
+        isAdmin = _participants.any((p) =>
+        p['memberId'] == myMemberId && p['isAdmin'] == true);
+      });
+    } catch (e) {
+      debugPrint('❌ 멤버 불러오기 실패: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('채팅방 멤버를 불러오는 데 실패했습니다.')),
+        );
+      }
+    }
   }
 
   void _copyInviteLink() {
@@ -43,14 +74,28 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
     );
   }
 
-  void _leaveChatRoom() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const MyHomePage()),
-          (route) => false,
-    );
+  // 채팅방 나가기
+  void _leaveChatRoom() async {
+    try {
+      await leaveChatRoom(widget.chatRoomId); // ✅ 서버에 나가기 요청
+      if (!context.mounted) return;
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const MyHomePage()), // 홈화면 또는 채팅 리스트
+            (route) => false,
+      );
+    } catch (e) {
+      debugPrint('❌ 채팅방 나가기 실패: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('채팅방 나가기에 실패했습니다.')),
+        );
+      }
+    }
   }
 
+  // 채팅방 삭제하기
   void _deleteChatRoom(int chatRoomId) async {
     try {
       await deleteGroupChatRoom(chatRoomId); // 삭제 요청
@@ -73,18 +118,34 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
     }
   }
 
-  void _showDelegationCompleteDialog(String nickname) {
+  // 일반 사용자 채팅방 나가기 모달창
+  void _showSimpleLeaveDialog() {
     showDialog(
       context: context,
       builder: (context) => ConfirmDialog(
-        content: '방장이 위임되었습니다.\n채팅방을 나가시겠습니까?',
+        content: '채팅방을 나가시겠습니까?',
         confirmText: '예',
         cancelText: '아니오',
-        onConfirm: _leaveChatRoom, // ✅ 여기 수정
+        onConfirm: _leaveChatRoom,
       ),
     );
   }
 
+  // 방장 채팅방 나가기
+  void _showLeaveConfirmDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => ConfirmDialog(
+        content: '채팅방을 삭제 하시겠습니까?\n방장을 위임하시겠습니까?',
+        confirmText: '삭제',
+        cancelText: '방장 위임',
+        onConfirm: () => _deleteChatRoom(widget.chatRoomId),
+        onCancel: _showDelegationSelectDialog,
+      ),
+    );
+  }
+
+  // 방장 위임
   void _showDelegationSelectDialog() {
     showDialog(
       context: context,
@@ -106,30 +167,48 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  ...widget.participants.map((p) {
-                    final nickname = p['nickname']!;
+                  ..._participants.map((p) {
+                    final nickname = p['nickname'] ?? '알 수 없음';
+                    final memberId = p['memberId'].toString(); // 선택된 사용자 ID
                     return RadioListTile<String>(
                       title: Text(nickname),
-                      value: nickname,
+                      value: memberId,
                       groupValue: selectedUser,
                       onChanged: (value) => setState(() => selectedUser = value),
                       activeColor: AppTheme.primaryPurple,
                     );
                   }).toList(),
+
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: selectedUser == null
                         ? null
-                        : () {
-                      Navigator.pop(context);
-                      _showDelegationCompleteDialog(selectedUser!);
+                        : () async {
+                      Navigator.pop(context); // 위임 팝업 닫기
+
+                      try {
+                        // 문자열 selectedUser → 정수로 변환
+                        final newAdminId = int.parse(selectedUser!);
+                        await delegateAdmin(widget.chatRoomId, newAdminId);
+
+                        _showDelegationCompleteDialog(
+                          _participants.firstWhere((p) => p['memberId'].toString() == selectedUser)['nickname'],
+                        );
+                      } catch (e) {
+                        debugPrint('❌ 방장 위임 실패: $e');
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('방장 위임에 실패했습니다.')),
+                          );
+                        }
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryPurple,
                       foregroundColor: Colors.white,
                     ),
                     child: const Text('위임하기'),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -139,15 +218,15 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
     );
   }
 
-  void _showLeaveConfirmDialog() {
+  // 방장위임 후 채팅방 나가기
+  void _showDelegationCompleteDialog(String nickname) {
     showDialog(
       context: context,
       builder: (context) => ConfirmDialog(
-        content: '채팅방을 삭제 하시겠습니까?\n방장을 위임하시겠습니까?',
-        confirmText: '삭제',
-        cancelText: '방장 위임',
-        onConfirm: () => _deleteChatRoom(widget.chatRoomId),
-        onCancel: _showDelegationSelectDialog,
+        content: '방장이 위임되었습니다.\n채팅방을 나가시겠습니까?',
+        confirmText: '예',
+        cancelText: '아니오',
+        onConfirm: _leaveChatRoom,
       ),
     );
   }
@@ -250,7 +329,7 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
                   padding: const EdgeInsets.only(left: 12.0, bottom: 15.0),
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: widget.participants.length,
+                  itemCount: _participants.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     childAspectRatio: 6,
@@ -258,7 +337,7 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
                     mainAxisSpacing: 8,
                   ),
                   itemBuilder: (context, index) {
-                    final participant = widget.participants[index];
+                    final participant = _participants[index];
                     final imagePath = participant['profileImageUrl'];
                     final fullImageUrl = (imagePath != null && imagePath.isNotEmpty)
                         ? 'http://10.0.2.2:8080${imagePath.startsWith('/') ? imagePath : '/$imagePath'}?t=${DateTime.now().millisecondsSinceEpoch}'
@@ -283,6 +362,7 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
                       ],
                     );
                   },
+
                 ),
                 const SizedBox(height: 20),
                 Row(
@@ -298,7 +378,13 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
                     ),
                     const SizedBox(width: 15),
                     ElevatedButton(
-                      onPressed: _showLeaveConfirmDialog,
+                      onPressed: () {
+                        if (isAdmin) {
+                          _showLeaveConfirmDialog(); // 방장만 삭제/위임 가능
+                        } else {
+                          _showSimpleLeaveDialog(); // 일반 멤버는 단순 나가기만
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
