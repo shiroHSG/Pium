@@ -458,7 +458,7 @@ Future<int> enterChatRoomViaInvite({
   }
 }
 
-// ✅ 채팅방 멤버 리스트 조회 함수
+/*// ✅ 채팅방 멤버 리스트 조회 함수
 Future<List<ChatRoomMember>> fetchChatRoomMembers(int chatRoomId) async {
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('accessToken');
@@ -478,36 +478,7 @@ Future<List<ChatRoomMember>> fetchChatRoomMembers(int chatRoomId) async {
   } else {
     throw Exception('채팅방 멤버 조회 실패: ${response.statusCode}');
   }
-}
-
-// 관리자 위임
-Future<void> delegateAdmin({
-  required int chatRoomId,
-  required int newAdminId,
-}) async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('accessToken');
-  if (token == null) {
-    throw Exception('토큰이 없습니다.');
-  }
-
-  final uri = Uri.parse(
-      'http://10.0.2.2:8080/api/chatroom/$chatRoomId/members/$newAdminId/delegate');
-
-  final response = await http.patch(
-    uri,
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    },
-  );
-
-  if (response.statusCode == 200) {
-    print('✅ 관리자 권한 위임 성공');
-  } else {
-    throw Exception('관리자 권한 위임 실패: ${response.statusCode}');
-  }
-}
+}*/
 
 // 멤버 밴
 Future<void> banChatRoomMember({
@@ -537,4 +508,3 @@ Future<void> banChatRoomMember({
     throw Exception('사용자 추방 실패: ${response.statusCode}');
   }
 }
-

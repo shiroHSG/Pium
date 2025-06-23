@@ -241,6 +241,42 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
     );
   }
 
+// ✅ 방장일 때 멤버 추방 다이얼로그
+  void _showBanConfirmDialog(Map<String, dynamic> participant) {
+    showDialog(
+      context: context,
+      builder: (context) => ConfirmDialog(
+        content: '${participant['nickname']}님을 추방하시겠습니까?',
+        confirmText: '추방',
+        cancelText: '취소',
+        onConfirm: () => _banUser(participant),
+      ),
+    );
+  }
+
+// ✅ 추방 처리 함수
+  void _banUser(Map<String, dynamic> participant) async {
+    final int memberId = participant['memberId'];
+    try {
+      await banChatRoomMember(
+        chatRoomId: widget.chatRoomId,
+        memberId: memberId,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${participant['nickname']}님을 추방했습니다.')),
+      );
+      _loadParticipants(); // 멤버 리스트 새로고침
+    } catch (e) {
+      debugPrint('❌ 추방 실패: \$e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('사용자 추방에 실패했습니다.')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
