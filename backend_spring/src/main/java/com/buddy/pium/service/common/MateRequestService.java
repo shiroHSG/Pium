@@ -7,6 +7,7 @@ import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MateRequestRepository;
 import com.buddy.pium.repository.common.MemberRepository;
+import com.buddy.pium.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,10 +21,11 @@ public class MateRequestService {
 
     private final MateRequestRepository mateRequestRepository;
     private final MemberRepository memberRepository;
+    private final NotificationService notificationService;
 
     @Transactional
-    public void requestMate(Member receiver, Long receiverId) {
-        Member sender = validateMember(receiverId);
+    public void requestMate(Member sender, Long receiverId) {
+        Member receiver = validateMember(receiverId);
         if(sender.equals(receiver)) {
             throw new IllegalArgumentException("자기 자신에게 Mate 요청을 보낼 수 없습니다.");
         }
@@ -45,6 +47,15 @@ public class MateRequestService {
                 .build();
 
         mateRequestRepository.save(request);
+
+        // 알림 전송
+        notificationService.sendNotification(
+                receiverId,
+                sender.getNickname() + "님이 Mate 요청을 보냈습니다.",
+                "MATE_REQUEST",
+                "MEMBER",
+                sender.getId()
+        );
     }
 
     @Transactional
@@ -107,9 +118,9 @@ public class MateRequestService {
     }
 
     @Transactional
-    public void cancelRequest(Member member, Long receiverId) {
+    public void cancelRequest(Member sender, Long receiverId) {
         MateRequest request = mateRequestRepository
-                .findBySenderIdAndReceiverIdAndStatus(member.getId(), receiverId, MateRequestStatus.PENDING)
+                .findBySenderIdAndReceiverIdAndStatus(sender.getId(), receiverId, MateRequestStatus.PENDING)
                 .orElseThrow(() -> new IllegalArgumentException("해당 Mate 요청이 존재하지 않거나 이미 처리되었습니다."));
 
         mateRequestRepository.delete(request);
