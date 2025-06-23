@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
+import '../../models/chat/chat_service.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/protected_image.dart';
 import '../home/home_page.dart';
-import '../chat/chatting_page.dart';
 
 class ChattingUserlistPage extends StatefulWidget {
   final String roomName;
-  final VoidCallback onCopyInviteLink;
-  final VoidCallback onLeaveChatRoom;
+  final int chatRoomId;
   final List<Map<String, String?>> participants;
 
   const ChattingUserlistPage({
     Key? key,
     required this.roomName,
-    required this.onCopyInviteLink,
-    required this.onLeaveChatRoom,
+    required this.chatRoomId,
     required this.participants,
   }) : super(key: key);
 
@@ -36,18 +35,42 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
     _roomNameController.text = currentRoomName;
   }
 
-  void _deleteChatRoom() {
-    // TODO: 실제 삭제 로직 API 연동
+  void _copyInviteLink() {
+    final inviteLink = 'https://yourapp.com/invite/${widget.chatRoomId}';
+    Clipboard.setData(ClipboardData(text: inviteLink));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('초대 링크가 복사되었습니다.')),
+    );
+  }
 
-    debugPrint('채팅방 삭제');
-
+  void _leaveChatRoom() {
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(
-        builder: (context) => const MyHomePage(), // 메인 홈으로 이동
-      ),
+      MaterialPageRoute(builder: (context) => const MyHomePage()),
           (route) => false,
     );
+  }
+
+  void _deleteChatRoom(int chatRoomId) async {
+    try {
+      await deleteGroupChatRoom(chatRoomId); // 삭제 요청
+      debugPrint('✅ 채팅방 삭제 완료');
+
+      if (!context.mounted) return; // context가 살아있는지 체크
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const MyHomePage()),
+            (route) => false,
+      );
+    } catch (e) {
+      debugPrint('❌ 채팅방 삭제 실패: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('채팅방 삭제에 실패했습니다.')),
+        );
+      }
+    }
   }
 
   void _showDelegationCompleteDialog(String nickname) {
@@ -57,7 +80,7 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
         content: '방장이 위임되었습니다.\n채팅방을 나가시겠습니까?',
         confirmText: '예',
         cancelText: '아니오',
-        onConfirm: widget.onLeaveChatRoom,
+        onConfirm: _leaveChatRoom, // ✅ 여기 수정
       ),
     );
   }
@@ -123,7 +146,7 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
         content: '채팅방을 삭제 하시겠습니까?\n방장을 위임하시겠습니까?',
         confirmText: '삭제',
         cancelText: '방장 위임',
-        onConfirm: _deleteChatRoom,
+        onConfirm: () => _deleteChatRoom(widget.chatRoomId),
         onCancel: _showDelegationSelectDialog,
       ),
     );
@@ -266,7 +289,7 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
-                      onPressed: widget.onCopyInviteLink,
+                      onPressed: _copyInviteLink,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryPurple,
                         foregroundColor: Colors.white,

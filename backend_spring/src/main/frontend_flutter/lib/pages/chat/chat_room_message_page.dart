@@ -157,13 +157,8 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                   MaterialPageRoute(
                     builder: (context) => ChattingUserlistPage(
                       roomName: '채팅방',
-                      onCopyInviteLink: () {
-                        // 초대 링크 복사 로직
-                      },
-                      onLeaveChatRoom: () {
-                        // 나가기 로직
-                      },
-                      participants: [],
+                      chatRoomId: widget.chatRoomId,
+                      participants: [], // 실제 참여자 리스트가 있다면 여기에 넣어줘
                     ),
                   ),
                 );

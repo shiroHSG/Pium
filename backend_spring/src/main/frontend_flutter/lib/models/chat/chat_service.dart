@@ -243,7 +243,7 @@ Future<ChatRoom> createGroupChatRoom({
 }
 
 
-// 채팅방 수정
+// 채팅방 수정, 그룹 채팅방일때만
 Future<void> updateGroupChatRoom({
   required int chatRoomId,
   required String chatRoomName,
@@ -286,7 +286,7 @@ Future<void> updateGroupChatRoom({
   }
 }
 
-// 채팅방 나가기
+// 채팅방 나가기, 그룹채팅방에서 방장일때만 모달창 다르게
 Future<void> leaveChatRoom(int chatRoomId) async {
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('accessToken');
@@ -312,7 +312,7 @@ Future<void> leaveChatRoom(int chatRoomId) async {
   }
 }
 
-// 채팅방 삭제
+// 채팅방 삭제, 그룹채팅방일때 방장만 삭제
 Future<void> deleteGroupChatRoom(int chatRoomId) async {
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('accessToken');
