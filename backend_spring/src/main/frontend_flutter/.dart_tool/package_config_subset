@@ -50,6 +50,10 @@ cupertino_icons
 3.1
 file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/cupertino_icons-1.0.8/
 file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/cupertino_icons-1.0.8/lib/
+eventsource
+2.12
+file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/eventsource-0.4.0/
+file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/eventsource-0.4.0/lib/
 fake_async
 3.3
 file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/fake_async-1.3.2/
@@ -174,6 +178,10 @@ lints
 3.6
 file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/lints-5.1.1/
 file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/lints-5.1.1/lib/
+logging
+3.4
+file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/logging-1.3.0/
+file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/logging-1.3.0/lib/
 matcher
 3.4
 file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/matcher-0.12.17/
@@ -274,6 +282,10 @@ string_scanner
 3.1
 file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/string_scanner-1.4.1/
 file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/string_scanner-1.4.1/lib/
+sync
+2.12
+file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/sync-0.3.0/
+file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/sync-0.3.0/lib/
 term_glyph
 3.1
 file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/term_glyph-1.2.2/

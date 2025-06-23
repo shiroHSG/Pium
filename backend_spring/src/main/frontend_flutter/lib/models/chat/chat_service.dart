@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'chatroom.dart';
+import 'chatroom_member.dart';
 import 'message.dart';
 
 const _baseUrl = 'http://10.0.2.2:8080'; // 또는 네트워크 환경에 따라 조정
@@ -243,7 +244,7 @@ Future<ChatRoom> createGroupChatRoom({
 }
 
 
-// 채팅방 수정
+// 채팅방 수정, 그룹 채팅방일때만
 Future<void> updateGroupChatRoom({
   required int chatRoomId,
   required String chatRoomName,
@@ -286,7 +287,7 @@ Future<void> updateGroupChatRoom({
   }
 }
 
-// 채팅방 나가기
+// 채팅방 나가기, 그룹채팅방에서 방장일때만 모달창 다르게
 Future<void> leaveChatRoom(int chatRoomId) async {
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('accessToken');
@@ -312,7 +313,7 @@ Future<void> leaveChatRoom(int chatRoomId) async {
   }
 }
 
-// 채팅방 삭제
+// 채팅방 삭제, 그룹채팅방일때 방장만 삭제
 Future<void> deleteGroupChatRoom(int chatRoomId) async {
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('accessToken');
@@ -411,6 +412,86 @@ Future<int> enterChatRoomViaInvite({
     return int.parse(response.body); // chatRoomId
   } else {
     throw Exception('초대 링크 입장 실패: ${response.statusCode}');
+  }
+}
+
+// ✅ 채팅방 멤버 리스트 조회 함수
+Future<List<ChatRoomMember>> fetchChatRoomMembers(int chatRoomId) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+  if (token == null) {
+    throw Exception('토큰이 없습니다.');
+  }
+
+  final uri = Uri.parse('http://10.0.2.2:8080/api/chatroom/$chatRoomId/members');
+  final response = await http.get(
+    uri,
+    headers: {'Authorization': 'Bearer $token'},
+  );
+
+  if (response.statusCode == 200) {
+    final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+    return data.map((json) => ChatRoomMember.fromJson(json)).toList();
+  } else {
+    throw Exception('채팅방 멤버 조회 실패: ${response.statusCode}');
+  }
+}
+
+// 관리자 위임
+Future<void> delegateAdmin({
+  required int chatRoomId,
+  required int newAdminId,
+}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+  if (token == null) {
+    throw Exception('토큰이 없습니다.');
+  }
+
+  final uri = Uri.parse(
+      'http://10.0.2.2:8080/api/chatroom/$chatRoomId/members/$newAdminId/delegate');
+
+  final response = await http.patch(
+    uri,
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    print('✅ 관리자 권한 위임 성공');
+  } else {
+    throw Exception('관리자 권한 위임 실패: ${response.statusCode}');
+  }
+}
+
+// 멤버 밴
+Future<void> banChatRoomMember({
+  required int chatRoomId,
+  required int memberId,
+}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+  if (token == null) {
+    throw Exception('토큰이 없습니다.');
+  }
+
+  final uri = Uri.parse(
+      'http://10.0.2.2:8080/api/chatroom/$chatRoomId/member/$memberId/ban');
+
+  final response = await http.post(
+    uri,
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    print('✅ 사용자 추방 성공');
+  } else {
+    throw Exception('사용자 추방 실패: ${response.statusCode}');
   }
 }
 

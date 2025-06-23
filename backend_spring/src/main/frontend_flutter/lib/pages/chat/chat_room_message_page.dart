@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/chat/chat_service.dart';
 import '../../models/webSocket/connectWebSocket.dart';
+import 'chatting_userlist_page.dart';
 
 class ChatRoomPage extends StatefulWidget {
   final int chatRoomId;
@@ -151,7 +152,16 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
             IconButton(
               icon: const Icon(Icons.more_vert, color: AppTheme.textPurple),
               onPressed: () {
-                // TODO: 더보기 기능
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChattingUserlistPage(
+                      roomName: '채팅방',
+                      chatRoomId: widget.chatRoomId,
+                      participants: [], // 실제 참여자 리스트가 있다면 여기에 넣어줘
+                    ),
+                  ),
+                );
               },
             ),
           ],

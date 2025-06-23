@@ -9,6 +9,7 @@ import '../../models/chat/chatroom.dart';
 import '../../models/util/parse_date_time.dart';
 import '../../models/webSocket/connectWebSocket.dart';
 import 'chat_room_message_page.dart';
+import 'create_chatting_dialog.dart';
 
 class ChattingPage extends StatefulWidget {
   const ChattingPage({Key? key}) : super(key: key);
@@ -98,12 +99,19 @@ class _ChattingPageState extends State<ChattingPage> {
     );
 
     if (shouldRefresh == true) {
-      _loadChatRooms(); // ✅ 채팅방 목록 다시 불러오기
+      _loadChatRooms(); // 채팅방 목록 다시 불러오기
     }
   }
 
-  void _startNewChat() {
-    print('새 $_selectedMode 시작');
+  void _startNewChat() async {
+    final result = await showDialog(
+      context: context,
+      builder: (context) => const CreateChattingDialog(),
+    );
+
+    if (result == true) {
+      _loadChatRooms(); // 생성 후 채팅방 목록 새로 불러오기
+    }
   }
 
   @override

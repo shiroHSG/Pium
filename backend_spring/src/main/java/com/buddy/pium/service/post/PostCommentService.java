@@ -9,6 +9,7 @@ import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.repository.post.PostCommentRepository;
 import com.buddy.pium.repository.post.PostRepository;
+import com.buddy.pium.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class PostCommentService {
     private final MemberRepository memberRepository;
 
     private final PostService postService;
+    private final NotificationService notificationService;
 
     public void create(Long postId, Member member, PostCommentRequest dto) {
         Post post = postService.validatePostOwner(postId, member);
@@ -35,6 +37,17 @@ public class PostCommentService {
                 .member(member)
                 .content(dto.getContent())
                 .build();
+
+        // 알림 전송 (게시글 작성자에게)
+        if (!member.equals(post.getMember())) { // 자기 자신 제외
+            notificationService.sendNotification(
+                    post.getMember().getId(),
+                    member.getNickname() + "님이 댓글을 남겼습니다.",
+                    "COMMENT",
+                    "POST",
+                    post.getId()
+            );
+        }
 
         postCommentRepository.save(comment);
     }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'notification_page.dart';
+
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onMenuPressed;
 
@@ -25,9 +27,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.notifications_none, color: Colors.white), // 알림 아이콘
+          icon: const Icon(Icons.notifications_none, color: Colors.white),
           onPressed: () {
-            // 알림 아이콘 클릭 시 동작
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const NotificationPage()),
+            );
           },
         ),
         IconButton(
