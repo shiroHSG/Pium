@@ -3,7 +3,7 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/protected_image.dart';
 import '../home/home_page.dart';
-import 'chatting_page.dart';
+import '../chat/chatting_page.dart';
 
 class ChattingUserlistPage extends StatefulWidget {
   final String roomName;
@@ -44,7 +44,7 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
-        builder: (context) => const MyHomePage(), // ✅ 메인 홈으로 이동
+        builder: (context) => const MyHomePage(), // 메인 홈으로 이동
       ),
           (route) => false,
     );

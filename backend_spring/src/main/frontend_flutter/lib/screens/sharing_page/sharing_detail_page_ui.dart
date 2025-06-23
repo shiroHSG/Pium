@@ -1,8 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
+import 'package:frontend_flutter/models/chat/chat_service.dart';
+import 'package:frontend_flutter/models/chat/chatroom.dart';
+import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
+import 'package:frontend_flutter/widgets/protected_image.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../widgets/protected_image.dart';
+import '../../pages/chat/chat_room_message_page.dart';
 
 Widget SharingDetailPageUI(
     BuildContext context,
@@ -150,9 +155,7 @@ Widget SharingDetailPageUI(
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  // 채팅하기 기능 구현 예정
-                },
+                onPressed: () => _handleChatButtonPressed(context, item),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryPurple,
                   foregroundColor: Colors.white,
@@ -172,4 +175,26 @@ Widget SharingDetailPageUI(
       ],
     ),
   );
+}
+
+// ✅ 분리된 함수
+Future<void> _handleChatButtonPressed(BuildContext context, SharingItem item) async {
+  try {
+    final chatRoom = await createOrGetShareChatRoom(
+      receiverId: item.authorMemberId, // 꼭 int 타입으로 있어야 함!
+      sharePostId: item.id,
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatRoomPage(chatRoomId: chatRoom.chatRoomId),
+      ),
+    );
+  } catch (e) {
+    print('❌ 채팅방 열기 실패: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('채팅방을 여는 데 실패했습니다.')),
+    );
+  }
 }

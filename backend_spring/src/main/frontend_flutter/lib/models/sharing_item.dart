@@ -3,7 +3,8 @@ class SharingItem {
   final String name;
   final String content;
   final String? imageUrl;
-  final String authorId;
+  final String authorId;           // 작성자 닉네임 또는 아이디
+  final int authorMemberId;        // ✅ 서버에서 내려주는 Member ID
   final int views;
   final String postDate;
   final String details;
@@ -15,6 +16,7 @@ class SharingItem {
     required this.content,
     this.imageUrl,
     required this.authorId,
+    required this.authorMemberId,  // ✅ 생성자에 추가
     required this.views,
     required this.postDate,
     required this.details,
@@ -37,6 +39,7 @@ class SharingItem {
       content: json['content'],
       imageUrl: json['imgUrl'],
       authorId: json['author'],
+      authorMemberId: json['authorMemberId'], // ✅ JSON에서 추출
       views: json['viewCount'] ?? 0,
       postDate: formattedDate,
       details: '조회수 ${json['viewCount'] ?? 0}회 · $formattedDate',
