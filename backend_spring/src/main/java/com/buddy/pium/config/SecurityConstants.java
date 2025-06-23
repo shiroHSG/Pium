@@ -5,14 +5,15 @@ import java.util.List;
 public class SecurityConstants {
 
     public static final List<String> ALLOWED_URLS = List.of(
-            "/api/member/login",         // 토큰 생성을 위해 인증 없이 사용
-            "/api/member/register",      // 사용자 토큰 생성을 하기 위해선 사용자 생성이 우선
-            "/api/member/users/**",               // 개발자가 전체 Member테이블 조회 시 사용
-            "/api/member/reissue",        // RefreshToken으로 AccessToken 재발급 (비인증 경로 필요)
+            "/api/member/login",
+            "/api/member/register",
+            "/api/member/users/**",
+            "/api/member/reissue",    // RefreshToken 발급시 AccessToken 재발급 (비회원 인증 필요)
             "/api/member/delete/**",
-            // "/api/shares/**", 인증이 필요한 경로이므로 포함하면 안됨
             "/api/policies/**",
             "/uploads/**",
             "/ws/**"
+                    // "/api/shares/**", 인증이 필요한 경로이므로 포함하면 안됨
+
     );
 }

@@ -54,13 +54,13 @@ class SharingCategoryDropdown extends StatelessWidget {
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
-          items: ['나눔', '품앗이'].map((String value) {
+          // 반드시 '전체'를 포함!
+          items: ['전체', '나눔', '품앗이'].map((String value) {
             return DropdownMenuItem<String>(
               value: value,
-              child: Text(
-                value,
+              child: Text(value,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   fontFamily: 'Jua',

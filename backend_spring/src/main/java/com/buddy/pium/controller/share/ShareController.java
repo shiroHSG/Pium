@@ -53,8 +53,14 @@ public class ShareController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ShareResponseDto>> getAll(@CurrentMember Member member) {
-        return ResponseEntity.ok(shareService.getAll());
+    public ResponseEntity<List<ShareResponseDto>> getAll(
+            @CurrentMember Member member,
+            @RequestParam(value = "category", required = false) String category) {
+        if (category != null && !category.isEmpty()) {
+            return ResponseEntity.ok(shareService.getByCategory(category));
+        } else {
+            return ResponseEntity.ok(shareService.getAll());
+        }
     }
 
     @PatchMapping(value = "/{shareId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
