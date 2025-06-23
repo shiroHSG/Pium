@@ -1,98 +1,149 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import '../../models/sharing_page/sharing_request.dart';
-import '../../models/sharing_page/sharing_api_services.dart';
-import '../../screens/sharing_page/write_sharing_page_ui.dart';
+import 'package:frontend_flutter/pages/sharing_page/sharing_page.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:frontend_flutter/models/sharing_page/sharing_api_service.dart';
+import 'package:frontend_flutter/widgets/custom_drawer.dart';
+import 'package:frontend_flutter/screens/sharing_page/write_sharing_page_ui.dart';
 
-class WriteSharingPage extends StatefulWidget {
-  final String? token;
-  final SharingRequest? initialData; // (수정 용도, 기본 null)
-
-  const WriteSharingPage({Key? key, this.token, this.initialData}) : super(key: key);
+class WriteSharingPostPage extends StatefulWidget {
+  const WriteSharingPostPage({Key? key}) : super(key: key);
 
   @override
-  State<WriteSharingPage> createState() => _WriteSharingPageState();
+  State<WriteSharingPostPage> createState() => _WriteSharingPostPageState();
 }
 
-class _WriteSharingPageState extends State<WriteSharingPage> {
+class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _detailsController = TextEditingController();
+  File? _selectedImage;
+
+  bool _isLoggedIn = true;
+  int _selectedIndex = 0;
   String _selectedCategory = '나눔';
-  String? _imgUrl;
 
-  bool _isSubmitting = false;
+  void _onItemSelected(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
-  @override
-  void initState() {
-    super.initState();
-    if (widget.initialData != null) {
-      _titleController.text = widget.initialData!.title;
-      _detailsController.text = widget.initialData!.content;
-      _selectedCategory = widget.initialData!.category;
-      _imgUrl = widget.initialData!.imgUrl;
+  void _onLoginStatusChanged(bool status) {
+    setState(() {
+      _isLoggedIn = status;
+    });
+  }
+
+  void _handleCategoryChanged(String? newValue) {
+    if (newValue != null) {
+      setState(() {
+        _selectedCategory = newValue;
+      });
     }
   }
 
-  Future<void> _submit() async {
-    if (_titleController.text.trim().isEmpty || _detailsController.text.trim().isEmpty) {
+  Future<void> _handleAttachPhoto() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _selectedImage = File(picked.path);
+      });
+      print('선택된 이미지 경로: ${picked.path}');
+    }
+  }
+
+  void _handleComplete() async {
+    final title = _titleController.text.trim();
+    final content = _detailsController.text.trim();
+
+    if (title.isEmpty || content.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('제목과 내용을 모두 입력하세요.')));
+        const SnackBar(content: Text('제목과 내용을 모두 입력해 주세요.')),
+      );
       return;
     }
-    setState(() => _isSubmitting = true);
 
-    final request = SharingRequest(
-      title: _titleController.text.trim(),
-      content: _detailsController.text.trim(),
-      category: _selectedCategory,
-      imgUrl: _imgUrl,
-    );
-    print('[WriteSharingPage] widget.token: ${widget.token}');
+    try {
+      await SharingApiService.createShare(
+        title: title,
+        content: content,
+        imageFile: _selectedImage,
+      );
 
-    bool success = await SharingApiServices.createSharing(
-        request: request, token: widget.token ?? '');
-    setState(() => _isSubmitting = false);
-    if (success) {
-      Navigator.pop(context, true);
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('등록에 실패했습니다.')));
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const SharingPage()),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('나눔 글이 등록되었습니다.')),
+        );
+      }
+    } catch (e) {
+      print('글 등록 실패: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('글 등록에 실패했습니다.')),
+      );
     }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _detailsController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const WriteSharingAppBar(),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  WriteSharingCategoryDropdown(
-                    selectedCategory: _selectedCategory,
-                    onCategoryChanged: (value) {
-                      if (value != null) setState(() => _selectedCategory = value);
-                    },
+      endDrawer: CustomDrawer(
+        onItemSelected: _onItemSelected,
+        onLoginStatusChanged: _onLoginStatusChanged,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                WriteSharingTitleInput(titleController: _titleController),
+                const SizedBox(width: 10),
+                WriteSharingCategoryDropdown(
+                  selectedCategory: _selectedCategory,
+                  onCategoryChanged: _handleCategoryChanged,
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            WriteSharingDetailsInput(detailsController: _detailsController),
+            const SizedBox(height: 20),
+
+            // 이미지 미리보기: 왼쪽 정렬 + 크기 줄임
+            if (_selectedImage != null)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    image: DecorationImage(
+                      image: FileImage(_selectedImage!),
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  WriteSharingTitleInput(titleController: _titleController),
-                ],
+                ),
               ),
-              const SizedBox(height: 12),
-              Expanded(
-                  child: WriteSharingDetailsInput(detailsController: _detailsController)),
-              const SizedBox(height: 12),
-              WriteSharingActionButtons(
-                onAttachPhotoPressed: () {
-                  // 이미지 첨부 기능 필요시 여기에 추가(현재는 미구현)
-                },
-                onCompletePressed: _isSubmitting ? null : _submit,
-              ),
-            ],
-          ),
+
+            WriteSharingActionButtons(
+              onAttachPhotoPressed: _handleAttachPhoto,
+              onCompletePressed: _handleComplete,
+            ),
+          ],
         ),
       ),
     );

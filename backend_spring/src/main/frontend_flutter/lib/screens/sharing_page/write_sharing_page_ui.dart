@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 
-/// 글쓰기 상단 AppBar
 class WriteSharingAppBar extends StatelessWidget implements PreferredSizeWidget {
   const WriteSharingAppBar({Key? key}) : super(key: key);
 
@@ -24,7 +23,6 @@ class WriteSharingAppBar extends StatelessWidget implements PreferredSizeWidget 
   }
 }
 
-/// 제목 입력 필드
 class WriteSharingTitleInput extends StatelessWidget {
   final TextEditingController titleController;
 
@@ -50,7 +48,6 @@ class WriteSharingTitleInput extends StatelessWidget {
   }
 }
 
-/// 카테고리 드롭다운
 class WriteSharingCategoryDropdown extends StatelessWidget {
   final String selectedCategory;
   final ValueChanged<String?> onCategoryChanged;
@@ -75,18 +72,13 @@ class WriteSharingCategoryDropdown extends StatelessWidget {
           value: selectedCategory,
           dropdownColor: AppTheme.primaryPurple,
           icon: const Icon(Icons.arrow_drop_down, color: Colors.white, size: 20),
-          style: const TextStyle(
-              color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+          style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
           items: ['나눔', '품앗이'].map((String value) {
             return DropdownMenuItem<String>(
               value: value,
               child: Text(
                 value,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    fontFamily: 'Jua'),
+                style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Jua'),
               ),
             );
           }).toList(),
@@ -97,7 +89,6 @@ class WriteSharingCategoryDropdown extends StatelessWidget {
   }
 }
 
-/// 상세 내용 입력 필드
 class WriteSharingDetailsInput extends StatelessWidget {
   final TextEditingController detailsController;
 
@@ -126,10 +117,9 @@ class WriteSharingDetailsInput extends StatelessWidget {
   }
 }
 
-/// 사진 첨부/완료 버튼 묶음
 class WriteSharingActionButtons extends StatelessWidget {
   final VoidCallback onAttachPhotoPressed;
-  final VoidCallback? onCompletePressed;
+  final VoidCallback onCompletePressed;
 
   const WriteSharingActionButtons({
     Key? key,

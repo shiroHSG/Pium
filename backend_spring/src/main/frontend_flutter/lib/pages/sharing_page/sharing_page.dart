@@ -1,52 +1,71 @@
 import 'package:flutter/material.dart';
-import '../../models/sharing_page/sharing_response.dart';
-import '../../models/sharing_page/sharing_api_services.dart';
-import '../../screens/sharing_page/sharing_page_ui.dart';
-import 'write_sharing_page.dart';
+import 'package:frontend_flutter/pages/sharing_page/sharing_detail_page.dart';
+import 'package:frontend_flutter/models/sharing_item.dart';
+import 'package:frontend_flutter/pages/sharing_page/write_sharing_page.dart';
+import 'package:frontend_flutter/screens/sharing_page/sharing_page_ui.dart';
+import 'package:frontend_flutter/models/sharing_page/sharing_api_service.dart';
+
 
 class SharingPage extends StatefulWidget {
-  final String? token;
-  const SharingPage({Key? key, this.token}) : super(key: key);
+  const SharingPage({Key? key}) : super(key: key);
 
   @override
   State<SharingPage> createState() => _SharingPageState();
 }
 
 class _SharingPageState extends State<SharingPage> {
-  String _selectedCategory = '나눔';
-  late Future<List<SharingResponse>> _futureShares;
+  List<SharingItem> _sharingItems = []; // 빈 리스트로 초기화
+  String selectedCategory = '나눔';
 
   @override
   void initState() {
     super.initState();
-    print('[SharingPage] widget.token: ${widget.token}'); // <- 여기서 로그로 확인!
-    _fetchShares();
+    _loadSharingItems(); // 페이지 시작 시 API 호출
   }
 
-  void _fetchShares() {
-    _futureShares = SharingApiServices.fetchSharingList(token: widget.token);
-  }
-
-  void _navigateToWritePage() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => WriteSharingPage(token: widget.token),
-      ),
-    );
-    if (result == true) {
+  Future<void> _loadSharingItems() async {
+    try {
+      final items = await SharingApiService.fetchAllShares(); // API 호출
       setState(() {
-        _fetchShares();
+        _sharingItems = items;
       });
+    } catch (e) {
+      print('나눔글 불러오기 실패: $e');
     }
   }
 
-  void _handleFavoriteTap(int id) async {
-    if (widget.token == null) return;
-    await SharingApiServices.likeSharing(id, widget.token!);
-    setState(() {
-      _fetchShares();
-    });
+  void _navigateToDetail(SharingItem item) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SharingDetailPage(item: item)),
+    );
+  }
+
+  void _navigateToWritePost() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const WriteSharingPostPage()),
+    );
+  }
+
+  void _handleRequestShare() {
+    // TODO: 나눔 요청하기 기능 구현
+    print('나눔 요청하기 버튼 클릭');
+  }
+
+  void _handleFavorite(SharingItem item) {
+    // TODO: 찜 기능 구현
+    print('${item.name} 찜하기');
+  }
+
+  void _handleCategoryChanged(String? newValue) {
+    if (newValue != null) {
+      setState(() {
+        selectedCategory = newValue;
+      });
+      // TODO: 카테고리별 필터링이 필요하다면 여기에 API 재요청 로직도 추가 가능
+      print('선택된 카테고리: $selectedCategory');
+    }
   }
 
   @override
@@ -57,51 +76,33 @@ class _SharingPageState extends State<SharingPage> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: SharingCategoryDropdown(
-              selectedCategory: _selectedCategory,
-              onCategoryChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _selectedCategory = value;
-                  });
-                  // 카테고리별 필터링 추가 원하면 여기에 적용 (현재는 전체 불러옴)
-                }
-              },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('함께함', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                SharingCategoryDropdown(
+                  selectedCategory: selectedCategory,
+                  onCategoryChanged: _handleCategoryChanged,
+                ),
+              ],
             ),
           ),
           Expanded(
-            child: FutureBuilder<List<SharingResponse>>(
-              future: _futureShares,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(child: Text('불러오기 실패: ${snapshot.error}'));
-                }
-                final shares = snapshot.data ?? [];
-                if (shares.isEmpty) {
-                  return const Center(child: Text('등록된 나눔/품앗이 글이 없습니다.'));
-                }
-                return ListView.builder(
-                  itemCount: shares.length,
-                  itemBuilder: (context, idx) {
-                    final item = shares[idx];
-                    return SharingListItem(
-                      item: item,
-                      onTap: () {}, // 상세페이지 이동 X
-                      onFavoriteTap: () => _handleFavoriteTap(item.id),
-                    );
-                  },
+            child: ListView.builder(
+              itemCount: _sharingItems.length,
+              itemBuilder: (context, index) {
+                final item = _sharingItems[index];
+                return SharingListItem(
+                  item: item,
+                  onTap: () => _navigateToDetail(item),
+                  onFavoriteTap: () => _handleFavorite(item),
                 );
               },
             ),
           ),
           SharingActionButtons(
-            onRequestTap: () {
-              // 요청 기능 필요시 구현
-            },
-            onWriteTap: _navigateToWritePage,
+            onRequestTap: _handleRequestShare,
+            onWriteTap: _navigateToWritePost,
           ),
         ],
       ),
