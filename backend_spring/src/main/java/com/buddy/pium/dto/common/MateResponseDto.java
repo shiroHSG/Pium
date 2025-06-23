@@ -11,7 +11,11 @@ import java.time.LocalDateTime;
 public class MateResponseDto {
     private Long requestId;
     private Long senderId;
+    private String senderUsername;
     private String senderNickname;
+    private Long receiverId;
+    private String receiverUsername;
+    private String receiverNickname;
     private MateRequestStatus status;
     private String message;
     private LocalDateTime updatedAt;

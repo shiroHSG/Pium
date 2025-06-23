@@ -104,15 +104,19 @@ public class NotificationService {
                 .build();
 
         notificationRepository.save(notification);
-
+        System.out.println("알림 전송 컨트롤러 : " + notification);
         // 실시간 전송
         SseEmitter emitter = emitters.get(receiverId);
+        System.out.println("알림 전송 receiverId : " + receiverId);
+        System.out.println("알림 전송 emitter : " + emitter);
+
         if (emitter != null) {
             try {
                 NotificationResponseDto dto = NotificationResponseDto.from(notification);
                 emitter.send(SseEmitter.event()
                         .name("notification")
                         .data(dto));
+                System.out.println("알림 전송 : " + dto);
             } catch (IOException e) {
                 System.out.println("💥 알림 전송 실패, emitter 제거: memberId = " + receiverId);
                 removeEmitter(receiverId);
