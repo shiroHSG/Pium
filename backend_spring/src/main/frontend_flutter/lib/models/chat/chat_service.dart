@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -128,3 +129,288 @@ Future<int> getUnreadCount() async {
     return 0; // 예외 시 기본값
   }
 }
+
+// 채팅방 생성 (DIRECT)
+Future<ChatRoom> createOrGetDirectChatRoom(int receiverId) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+
+  if (token == null) {
+    throw Exception('토큰이 없습니다.');
+  }
+
+  // 요청 데이터 구성
+  final requestDto = {
+    'type': 'DIRECT',
+    'receiverId': receiverId,
+  };
+
+  final request = http.MultipartRequest(
+    'POST',
+    Uri.parse('$_baseUrl/api/chatroom'),
+  );
+
+  request.headers['Authorization'] = 'Bearer $token';
+  request.fields['chatRoomData'] = jsonEncode(requestDto);
+
+  final response = await request.send();
+
+  if (response.statusCode == 200 || response.statusCode == 201) {
+    final responseBody = await response.stream.bytesToString();
+    final Map<String, dynamic> json = jsonDecode(responseBody);
+    return ChatRoom.fromJson(json); // 모델 맞춰서 수정
+  } else {
+    throw Exception('채팅방 생성 실패: ${response.statusCode}');
+  }
+}
+
+// 채팅방 생성 share
+Future<ChatRoom> createOrGetShareChatRoom({
+  required int receiverId,
+  required int sharePostId,
+}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+  if (token == null) {
+    throw Exception('토큰이 없습니다.');
+  }
+
+  // 요청 DTO 구성
+  final requestDto = {
+    'type': 'SHARE',
+    'receiverId': receiverId,
+    'shareId': sharePostId,
+  };
+
+  final request = http.MultipartRequest(
+    'POST',
+    Uri.parse('$_baseUrl/api/chatroom'),
+  );
+
+  request.headers['Authorization'] = 'Bearer $token';
+  request.fields['chatRoomData'] = jsonEncode(requestDto);
+
+  final response = await request.send();
+
+  if (response.statusCode == 200 || response.statusCode == 201) {
+    final responseBody = await response.stream.bytesToString();
+    final Map<String, dynamic> json = jsonDecode(responseBody);
+    return ChatRoom.fromJson(json); // 모델 구조에 맞춰 파싱
+  } else {
+    throw Exception('SHARE 채팅방 생성 실패: ${response.statusCode}');
+  }
+}
+
+// 채팅방 생성 group
+Future<ChatRoom> createGroupChatRoom({
+  required String chatRoomName,
+  String? password,
+  File? imageFile,
+}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+  if (token == null) throw Exception('토큰이 없습니다.');
+
+  final requestDto = {
+    'type': 'GROUP',
+    'chatRoomName': chatRoomName,
+    if (password != null && password.isNotEmpty) 'password': password,
+  };
+
+  final request = http.MultipartRequest(
+    'POST',
+    Uri.parse('$_baseUrl/api/chatroom'),
+  );
+
+  request.headers['Authorization'] = 'Bearer $token';
+  request.fields['chatRoomData'] = jsonEncode(requestDto);
+
+  if (imageFile != null) {
+    request.files.add(
+      await http.MultipartFile.fromPath('image', imageFile.path),
+    );
+  }
+
+  final response = await request.send();
+
+  if (response.statusCode == 200 || response.statusCode == 201) {
+    final responseBody = await response.stream.bytesToString();
+    final Map<String, dynamic> json = jsonDecode(responseBody);
+    return ChatRoom.fromJson(json);
+  } else {
+    throw Exception('GROUP 채팅방 생성 실패: ${response.statusCode}');
+  }
+}
+
+
+// 채팅방 수정
+Future<void> updateGroupChatRoom({
+  required int chatRoomId,
+  required String chatRoomName,
+  String? password,
+  File? imageFile,
+}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+
+  if (token == null) {
+    throw Exception('토큰이 없습니다.');
+  }
+
+  final requestDto = {
+    'type': 'GROUP',
+    'chatRoomName': chatRoomName,
+    if (password != null && password.isNotEmpty) 'password': password,
+  };
+
+  final request = http.MultipartRequest(
+    'PATCH',
+    Uri.parse('$_baseUrl/api/chatroom/$chatRoomId'),
+  );
+
+  request.headers['Authorization'] = 'Bearer $token';
+  request.fields['chatRoomData'] = jsonEncode(requestDto);
+
+  if (imageFile != null) {
+    request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
+  }
+
+  final response = await request.send();
+
+  if (response.statusCode == 200) {
+    print('✅ 채팅방 수정 성공');
+  } else {
+    final error = await response.stream.bytesToString();
+    print('❌ 채팅방 수정 실패: ${response.statusCode} - $error');
+    throw Exception('채팅방 수정 실패: ${response.statusCode}');
+  }
+}
+
+// 채팅방 나가기
+Future<void> leaveChatRoom(int chatRoomId) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+
+  if (token == null) {
+    throw Exception('토큰이 없습니다.');
+  }
+
+  final uri = Uri.parse('$_baseUrl/api/chatroom/$chatRoomId/leave');
+
+  final response = await http.delete(
+    uri,
+    headers: {
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    print('✅ 채팅방 나가기 성공');
+  } else {
+    print('❌ 채팅방 나가기 실패: ${response.statusCode}');
+    throw Exception('채팅방 나가기 실패: ${response.statusCode}');
+  }
+}
+
+// 채팅방 삭제
+Future<void> deleteGroupChatRoom(int chatRoomId) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+
+  if (token == null) {
+    throw Exception('토큰이 없습니다.');
+  }
+
+  final uri = Uri.parse('$_baseUrl/api/chatroom/$chatRoomId');
+
+  final response = await http.delete(
+    uri,
+    headers: {
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    print('✅ 채팅방 삭제 성공');
+  } else {
+    final body = await response.body;
+    print('❌ 채팅방 삭제 실패: ${response.statusCode} - $body');
+    throw Exception('채팅방 삭제 실패: ${response.statusCode}');
+  }
+}
+
+// 초대 링크 조회
+Future<Map<String, String>> fetchInviteLink(int chatRoomId) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+  if (token == null) throw Exception('토큰이 없습니다.');
+
+  final uri = Uri.parse('$_baseUrl/api/chatroom/$chatRoomId/invite-link');
+
+  final response = await http.get(
+    uri,
+    headers: {'Authorization': 'Bearer $token'},
+  );
+
+  if (response.statusCode == 200) {
+    final json = jsonDecode(utf8.decode(response.bodyBytes));
+    return {
+      'inviteCode': json['inviteCode'],
+      'inviteLink': json['inviteLink'],
+    };
+  } else {
+    throw Exception('초대 링크 조회 실패: ${response.statusCode}');
+  }
+}
+
+// 초대 링크 정보 조회
+Future<Map<String, dynamic>> checkInviteCode(String inviteCode) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+  if (token == null) throw Exception('토큰이 없습니다.');
+
+  final uri = Uri.parse('$_baseUrl/api/chatroom/invite/$inviteCode');
+
+  final response = await http.get(
+    uri,
+    headers: {'Authorization': 'Bearer $token'},
+  );
+
+  if (response.statusCode == 200) {
+    final json = jsonDecode(utf8.decode(response.bodyBytes));
+    return {
+      'chatRoomName': json['chatRoomName'],
+      'alreadyJoined': json['alreadyJoined'],
+      'requirePassword': json['requirePassword'],
+    };
+  } else {
+    throw Exception('초대 코드 확인 실패: ${response.statusCode}');
+  }
+}
+
+// 초대 링크 입장
+Future<int> enterChatRoomViaInvite({
+  required String inviteCode,
+  String? password,
+}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+  if (token == null) throw Exception('토큰이 없습니다.');
+
+  final uri = Uri.parse('$_baseUrl/api/chatroom/invite/$inviteCode')
+      .replace(queryParameters: {
+    if (password != null && password.isNotEmpty) 'password': password,
+  });
+
+  final response = await http.post(
+    uri,
+    headers: {'Authorization': 'Bearer $token'},
+  );
+
+  if (response.statusCode == 200) {
+    return int.parse(response.body); // chatRoomId
+  } else {
+    throw Exception('초대 링크 입장 실패: ${response.statusCode}');
+  }
+}
+

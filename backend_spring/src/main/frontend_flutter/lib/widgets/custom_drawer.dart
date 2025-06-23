@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/auth/auth_services.dart';
 import '../pages/calendar_page/calendar_page.dart';
 import '../pages/my_page/baby_profile/babyProfile_page.dart';
@@ -74,19 +73,11 @@ class CustomDrawer extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.people),
               title: const Text('나눔 품앗이'),
-              onTap: () async {
+              onTap: () {
                 Navigator.pop(context);
-
-                // SharedPreferences에서 JWT 토큰 불러오기
-                final prefs = await SharedPreferences.getInstance();
-                final token = await prefs.getString('accessToken');
-                print('[CustomDrawer] 전달할 token: $token');
-
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => SharingPage(token: token),
-                  ),
+                  MaterialPageRoute(builder: (context) => const SharingPage()),
                 );
               },
             ),

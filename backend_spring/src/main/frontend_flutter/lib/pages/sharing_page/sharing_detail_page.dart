@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
 import 'package:frontend_flutter/screens/sharing_page/sharing_detail_page_ui.dart';
-import 'package:frontend_flutter/models/sharing_page/sharing_api_service.dart';
+import '../../models/share/sharing_api_service.dart';
 
 class SharingDetailPage extends StatefulWidget {
   final SharingItem item;

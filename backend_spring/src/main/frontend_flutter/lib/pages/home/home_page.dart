@@ -19,6 +19,7 @@ import '../../models/chat/chat_service.dart';
 import '../../models/child/child_api.dart';
 import '../../models/webSocket/connectWebSocket.dart';
 import '../community/community_page.dart';
+import '../my_page/baby_profile/babyProfile_page.dart';
 
 class MyHomePage extends StatefulWidget {
   final int initialIndex;
@@ -138,6 +139,13 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  void _BabyProfilePage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const BabyProfilePage()),
+    ).then((_) => _loadBabyProfile());
+  }
+
   Future<void> _navigateToCalendarPage() async {
     await Navigator.push(
       context,
@@ -245,7 +253,18 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               SizedBox(
                 height: 250,
-                child: PageView.builder(
+                child: _children.isEmpty
+                    ? BabyProfileHeader(
+                  babyProfile: BabyProfile(
+                    name: '등록된 아이 없음',
+                    birthDate: DateTime.now(),
+                    gender: null,
+                    // developmentStep: '아이 정보를 등록해주세요.',
+                  ),
+                  babyImage: null,
+                  onEditPressed: _BabyProfilePage,
+                )
+                    : PageView.builder(
                   controller: _pageController,
                   itemCount: _children.length,
                   onPageChanged: (index) => setState(() => _currentPage = index),
@@ -264,20 +283,21 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
               const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(_children.length, (index) {
-                  return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _currentPage == index ? Colors.black : Colors.grey,
-                    ),
-                  );
-                }),
-              ),
+              if (_children.isNotEmpty)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(_children.length, (index) {
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _currentPage == index ? Colors.black : Colors.grey,
+                      ),
+                    );
+                  }),
+                ),
               TodayScheduleCard(
                 todaySchedules: todaySchedules,
                 onCalendarTap: _navigateToCalendarPage,

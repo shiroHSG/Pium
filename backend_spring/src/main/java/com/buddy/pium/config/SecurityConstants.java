@@ -10,10 +10,10 @@ public class SecurityConstants {
             "/api/member/users/**",
             "/api/member/reissue",    // RefreshToken 발급시 AccessToken 재발급 (비회원 인증 필요)
             "/api/member/delete/**",
-            // 나머지 허용 경로를 팀 규칙에 맞게 정리!
             "/api/policies/**",
-            "/api/shares/**",
             "/uploads/**",
             "/ws/**"
+                    // "/api/shares/**", 인증이 필요한 경로이므로 포함하면 안됨
+
     );
 }

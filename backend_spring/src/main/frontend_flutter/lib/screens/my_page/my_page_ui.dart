@@ -85,7 +85,6 @@ class _MyPageHeader extends StatelessWidget {
             profileImageUrl != null && profileImageUrl!.isNotEmpty
                 ? ProtectedImage(
               imageUrl: profileImageUrl!,
-              size: 150,
             )
                 : const SizedBox(
               width: 150,

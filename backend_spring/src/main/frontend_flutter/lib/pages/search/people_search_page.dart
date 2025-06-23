@@ -1,7 +1,10 @@
 // lib/pages/search/people_search_page.dart
 import 'package:flutter/material.dart';
-import 'package:frontend_flutter/theme/app_theme.dart';
+import 'package:frontend_flutter/models/people_search/member_api.dart';
 import 'package:frontend_flutter/screens/search/people_search_page_ui.dart';
+
+import '../../models/chat/chat_service.dart';
+import '../chat/chat_room_message_page.dart';
 
 class PeopleSearchPage extends StatefulWidget {
   const PeopleSearchPage({Key? key}) : super(key: key);
@@ -12,30 +15,36 @@ class PeopleSearchPage extends StatefulWidget {
 
 class _PeopleSearchPageState extends State<PeopleSearchPage> {
   final TextEditingController _searchController = TextEditingController();
+  List<Map<String, dynamic>> _searchResults = [];
 
-  // 더미 데이터 (실제로는 API에서 받아올 데이터)
-  final List<Map<String, String>> _users = [
-    {
-      'nickname': 'Nickname1',
-      'location': '서울특별시 강동구',
-    },
-    {
-      'nickname': 'Nickname2',
-      'location': '서울특별시 송파구',
-    },
-    {
-      'nickname': 'Nickname3',
-      'location': '경기도 성남시',
-    },
-    {
-      'nickname': 'Nickname4',
-      'location': '인천광역시',
-    },
-    {
-      'nickname': 'Nickname5',
-      'location': '대전광역시',
-    },
-  ];
+  void _updateSearchResults(List<Map<String, dynamic>> results) {
+    setState(() {
+      _searchResults = results;
+    });
+  }
+
+  void _handleMateButton(String nickname) {
+    print('메이트 맺기: \$nickname');
+  }
+
+  void _handleMessageButton(int receiverId) async {
+    try {
+      final chatRoom = await createOrGetDirectChatRoom(receiverId);
+
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatRoomPage(chatRoomId: chatRoom.chatRoomId),
+        ),
+      );
+    } catch (e) {
+      print('❌ 채팅방 생성 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('채팅방을 생성하는 데 실패했습니다.')),
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -43,43 +52,31 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
     super.dispose();
   }
 
-  void _handleSearch() {
-    // TODO: 검색 기능 구현
-    print('검색어: ${_searchController.text}');
-  }
-
-  void _handleMateButton(String nickname) {
-    print('메이트 맺기 버튼 클릭: $nickname');
-    // TODO: 메이트 맺기 로직
-  }
-
-  void _handleMessageButton(String nickname) {
-    print('메세지 보내기 버튼 클릭: $nickname');
-    // TODO: 메세지 보내기 로직
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('메이트 찾기'),
-        backgroundColor: AppTheme.primaryPurple,
       ),
       body: Column(
         children: [
           PeopleSearchInput(
             searchController: _searchController,
-            onSearchPressed: _handleSearch,
+            onSearchResults: _updateSearchResults,
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: _users.length,
+            child: _searchController.text.isEmpty
+                ? const Center(child: Text('주소지 또는 사용자 별명을 검색하여 주십시오.'))
+                : _searchResults.isEmpty
+                ? const Center(child: Text('검색 결과가 없습니다.'))
+                : ListView.builder(
+              itemCount: _searchResults.length,
               itemBuilder: (context, index) {
-                final user = _users[index];
+                final user = _searchResults[index];
                 return PeopleSearchResultItem(
                   user: user,
                   onMateButtonPressed: () => _handleMateButton(user['nickname']!),
-                  onMessageButtonPressed: () => _handleMessageButton(user['nickname']!),
+                  onMessageButtonPressed: () => _handleMessageButton(user['memberId']),
                 );
               },
             ),
