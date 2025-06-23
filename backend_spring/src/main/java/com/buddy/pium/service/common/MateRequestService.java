@@ -52,7 +52,6 @@ public class MateRequestService {
                 .build();
 
         mateRequestRepository.save(request);
-
         // 알림 전송
         notificationService.sendNotification(
                 receiverId,
@@ -61,7 +60,6 @@ public class MateRequestService {
                 "MEMBER",
                 sender.getId()
         );
-
     }
 
     // 수락

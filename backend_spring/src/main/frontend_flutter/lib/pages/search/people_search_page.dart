@@ -4,6 +4,7 @@ import 'package:frontend_flutter/models/people_search/member_api.dart';
 import 'package:frontend_flutter/screens/search/people_search_page_ui.dart';
 
 import '../../models/chat/chat_service.dart';
+import '../../models/mate/mate_api.dart';
 import '../chat/chat_room_message_page.dart';
 
 class PeopleSearchPage extends StatefulWidget {
@@ -23,8 +24,11 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
     });
   }
 
-  void _handleMateButton(String nickname) {
-    print('메이트 맺기: \$nickname');
+  void _handleMateButton(int receiverId) async {
+    await MateApi.requestMate(receiverId);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("메이트 요청을 보냈습니다")),
+    );
   }
 
   void _handleMessageButton(int receiverId) async {
@@ -62,7 +66,7 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
         children: [
           PeopleSearchInput(
             searchController: _searchController,
-            onSearchResults: _updateSearchResults,
+            onSearchResults: _updateSearchResults, // <- 오류 발생
           ),
           Expanded(
             child: _searchController.text.isEmpty
@@ -77,6 +81,7 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
                   user: user,
                   onMateButtonPressed: () => _handleMateButton(user['nickname']!),
                   onMessageButtonPressed: () => _handleMessageButton(user['memberId']),
+
                 );
               },
             ),

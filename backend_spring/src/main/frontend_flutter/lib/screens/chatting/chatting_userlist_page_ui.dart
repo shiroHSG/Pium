@@ -1,205 +1,182 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:intl/intl.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/protected_image.dart';
 
-import '../../models/chat/chatroom.dart';
+class ChattingUserlistPageUI extends StatelessWidget {
+  final String roomName;
+  final bool isEditing;
+  final TextEditingController roomNameController;
+  final VoidCallback onToggleEdit;
+  final List<Map<String, dynamic>> participants;
+  final VoidCallback onCopyInviteLink;
+  final VoidCallback onLeaveChatRoom;
+  final VoidCallback? onLeaveWithDelegation;
 
-class ChattingAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String selectedMode;  //선택모드 ->  type
-  final List<String> modeOptions;
-  final ValueChanged<String> onModeSelected;  //나눔, 메시지
-
-  const ChattingAppBar({
-    Key? key,
-    required this.selectedMode,
-    required this.modeOptions,
-    required this.onModeSelected,
-  }) : super(key: key);
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  const ChattingUserlistPageUI({
+    super.key,
+    required this.roomName,
+    required this.isEditing,
+    required this.roomNameController,
+    required this.onToggleEdit,
+    required this.participants,
+    required this.onCopyInviteLink,
+    required this.onLeaveChatRoom,
+    this.onLeaveWithDelegation,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
+    return Scaffold(
       backgroundColor: Colors.white,
-      elevation: 1,
-      title: const Text(
-        '채팅',
-        style: TextStyle(color: AppTheme.textPurple, fontWeight: FontWeight.bold),
+      appBar: AppBar(
+        backgroundColor: AppTheme.primaryPurple,
+        elevation: 0,
+        centerTitle: false,
+        title: const Text('', style: TextStyle(color: Colors.white)),
       ),
-      actions: [
-        PopupMenuButton<String>(
-          offset: const Offset(0, 40),
-          color: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          onSelected: onModeSelected,
-          itemBuilder: (BuildContext context) {
-            return modeOptions.map((String option) {
-              return PopupMenuItem<String>(
-                value: option,
-                child: Text(
-                  option,
-                  style: const TextStyle(color: AppTheme.textPurple),
-                ),
-              );
-            }).toList();
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              children: [
-                Text(
-                  selectedMode,
-                  style: const TextStyle(
-                    color: AppTheme.textPurple,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Icon(
-                  Icons.arrow_drop_down,
-                  color: AppTheme.textPurple,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ChattingListItem extends StatelessWidget {
-  final ChatRoom chatRoom;
-  final VoidCallback onTap;
-
-  const ChattingListItem({
-    Key? key,
-    required this.chatRoom,
-    required this.onTap,
-  }) : super(key: key);
-
-  String _formatTime(DateTime? dateTime) {
-    if (dateTime == null) return '';
-
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inDays == 0) {
-      return '${_twoDigits(dateTime.hour)}:${_twoDigits(dateTime.minute)}';
-    } else if (difference.inDays < 7) {
-      const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
-      return weekdays[dateTime.weekday - 1];
-    } else {
-      return '${dateTime.year}.${_twoDigits(dateTime.month)}.${_twoDigits(dateTime.day)}';
-    }
-  }
-
-  String _twoDigits(int n) => n.toString().padLeft(2, '0');
-
-  @override
-  Widget build(BuildContext context) {
-    final profileImage = chatRoom.imageUrl ??
-        chatRoom.otherProfileImageUrl ?? ''; // 없으면 공백
-
-    final name = (chatRoom.type == 'SHARE' &&
-        chatRoom.otherNickname != null &&
-        chatRoom.sharePostTitle != null)
-        ? '${chatRoom.otherNickname}[${chatRoom.sharePostTitle}]'
-        : (chatRoom.chatRoomName ?? chatRoom.otherNickname ?? '이름 없음');
-
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 25,
-              backgroundImage: profileImage.isNotEmpty
-                  ? NetworkImage(profileImage)
-                  : null,
-              backgroundColor: Colors.grey[300],
-              child: profileImage.isEmpty
-                  ? const Icon(Icons.person, color: Colors.grey)
-                  : null,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
+        children: [
+          const SizedBox(height: 70),
+          const CircleAvatar(radius: 35, backgroundColor: Colors.grey),
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    name,
+                  isEditing
+                      ? SizedBox(
+                    width: 150,
+                    child: TextField(
+                      controller: roomNameController,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPurple,
+                      ),
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 4),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  )
+                      : Text(
+                    roomName,
                     style: const TextStyle(
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
                       color: AppTheme.textPurple,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    chatRoom.lastMessage,
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
-                    overflow: TextOverflow.ellipsis,
+                  const SizedBox(width: 6),
+                  IconButton(
+                    onPressed: onToggleEdit,
+                    icon: Icon(
+                      isEditing ? Icons.check : Icons.edit,
+                      size: 20,
+                      color: AppTheme.textPurple,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
                 ],
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+          ),
+          const SizedBox(height: 50),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.lightPink,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
               children: [
-                if (chatRoom.lastSentAt != null)
-                  Text(
-                    _formatTime(chatRoom.lastSentAt!),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                const SizedBox(height: 4),
-                if (chatRoom.unreadCount > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 10.0, left: 12.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
                     child: Text(
-                      '${chatRoom.unreadCount}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
+                      '대화 상대',
+                      style: TextStyle(
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: AppTheme.textPurple,
                       ),
                     ),
                   ),
+                ),
+                const SizedBox(height: 30),
+                GridView.builder(
+                  padding: const EdgeInsets.only(left: 12.0, bottom: 15.0),
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: participants.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 6,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemBuilder: (context, index) {
+                    final participant = participants[index];
+                    final imagePath = participant['profileImageUrl'];
+                    final fullImageUrl = (imagePath != null && imagePath.isNotEmpty)
+                        ? 'http://10.0.2.2:8080${imagePath.startsWith('/') ? imagePath : '/$imagePath'}?t=${DateTime.now().millisecondsSinceEpoch}'
+                        : null;
+
+                    return Row(
+                      children: [
+                        fullImageUrl != null
+                            ? ProtectedImage(imageUrl: fullImageUrl)
+                            : const CircleAvatar(
+                          radius: 12,
+                          backgroundColor: AppTheme.primaryPurple,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          participant['nickname'] ?? '알 수 없음',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: AppTheme.textPurple,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                      onPressed: onCopyInviteLink,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryPurple,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('초대링크 복사'),
+                    ),
+                    const SizedBox(width: 15),
+                    ElevatedButton(
+                      onPressed: onLeaveChatRoom,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('채팅방 나가기'),
+                    ),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
-}
-
-class ChattingFloatingActionButton extends StatelessWidget {
-  final String selectedMode;
-  final VoidCallback onPressed;
-
-  const ChattingFloatingActionButton({
-    Key? key,
-    required this.selectedMode,
-    required this.onPressed,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: onPressed,
-      backgroundColor: AppTheme.primaryPurple,
-      child: const Icon(Icons.add, color: Colors.white),
     );
   }
 }

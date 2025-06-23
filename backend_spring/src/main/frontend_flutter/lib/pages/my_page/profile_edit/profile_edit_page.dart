@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,6 +7,8 @@ import 'dart:convert';
 
 import '../../../screens/auth/address_search/address_search_page.dart';
 import '../../../screens/my_page/profile_edit/profile_edit_page_ui.dart';
+import '../../../models/mate/mate_api.dart';
+import '../../../theme/app_theme.dart';
 
 class ProfileEditPage extends StatefulWidget {
   const ProfileEditPage({Key? key}) : super(key: key);
@@ -24,18 +25,19 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   final TextEditingController birthController = TextEditingController();
   final TextEditingController genderController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
-  final TextEditingController mateController = TextEditingController();
 
   String? _originalNickname;
   String? _originalPhoneNumber;
   String? _originalAddress;
-  String? _originalMateInfo;
 
   bool isLoading = true;
   bool isEditing = false;
 
   String? _profileImageUrl;
   File? _selectedImage;
+
+  String? mateName;
+  String? mateNickname;
 
   @override
   void initState() {
@@ -44,8 +46,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(
-        source: ImageSource.gallery);
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
@@ -68,11 +69,28 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
       if (response.statusCode == 200) {
         final user = json.decode(utf8.decode(response.bodyBytes));
-
         final birthList = user['birth'];
+        final mateId = user['mateInfo'];
+
+        if (mateId != null) {
+          final mateResponse = await http.get(
+            Uri.parse('http://10.0.2.2:8080/api/member/users/$mateId'),
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+          );
+          if (mateResponse.statusCode == 200) {
+            final mateUser = json.decode(utf8.decode(mateResponse.bodyBytes));
+            setState(() {
+              mateName = mateUser['username'];
+              mateNickname = mateUser['nickname'];
+            });
+          }
+        }
+
         final birthFormatted = birthList is List
-            ? '${birthList[0]}-${birthList[1].toString().padLeft(
-            2, '0')}-${birthList[2].toString().padLeft(2, '0')}'
+            ? '${birthList[0]}-${birthList[1].toString().padLeft(2, '0')}-${birthList[2].toString().padLeft(2, '0')}'
             : '';
 
         setState(() {
@@ -83,17 +101,15 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           birthController.text = birthFormatted;
           genderController.text = (user['gender'] == 'M') ? '남성' : '여성';
           addressController.text = user['address'] ?? '';
-          mateController.text = user['mateInfo']?.toString() ?? '';
+
           final imagePath = user['profileImageUrl'];
           _profileImageUrl = (imagePath != null && imagePath.isNotEmpty)
               ? 'http://10.0.2.2:8080${imagePath.startsWith('/') ? imagePath : '/$imagePath'}'
               : null;
 
-
-          _originalNickname = user['nickname'] ?? '';
-          _originalPhoneNumber = user['phoneNumber'] ?? '';
-          _originalAddress = user['address'] ?? '';
-          _originalMateInfo = user['mateInfo']?.toString() ?? '';
+          _originalNickname = user['nickname'];
+          _originalPhoneNumber = user['phoneNumber'];
+          _originalAddress = user['address'];
 
           isLoading = false;
         });
@@ -116,27 +132,18 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       "nickname": nicknameController.text.trim(),
       "phoneNumber": phoneController.text.trim(),
       "address": addressController.text.trim(),
-      "mateInfo": mateController.text.trim(),
     };
 
     request.fields['memberData'] = jsonEncode(memberData);
     request.headers['Authorization'] = 'Bearer $token';
 
-    // 이미지 파일 추가
     if (_selectedImage != null) {
-      print('📁 전송할 이미지 경로: ${_selectedImage!.path}');
-      request.files.add(await http.MultipartFile.fromPath(
-        'image',
-        _selectedImage!.path,
-      ));
+      request.files.add(await http.MultipartFile.fromPath('image', _selectedImage!.path));
     }
 
     try {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-
-      print('📨 응답 상태: ${response.statusCode}');
-      print('📨 응답 본문: ${response.body}');
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -146,7 +153,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         _originalNickname = nicknameController.text.trim();
         _originalPhoneNumber = phoneController.text.trim();
         _originalAddress = addressController.text.trim();
-        _originalMateInfo = mateController.text.trim();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('수정에 실패했습니다.')),
@@ -158,6 +164,114 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         const SnackBar(content: Text('네트워크 오류')),
       );
     }
+  }
+
+  Future<void> _disconnectMate(BuildContext context) async {
+    try {
+      await MateApi.disconnectMate();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Mate 연결이 해제되었습니다.")),
+      );
+      setState(() {
+        mateName = null;
+        mateNickname = null;
+      });
+    } catch (e) {
+      print("❌ 연결 해제 실패: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("연결 해제에 실패했습니다.")),
+      );
+    }
+  }
+
+  void _showMateRequestsModal(BuildContext context) async {
+    final received = await MateApi.fetchReceivedRequests();
+    final sent = await MateApi.fetchSentRequests();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return DefaultTabController(
+          length: 2,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const TabBar(
+                labelColor: AppTheme.primaryPurple,
+                unselectedLabelColor: Colors.grey,
+                tabs: [
+                  Tab(text: '받은 요청'),
+                  Tab(text: '보낸 요청'),
+                ],
+              ),
+              SizedBox(
+                height: 300,
+                child: TabBarView(
+                  children: [
+                    _buildRequestList(received, isReceived: true),
+                    _buildRequestList(sent, isReceived: false),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRequestList(List<Map<String, dynamic>> requests, {required bool isReceived}) {
+    if (requests.isEmpty) {
+      return const Center(child: Text("요청이 없습니다."));
+    }
+
+    return ListView.builder(
+      itemCount: requests.length,
+      itemBuilder: (context, index) {
+        final req = requests[index];
+
+        return ListTile(
+          title: Text(isReceived
+              ? '${req['senderUsername']}(${req['senderNickname']})'
+              : '${req['receiverUsername']}(${req['receiverNickname']})'),
+          subtitle: Text(req['message'] ?? ''),
+          trailing: isReceived
+              ? Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextButton(
+                onPressed: () async {
+                  await MateApi.respondMateRequest(req['requestId'], true);
+                  Navigator.pop(context);
+                  _loadUserData();
+                },
+                child: const Text("수락"),
+              ),
+              TextButton(
+                onPressed: () async {
+                  await MateApi.respondMateRequest(req['requestId'], false);
+                  Navigator.pop(context);
+                  _loadUserData();
+                },
+                child: const Text("거절"),
+              ),
+            ],
+          )
+              : TextButton(
+            onPressed: () async {
+              await MateApi.cancelMateRequest(req['requestId']);
+              Navigator.pop(context);
+              _loadUserData();
+            },
+            child: const Text("취소", style: TextStyle(color: Colors.red)),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -177,7 +291,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         birthController: birthController,
         genderController: genderController,
         addressController: addressController,
-        mateController: mateController,
         isEditing: isEditing,
         profileImageUrl: _profileImageUrl,
         selectedImage: _selectedImage,
@@ -192,7 +305,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
               nicknameController.text.trim() == _originalNickname?.trim() &&
                   phoneController.text.trim() == _originalPhoneNumber?.trim() &&
                   addressController.text.trim() == _originalAddress?.trim() &&
-                  mateController.text.trim() == _originalMateInfo?.trim() &&
                   _selectedImage == null;
 
           if (isUnchanged) {
@@ -218,7 +330,10 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             });
           }
         },
-
+        onMateRequestPressed: _showMateRequestsModal,
+        onMateDisconnectPressed: _disconnectMate,
+        mateName: mateName,
+        mateNickname: mateNickname,
       ),
     );
   }
