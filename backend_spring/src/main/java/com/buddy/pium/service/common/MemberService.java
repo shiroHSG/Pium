@@ -216,9 +216,11 @@ public class MemberService {
 
     // 닉네임 또는 주소로 회원 검색
     public List<MemberResponseDto> searchMembers(String query) {
+    public List<MemberResponseDto> searchMembers(String query, Member member) {
         return memberRepository
                 .findByNicknameContainingIgnoreCaseOrAddressContainingIgnoreCase(query, query)
                 .stream()
+                .filter(m -> !m.getId().equals(member.getId())) // 본인 제외
                 .map(this::toResponseDto)
                 .collect(Collectors.toList());
     }

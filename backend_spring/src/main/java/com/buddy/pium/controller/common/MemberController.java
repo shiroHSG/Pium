@@ -194,6 +194,11 @@ public class MemberController {
     @GetMapping("/search")
     public ResponseEntity<List<MemberResponseDto>> searchMembers(@RequestParam String query) {
         List<MemberResponseDto> results = memberService.searchMembers(query);
+    public ResponseEntity<List<MemberResponseDto>> searchMembers(
+            @RequestParam String query,
+            @CurrentMember Member member
+    ) {
+        List<MemberResponseDto> results = memberService.searchMembers(query, member);
         return ResponseEntity.ok(results);
     }
 }
