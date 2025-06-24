@@ -49,7 +49,6 @@ public class PostController {
         }
     }
 
-
     @GetMapping("/{postId}")
     public ResponseEntity<PostResponseDto> get(@PathVariable Long postId, @CurrentMember Member member) {
         return ResponseEntity.ok(postService.get(postId));
@@ -57,6 +56,12 @@ public class PostController {
 
     @GetMapping
     public ResponseEntity<List<PostResponseDto>> getAll(@RequestParam String category,
+                                                        @CurrentMember Member member) {
+        return ResponseEntity.ok(postService.getAll(category));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PostResponseDto>> get(@RequestParam String category,
                                                         @CurrentMember Member member) {
         return ResponseEntity.ok(postService.getAll(category));
     }
@@ -85,7 +90,7 @@ public class PostController {
 
 
     @DeleteMapping("/{postId}")
-    public ResponseEntity<?> deleteDiary(@PathVariable Long postId, @CurrentMember Member member) {
+    public ResponseEntity<?> deletePost(@PathVariable Long postId, @CurrentMember Member member) {
         postService.delete(postId, member);
         return ResponseEntity.ok(Map.of("message", "게시글을 삭제했습니다."));
     }

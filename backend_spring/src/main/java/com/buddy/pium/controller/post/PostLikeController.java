@@ -9,7 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/posts/{postId}/like")
+@RequestMapping("/api/posts/{postId}/like")
 @RequiredArgsConstructor
 public class PostLikeController {
 
