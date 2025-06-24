@@ -60,12 +60,6 @@ public class PostController {
         return ResponseEntity.ok(postService.getAll(category));
     }
 
-    @GetMapping
-    public ResponseEntity<List<PostResponseDto>> get(@RequestParam String category,
-                                                        @CurrentMember Member member) {
-        return ResponseEntity.ok(postService.getAll(category));
-    }
-
     @PatchMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updatePost(
             @PathVariable Long postId,
