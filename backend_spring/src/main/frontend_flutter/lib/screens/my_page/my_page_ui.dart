@@ -89,6 +89,7 @@ class _MyPageHeader extends StatelessWidget {
                 height: 120,
                 child: ProtectedImage(
                   imageUrl: profileImageUrl!,
+                  fit: BoxFit.cover, // 프로필용
                 ),
               ),
             )
