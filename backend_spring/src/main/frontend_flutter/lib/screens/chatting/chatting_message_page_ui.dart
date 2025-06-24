@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:frontend_flutter/models/chat/message.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../pages/chat/invite_modal.dart';
 
 class ChattingMessagePageUI extends StatelessWidget {
   final List<ChatMessage> messages;
@@ -32,7 +35,7 @@ class ChattingMessagePageUI extends StatelessWidget {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[messages.length - 1 - index];
-                    return _buildChatMessage(message);
+                    return _buildChatMessage(context, message);
                   },
                   reverse: true,
                 ),
@@ -45,7 +48,7 @@ class ChattingMessagePageUI extends StatelessWidget {
     );
   }
 
-  Widget _buildChatMessage(ChatMessage message) {
+  Widget _buildChatMessage(BuildContext context, ChatMessage message) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -81,9 +84,29 @@ class ChattingMessagePageUI extends StatelessWidget {
                     color: message.isMe ? AppTheme.lightPink.withOpacity(0.8) : AppTheme.primaryPurple,
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  child: Text(
-                    message.content, // ✅ 변경: text → content
+                  child: Linkify(
+                    text: message.content,
+                    onOpen: (link) async {
+                      final uri = Uri.tryParse(link.url);
+                      if (uri != null &&
+                          uri.pathSegments.length >= 3 &&
+                          uri.pathSegments[1] == 'invite') {
+                        final inviteCode = uri.pathSegments[2];
+                        showDialog(
+                          context: context,
+                          builder: (_) => InviteModal(inviteCode: inviteCode),
+                        );
+                      } else {
+                        if (await canLaunchUrl(uri!)) {
+                          await launchUrl(uri);
+                        }
+                      }
+                    },
                     style: TextStyle(color: message.isMe ? AppTheme.textPurple : Colors.white),
+                    linkStyle: const TextStyle(
+                      color: Colors.blue,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
                 Row(
@@ -91,19 +114,19 @@ class ChattingMessagePageUI extends StatelessWidget {
                   children: [
                     if (message.isMe && message.unreadCount > 0)
                       Text(
-                        '${message.unreadCount}', // ✅ 변경: readCount → unreadCount
+                        '${message.unreadCount}',
                         style: const TextStyle(fontSize: 10, color: Colors.grey),
                       ),
                     if (message.isMe && message.unreadCount > 0)
                       const SizedBox(width: 4),
                     Text(
-                      DateFormat('a h:mm').format(message.sentAt), // ✅ 변경: time → sentAt
+                      DateFormat('a h:mm').format(message.sentAt),
                       style: const TextStyle(fontSize: 10, color: Colors.grey),
                     ),
                     const SizedBox(width: 4),
                     if (!message.isMe && message.unreadCount > 0)
                       Text(
-                        '${message.unreadCount}', // ✅ 동일하게 변경
+                        '${message.unreadCount}',
                         style: const TextStyle(fontSize: 10, color: Colors.grey),
                       ),
                   ],
