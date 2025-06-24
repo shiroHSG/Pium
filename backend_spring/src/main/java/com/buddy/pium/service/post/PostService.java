@@ -44,20 +44,20 @@ public class PostService {
         postRepository.save(post);
     }
 
-//    public PostResponseDto get(Long postId) {
-//        Post post = validatePost(postId);
-//
-//        post.setViewCount(post.getViewCount() + 1);
-//        postRepository.save(post);
-//
-//        return PostResponseDto.from(post);
-//    }
-//
-//    public List<PostResponseDto> getAll(String category) {
-//        return postRepository.findAllByCategory(category).stream()
-//                .map(PostResponseDto::from)
-//                .toList();
-//    }
+    public PostResponseDto get(Long postId) {
+        Post post = validatePost(postId);
+
+        post.setViewCount(post.getViewCount() + 1);
+        postRepository.save(post);
+
+        return PostResponseDto.from(post);
+    }
+
+    public List<PostResponseDto> getAll(String category) {
+        return postRepository.findAllByCategory(category).stream()
+                .map(PostResponseDto::from)
+                .toList();
+    }
 
     public void updatePost(Long postId, PostUpdateDto dto, Member member, MultipartFile image) {
         Post post = validatePostOwner(postId, member);
@@ -82,27 +82,27 @@ public class PostService {
         postRepository.delete(post);
     }
 
-//    public Page<PostResponseDto> search(String type, String keyword, Pageable pageable) {
-//        Page<Post> posts;
-//
-//        if (type == null || keyword == null || keyword.isBlank()) {
-//            posts = postRepository.findAll(pageable);
-//        } else {
-//            switch (type) {
-//                case "title" -> posts = postRepository.findByTitleContaining(keyword, pageable);
-//                case "content" -> posts = postRepository.findByContentContaining(keyword, pageable);
-//                case "writer" -> posts = postRepository.findByWriterNickname(keyword, pageable);
-//                default -> throw new IllegalArgumentException("유효하지 않은 검색 타입입니다.");
-//            }
-//        }
-//
-//        return posts.map(PostResponseDto::from);
-//    }
+    public Page<PostResponseDto> search(String type, String keyword, Pageable pageable) {
+        Page<Post> posts;
 
-//    public Page<PostResponseDto> searchByLikes(Pageable pageable) {
-//        return postRepository.findAllOrderByLikeCountDesc(pageable)
-//                .map(PostResponseDto::from);
-//    }
+        if (type == null || keyword == null || keyword.isBlank()) {
+            posts = postRepository.findAll(pageable);
+        } else {
+            switch (type) {
+                case "title" -> posts = postRepository.findByTitleContaining(keyword, pageable);
+                case "content" -> posts = postRepository.findByContentContaining(keyword, pageable);
+                case "writer" -> posts = postRepository.findByWriterNickname(keyword, pageable);
+                default -> throw new IllegalArgumentException("유효하지 않은 검색 타입입니다.");
+            }
+        }
+
+        return posts.map(PostResponseDto::from);
+    }
+
+    public Page<PostResponseDto> searchByLikes(Pageable pageable) {
+        return postRepository.findAllOrderByLikeCountDesc(pageable)
+                .map(PostResponseDto::from);
+    }
 
     public Post validatePostOwner(Long postId, Member member) {
         Post post = validatePost(postId);

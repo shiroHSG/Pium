@@ -50,16 +50,16 @@ public class PostController {
     }
 
 
-//    @GetMapping("/{postId}")
-//    public ResponseEntity<PostResponseDto> get(@PathVariable Long postId, @CurrentMember Member member) {
-//        return ResponseEntity.ok(postService.get(postId));
-//    }
-//
-//    @GetMapping
-//    public ResponseEntity<List<PostResponseDto>> getAll(@RequestParam String category,
-//                                                        @CurrentMember Member member) {
-//        return ResponseEntity.ok(postService.getAll(category));
-//    }
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostResponseDto> get(@PathVariable Long postId, @CurrentMember Member member) {
+        return ResponseEntity.ok(postService.get(postId));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PostResponseDto>> getAll(@RequestParam String category,
+                                                        @CurrentMember Member member) {
+        return ResponseEntity.ok(postService.getAll(category));
+    }
 
     @PatchMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updatePost(
@@ -90,17 +90,17 @@ public class PostController {
         return ResponseEntity.ok(Map.of("message", "게시글을 삭제했습니다."));
     }
 
-//    @GetMapping("/search")
-//    public ResponseEntity<Page<PostResponseDto>> search(
-//            @RequestParam(required = false) String type,
-//            @RequestParam(required = false) String keyword,
-//            @RequestParam(required = false) String sort,
-//            @CurrentMember Member member,
-//            Pageable pageable
-//    ) {
-//        if ("likes".equals(sort)) {
-//            return ResponseEntity.ok(postService.searchByLikes(pageable));
-//        }
-//        return ResponseEntity.ok(postService.search(type, keyword, pageable));
-//    }
+    @GetMapping("/search")
+    public ResponseEntity<Page<PostResponseDto>> search(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String sort,
+            @CurrentMember Member member,
+            Pageable pageable
+    ) {
+        if ("likes".equals(sort)) {
+            return ResponseEntity.ok(postService.searchByLikes(pageable));
+        }
+        return ResponseEntity.ok(postService.search(type, keyword, pageable));
+    }
 }

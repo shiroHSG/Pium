@@ -1,15 +1,11 @@
 package com.buddy.pium.dto.post;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
+@Getter @Setter
 public class PostUpdateDto {
     private String title;
     private String content;
-    private String category;
-    private String imgUrl;
 }
+// 글 수정

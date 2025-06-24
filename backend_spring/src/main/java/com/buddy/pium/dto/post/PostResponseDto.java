@@ -1,12 +1,15 @@
-// PostResponse.java
 package com.buddy.pium.dto.post;
 
 import com.buddy.pium.entity.post.Post;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PostResponseDto {
     private Long id;
     private String title;
@@ -15,21 +18,18 @@ public class PostResponseDto {
     private String imgUrl;
     private String author;
     private Long viewCount;
-    private String createdAt;
-    private Integer likeCount;
-    private Boolean isLiked;
-    private Integer commentCount;
+    private LocalDateTime createdAt;
 
-    public static PostResponseDto from(Post post, Long memberId) {
-        return PostResponseDto.builder()
-                .id(post.getId())
-                .title(post.getTitle())
-                .content(post.getContent())
-                .category(post.getCategory())
-                .author(post.getMember().getNickname())
-                .viewCount(post.getViewCount())
-                .createdAt(post.getCreatedAt().toString())
-                .likeCount(post.getLikes().size())
-                .build();
+    public static PostResponseDto from(Post post) {
+        return new PostResponseDto(
+                post.getId(),
+                post.getTitle(),
+                post.getContent(),
+                post.getCategory(),
+                post.getImageUrl(),
+                post.getMember().getNickname(),
+                post.getViewCount() != null ? post.getViewCount() : 0,
+                post.getCreatedAt()
+        );
     }
 }

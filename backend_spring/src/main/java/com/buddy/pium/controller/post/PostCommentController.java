@@ -7,18 +7,19 @@ import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.service.post.PostCommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/posts")
+@RequestMapping("/posts")
 public class PostCommentController {
 
     private final PostCommentService postCommentService;
 
-    @PostMapping("/{postId}/comments")
+    @PostMapping("/{postId}/comments/")
     public ResponseEntity<Void> create(@PathVariable Long postId,
                                        @RequestBody PostCommentRequestDto dto,
                                        @CurrentMember Member member) {
