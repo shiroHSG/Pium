@@ -83,16 +83,22 @@ class _MyPageHeader extends StatelessWidget {
         child: Column(
           children: [
             profileImageUrl != null && profileImageUrl!.isNotEmpty
-                ? ProtectedImage(
-              imageUrl: profileImageUrl!,
+                ? ClipOval(
+              child: SizedBox(
+                width: 120,
+                height: 120,
+                child: ProtectedImage(
+                  imageUrl: profileImageUrl!,
+                ),
+              ),
             )
-                : const SizedBox(
-              width: 150,
-              height: 150,
-              child: Center(child: CircularProgressIndicator()),
+                : const CircleAvatar(
+              radius: 60,
+              backgroundColor: AppTheme.primaryPurple,
+              child: Icon(Icons.person, size: 60, color: Colors.white),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
             Padding(
               padding: const EdgeInsets.only(bottom: 40.0),
               child: Text(
