@@ -199,4 +199,16 @@ public class MemberController {
         List<MemberResponseDto> results = memberService.searchMembers(query, member);
         return ResponseEntity.ok(results);
     }
+
+    // nickName 중복 여부 체크
+    @GetMapping(value = "/checkNickName", produces = "application/json; charset=UTF-8")
+    public ResponseEntity<?> checkNickname(@RequestParam String nickName) {
+        boolean exists = memberService.existsByNickname(nickName);
+        if (exists) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", "이미 사용 중인 닉네임입니다."));
+        } else {
+            return ResponseEntity.ok(Map.of("message", "사용 가능한 닉네임입니다."));
+        }
+    }
 }

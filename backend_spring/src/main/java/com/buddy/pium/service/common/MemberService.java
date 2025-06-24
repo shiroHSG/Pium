@@ -223,4 +223,9 @@ public class MemberService {
                 .map(this::toResponseDto)
                 .collect(Collectors.toList());
     }
+
+    // 닉네임 조회
+    public boolean existsByNickname(String nickname) {
+        return memberRepository.existsByNickname(nickname);
+    }
 }

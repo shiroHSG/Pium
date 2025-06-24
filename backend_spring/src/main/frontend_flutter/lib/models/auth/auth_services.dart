@@ -275,4 +275,22 @@ class AuthService {
       return false;
     }
   }
+
+  // 닉네임 중복 확인
+  Future<String?> checkNicknameDuplicate(String nickname) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/member/checkNickName?nickName=$nickname'));
+
+      if (response.statusCode == 200) {
+        return null; // 사용 가능
+      } else if (response.statusCode == 409) {
+        final data = jsonDecode(response.body);
+        return data['message']; // 이미 사용 중
+      } else {
+        return '서버 오류가 발생했습니다.';
+      }
+    } catch (e) {
+      return '네트워크 오류가 발생했습니다.';
+    }
+  }
 }
