@@ -76,12 +76,28 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
     }
   }
 
-  void _copyInviteLink() {
-    final inviteLink = 'https://yourapp.com/invite/${widget.chatRoomId}';
-    Clipboard.setData(ClipboardData(text: inviteLink));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('초대 링크가 복사되었습니다.')),
-    );
+  void _copyInviteLink() async {
+    try {
+      final inviteData = await fetchInviteLink(widget.chatRoomId);
+      final inviteLink = inviteData['inviteLink'] ?? '';
+
+      if (inviteLink.isNotEmpty) {
+        Clipboard.setData(ClipboardData(text: inviteLink));
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('초대 링크가 복사되었습니다.')),
+          );
+        }
+      } else {
+        throw Exception('초대 링크가 비어 있습니다.');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('초대 링크 복사 실패: $e')),
+        );
+      }
+    }
   }
 
   // 채팅방 나가기
