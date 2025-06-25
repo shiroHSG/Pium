@@ -92,13 +92,12 @@ class SharingListItem extends StatefulWidget {
 }
 
 class _SharingListItemState extends State<SharingListItem> {
-  // State에서 초기값을 props로부터 받아야 여러 아이템이 각각 상태를 가질 수 있음
   late bool _isFavorited;
 
   @override
   void initState() {
     super.initState();
-    _isFavorited = widget.item.isLiked; // 만약 isLiked가 없다면 false로 초기화
+    _isFavorited = widget.item.isLiked;
   }
 
   @override
@@ -139,8 +138,19 @@ class _SharingListItemState extends State<SharingListItem> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // 제목
                     Text(widget.item.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4),
+                    // ✅ 주소 표시 (추가)
+                    if (widget.item.addressCity.isNotEmpty || widget.item.addressDistrict.isNotEmpty || widget.item.addressDong.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2.0),
+                        child: Text(
+                          '주소 : ${widget.item.addressCity} ${widget.item.addressDistrict} ${widget.item.addressDong}',
+                          style: const TextStyle(color: Colors.grey, fontSize: 13),
+                        ),
+                      ),
+                    // 상세/조회수/작성일 등
                     Text(widget.item.details, style: const TextStyle(color: Colors.grey), overflow: TextOverflow.ellipsis),
                   ],
                 ),
@@ -149,33 +159,32 @@ class _SharingListItemState extends State<SharingListItem> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-              Text(
-              '${widget.item.likeCount}',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-          IconButton(
-            icon: Icon(
-              _isFavorited ? Icons.favorite : Icons.favorite_border,
-              color: _isFavorited ? Colors.pink : Colors.grey.shade400,
-              size: 22,
-            ),
-            onPressed: () {
-              setState(() {
-                _isFavorited = !_isFavorited;
-              });
-              widget.onFavoriteTap();
-            },
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            tooltip: '좋아요',
-
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${widget.item.likeCount}',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          _isFavorited ? Icons.favorite : Icons.favorite_border,
+                          color: _isFavorited ? Colors.pink : Colors.grey.shade400,
+                          size: 22,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isFavorited = !_isFavorited;
+                          });
+                          widget.onFavoriteTap();
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        tooltip: '좋아요',
                       ),
                     ],
                   ),
@@ -188,7 +197,6 @@ class _SharingListItemState extends State<SharingListItem> {
     );
   }
 }
-
 
 class SharingActionButtons extends StatelessWidget {
   final VoidCallback onWriteTap;

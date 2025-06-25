@@ -3,8 +3,8 @@ class SharingItem {
   final String name;
   final String content;
   final String? imageUrl;
-  final String authorId;           // 작성자 닉네임 또는 아이디
-  final int authorMemberId;        // ✅ 서버에서 내려주는 Member ID
+  final String authorId;
+  final int authorMemberId;
   final int views;
   final String postDate;
   final String details;
@@ -12,6 +12,9 @@ class SharingItem {
   final String category;
   final int likeCount;
   final bool isLiked;
+  final String addressCity;
+  final String addressDistrict;
+  final String addressDong;
 
   SharingItem({
     required this.id,
@@ -19,7 +22,7 @@ class SharingItem {
     required this.content,
     this.imageUrl,
     required this.authorId,
-    required this.authorMemberId,  // ✅ 생성자에 추가
+    required this.authorMemberId,
     required this.views,
     required this.postDate,
     required this.details,
@@ -27,6 +30,9 @@ class SharingItem {
     required this.category,
     required this.likeCount,
     this.isLiked = false,
+    required this.addressCity,
+    required this.addressDistrict,
+    required this.addressDong,
   });
 
   factory SharingItem.fromJson(Map<String, dynamic> json) {
@@ -45,14 +51,17 @@ class SharingItem {
       content: json['content'],
       imageUrl: json['imgUrl'],
       authorId: json['author'],
-      authorMemberId: json['authorMemberId'], // ✅ JSON에서 추출
+      authorMemberId: json['authorMemberId'],
       views: json['viewCount'] ?? 0,
       postDate: formattedDate,
       details: '조회수 ${json['viewCount'] ?? 0}회 · $formattedDate',
       likes: json['likes'] ?? 0,
-        category: json['category'] ?? '나눔',
+      category: json['category'] ?? '나눔',
       likeCount: json['likeCount'] ?? 0,
       isLiked: json['isLiked'] ?? false,
+      addressCity: json['addressCity'] ?? '',
+      addressDistrict: json['addressDistrict'] ?? '',
+      addressDong: json['addressDong'] ?? '',
     );
   }
 }

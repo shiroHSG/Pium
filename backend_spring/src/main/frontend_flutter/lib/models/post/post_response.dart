@@ -13,6 +13,11 @@ class PostResponse {
   final int likeCount;
   final int commentCount;
 
+  // ✅ 주소 정보 (시/군/구/동)
+  final String addressCity;
+  final String addressDistrict;
+  final String addressDong;
+
   PostResponse({
     required this.id,
     required this.title,
@@ -25,6 +30,9 @@ class PostResponse {
     required this.isLiked,
     required this.likeCount,
     required this.commentCount,
+    required this.addressCity,
+    required this.addressDistrict,
+    required this.addressDong,
   });
 
   factory PostResponse.fromJson(Map<String, dynamic> json) {
@@ -40,6 +48,10 @@ class PostResponse {
       isLiked: json['isLiked'] ?? false,
       likeCount: json['likeCount'] ?? 0,
       commentCount: json['commentCount'] ?? 0,
+      // ✅ 주소 정보
+      addressCity: json['addressCity'] ?? '',
+      addressDistrict: json['addressDistrict'] ?? '',
+      addressDong: json['addressDong'] ?? '',
     );
   }
 }
