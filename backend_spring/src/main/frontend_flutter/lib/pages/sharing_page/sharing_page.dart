@@ -14,23 +14,28 @@ class SharingPage extends StatefulWidget {
 }
 
 class _SharingPageState extends State<SharingPage> {
-  List<SharingItem> _sharingItems = []; // 빈 리스트로 초기화
+  List<SharingItem> _sharingItems = [];
   String selectedCategory = '전체';
+  // 주소 필터 추가 가능
+  // String selectedCity = '전체'; // 필요 시 주소별 필터용
 
   List<SharingItem> get filteredItems {
+    // 카테고리로만 필터, 필요 시 주소 필터 추가 가능
     if (selectedCategory == '전체') return _sharingItems;
     return _sharingItems.where((item) => item.category == selectedCategory).toList();
+    // 주소 필터 추가시:
+    // .where((item) => item.addressCity == selectedCity || selectedCity == '전체')
   }
 
   @override
   void initState() {
     super.initState();
-    _loadSharingItems(); // 페이지 시작 시 API 호출
+    _loadSharingItems();
   }
 
   Future<void> _loadSharingItems() async {
     try {
-      final items = await SharingApiService.fetchAllShares(); // API 호출
+      final items = await SharingApiService.fetchAllShares();
       setState(() {
         _sharingItems = items;
       });
@@ -68,7 +73,7 @@ class _SharingPageState extends State<SharingPage> {
       setState(() {
         selectedCategory = newValue;
       });
-      // TODO: 카테고리별 필터링이 필요하다면 여기에 API 재요청 로직도 추가 가능
+      // TODO: 필요시 API 재요청 추가 가능
       print('선택된 카테고리: $selectedCategory');
     }
   }
@@ -89,11 +94,14 @@ class _SharingPageState extends State<SharingPage> {
                   selectedCategory: selectedCategory,
                   onCategoryChanged: _handleCategoryChanged,
                 ),
+                // 주소 필터 추가 시 여기에 주소 드롭다운도 배치 가능
               ],
             ),
           ),
           Expanded(
-            child: ListView.builder(
+            child: _sharingItems.isEmpty
+                ? const Center(child: Text('나눔글이 없습니다.'))
+                : ListView.builder(
               itemCount: filteredItems.length,
               itemBuilder: (context, index) {
                 final item = filteredItems[index];

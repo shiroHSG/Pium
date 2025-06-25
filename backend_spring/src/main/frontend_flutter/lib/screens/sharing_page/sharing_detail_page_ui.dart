@@ -103,6 +103,15 @@ Widget SharingDetailPageUI(
                             '작성일 : ${item.postDate}',
                             style: const TextStyle(fontSize: 14, color: Colors.grey),
                           ),
+                          // ✅ 주소 정보 표시 (추가)
+                          if (item.addressCity.isNotEmpty || item.addressDistrict.isNotEmpty || item.addressDong.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2.0),
+                              child: Text(
+                                '주소 : ${item.addressCity} ${item.addressDistrict} ${item.addressDong}',
+                                style: const TextStyle(fontSize: 13, color: Colors.grey),
+                              ),
+                            ),
                         ],
                       ),
                     ),

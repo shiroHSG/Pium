@@ -23,27 +23,61 @@ class WriteSharingAppBar extends StatelessWidget implements PreferredSizeWidget 
   }
 }
 
-class WriteSharingTitleInput extends StatelessWidget {
+// 🟣 제목 입력 + 주소 표시 Row
+class WriteSharingTitleInputWithAddress extends StatelessWidget {
   final TextEditingController titleController;
+  final String addressDisplay;
 
-  const WriteSharingTitleInput({Key? key, required this.titleController}) : super(key: key);
+  const WriteSharingTitleInputWithAddress({
+    Key? key,
+    required this.titleController,
+    required this.addressDisplay,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: TextField(
-        controller: titleController,
-        decoration: InputDecoration(
-          hintText: '제목',
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
+    return Row(
+      children: [
+        Expanded(
+          flex: 6,
+          child: TextField(
+            controller: titleController,
+            decoration: InputDecoration(
+              hintText: '제목',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              filled: true,
+              fillColor: Colors.grey[200],
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
           ),
-          filled: true,
-          fillColor: Colors.grey[200],
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
-      ),
+        const SizedBox(width: 10),
+        // ✅ 주소 읽기전용 표기
+        Expanded(
+          flex: 6,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.transparent),
+            ),
+            child: Text(
+              addressDisplay.isNotEmpty ? addressDisplay : '주소 정보 없음',
+              style: const TextStyle(
+                color: Colors.black54,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                fontFamily: 'Jua',
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
