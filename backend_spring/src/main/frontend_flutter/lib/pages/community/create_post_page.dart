@@ -5,7 +5,10 @@ import '../../models/post/post_request.dart';
 import 'package:frontend_flutter/models/post/post_response.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frontend_flutter/models/auth/auth_services.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class CreatePostPage extends StatefulWidget {
   final bool isEdit;
@@ -22,6 +25,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
   final _contentController = TextEditingController();
   String? _selectedCategory;
   File? _selectedImage;
+  String myAddress = ''; // ✅ 주소 변수
 
   final List<String> _categories = ['자유', '팁', '질문', '모임'];
 
@@ -32,7 +36,32 @@ class _CreatePostPageState extends State<CreatePostPage> {
       _titleController.text = widget.post!.title;
       _contentController.text = widget.post!.content;
       _selectedCategory = widget.post!.category;
-      // 기존 이미지는 필요시 표시: widget.post!.imageUrl
+    }
+    _fetchMyAddress();
+  }
+
+  Future<void> _fetchMyAddress() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken');
+      if (token == null) return;
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8080/api/member'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        setState(() {
+          myAddress = [
+            data['addressCity'] ?? '',
+            data['addressDistrict'] ?? '',
+            data['addressDong'] ?? ''
+          ].where((e) => e != null && e.toString().isNotEmpty).join(' ');
+        });
+      }
+    } catch (e) {
+      print('내 주소 불러오기 실패: $e');
     }
   }
 
@@ -73,7 +102,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
     try {
       if (widget.isEdit && widget.post != null) {
-        // 수정
         await PostApiService.updatePostMultipart(
           postId: widget.post!.id,
           title: title,
@@ -85,7 +113,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
           const SnackBar(content: Text('게시글이 수정되었습니다!')),
         );
       } else {
-        // 등록
         await PostApiService.createPostMultipart(
           title: title,
           content: content,
@@ -115,6 +142,26 @@ class _CreatePostPageState extends State<CreatePostPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // 주소 표시
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Row(
+                children: [
+                  Icon(Icons.place, size: 18, color: Colors.pink.shade300),
+                  const SizedBox(width: 6),
+                  Text(
+                    myAddress.isNotEmpty ? myAddress : "주소 정보 없음",
+                    style: TextStyle(
+                      color: Colors.pink.shade400,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      fontFamily: 'Jua',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               value: _selectedCategory,
               decoration: const InputDecoration(

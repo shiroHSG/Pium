@@ -1,6 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 
+class AddressDisplay extends StatelessWidget {
+  final String address;
+  const AddressDisplay({Key? key, required this.address}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(Icons.place, size: 18, color: Colors.pink.shade300),
+        const SizedBox(width: 6),
+        Text(
+          address.isNotEmpty ? address : "주소 정보 없음",
+          style: TextStyle(
+            color: Colors.pink.shade400,
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+            fontFamily: 'Jua',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class CategorySelection extends StatelessWidget {
   final String? selectedCategory;
   final List<String> categories;
@@ -119,27 +143,6 @@ class ContentTextField extends StatelessWidget {
     );
   }
 }
-
-/*class WriterTextField extends StatelessWidget {
-  final TextEditingController writerController;
-
-  const WriterTextField({Key? key, required this.writerController}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: writerController,
-      decoration: InputDecoration(
-        labelText: '작성자',
-        hintText: '작성자 이름을 입력해주세요.',
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-      enabled: false,
-    );
-  }
-}*/
 
 class ActionButtons extends StatelessWidget {
   final VoidCallback onAttachPhoto;
