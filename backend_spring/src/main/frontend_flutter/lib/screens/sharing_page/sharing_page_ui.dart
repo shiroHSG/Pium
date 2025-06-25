@@ -54,11 +54,11 @@ class SharingCategoryDropdown extends StatelessWidget {
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
-          // 반드시 '전체'를 포함!
-          items: ['전체', '나눔', '품앗이'].map((String value) {
+          items: ['전체', '나눔', '품앗이', '요청'].map((String value) {
             return DropdownMenuItem<String>(
               value: value,
-              child: Text(value,
+              child: Text(
+                value,
                 style: const TextStyle(
                   color: Colors.black,
                   fontSize: 15,
@@ -92,7 +92,14 @@ class SharingListItem extends StatefulWidget {
 }
 
 class _SharingListItemState extends State<SharingListItem> {
-  bool _isFavorited = false;
+  // State에서 초기값을 props로부터 받아야 여러 아이템이 각각 상태를 가질 수 있음
+  late bool _isFavorited;
+
+  @override
+  void initState() {
+    super.initState();
+    _isFavorited = widget.item.isLiked; // 만약 isLiked가 없다면 false로 초기화
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,6 +117,7 @@ class _SharingListItemState extends State<SharingListItem> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 이미지 영역
               SizedBox(
                 width: 80,
                 height: 80,
@@ -126,6 +134,7 @@ class _SharingListItemState extends State<SharingListItem> {
                 ),
               ),
               const SizedBox(width: 12),
+              // 글 영역
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,17 +145,41 @@ class _SharingListItemState extends State<SharingListItem> {
                   ],
                 ),
               ),
-              IconButton(
-                icon: Icon(
-                  _isFavorited ? Icons.favorite : Icons.favorite_border,
-                  color: AppTheme.primaryPurple,
+              // 좋아요 영역
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+              Text(
+              '${widget.item.likeCount}',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
                 ),
-                onPressed: () {
-                  setState(() {
-                    _isFavorited = !_isFavorited;
-                  });
-                  widget.onFavoriteTap();
-                },
+              ),
+          IconButton(
+            icon: Icon(
+              _isFavorited ? Icons.favorite : Icons.favorite_border,
+              color: _isFavorited ? Colors.pink : Colors.grey.shade400,
+              size: 22,
+            ),
+            onPressed: () {
+              setState(() {
+                _isFavorited = !_isFavorited;
+              });
+              widget.onFavoriteTap();
+            },
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            tooltip: '좋아요',
+
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
@@ -156,13 +189,12 @@ class _SharingListItemState extends State<SharingListItem> {
   }
 }
 
+
 class SharingActionButtons extends StatelessWidget {
-  final VoidCallback onRequestTap;
   final VoidCallback onWriteTap;
 
   const SharingActionButtons({
     Key? key,
-    required this.onRequestTap,
     required this.onWriteTap,
   }) : super(key: key);
 
@@ -175,19 +207,6 @@ class SharingActionButtons extends StatelessWidget {
         children: [
           Expanded(
             child: ElevatedButton(
-              onPressed: onRequestTap,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryPurple,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: const Text('나눔 요청하기', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: ElevatedButton(
               onPressed: onWriteTap,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryPurple,
@@ -195,7 +214,7 @@ class SharingActionButtons extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              child: const Text('나눔 글 작성', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text('글 작성', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
         ],

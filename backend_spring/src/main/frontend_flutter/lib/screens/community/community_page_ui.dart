@@ -192,13 +192,13 @@ class PostList extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // postImg는 nullable이므로 null 체크 필요
-            post.imgUrl != null && post.imgUrl!.isNotEmpty
+            post.imageUrl != null && post.imageUrl!.isNotEmpty
                 ? Container(
               width: 80,
               height: 80,
               margin: const EdgeInsets.only(right: 12),
               child: Image.network(
-                '${PostApiService.baseUrl}/${post.imgUrl!}',
+                '${PostApiService.baseUrl}/${post.imageUrl!}',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(Icons.broken_image, size: 40, color: Colors.grey);
@@ -250,11 +250,11 @@ class PostList extends StatelessWidget {
                       // const SizedBox(width: 12),
                       Icon(Icons.comment, size: 16, color: Colors.grey.shade500),
                       const SizedBox(width: 4),
-                      // Text('${post.commentCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // 댓글 수!
+                      Text('${post.commentCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // 댓글 수!
                       const SizedBox(width: 12),
                       Icon(Icons.thumb_up, size: 16, color: Colors.grey.shade500),
                       const SizedBox(width: 4),
-                      // Text('${post.likeCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // 좋아요 연동!
+                      Text('${post.likeCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // 좋아요 연동!
                     ],
                   ),
                 ],
@@ -323,7 +323,7 @@ class CreatePostFab extends StatelessWidget {
         final bool? postCreated = await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => CreatePostPage(mode: PostEditMode.create),
+            builder: (context) => CreatePostPage(isEdit: false),
           ),
         );
 

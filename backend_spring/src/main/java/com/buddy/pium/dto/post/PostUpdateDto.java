@@ -7,5 +7,6 @@ import lombok.Setter;
 public class PostUpdateDto {
     private String title;
     private String content;
+    private String category;
 }
 // 글 수정

@@ -50,7 +50,7 @@ class PostDetailPage extends StatelessWidget {
               SizedBox(height: 13),
               PostDetailContent(content: post.content),
               SizedBox(height: 16),
-              PostDetailImage(imageUrl: post.imgUrl),
+              PostDetailImage(imageUrl: post.imageUrl),
               SizedBox(height: 24),
 
               // ✨ 수정/삭제 버튼만 있는 줄 (FutureBuilder)
@@ -71,7 +71,7 @@ class PostDetailPage extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) => CreatePostPage(
-                                mode: PostEditMode.edit,
+                                isEdit: true,
                                 post: post,
                               ),
                             ),

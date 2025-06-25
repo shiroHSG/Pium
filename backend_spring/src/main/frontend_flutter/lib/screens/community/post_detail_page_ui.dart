@@ -21,8 +21,13 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
   @override
   void initState() {
     super.initState();
-    // isLiked = widget.post.isLiked;
-    // likeCount = widget.post.likeCount;
+    isLiked = widget.post.isLiked;
+    likeCount = widget.post.likeCount;
+  }
+
+  String _formatDate(DateTime? dt) {
+    if (dt == null) return '';
+    return '${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
   }
 
   Future<void> _toggleLike() async {
@@ -31,8 +36,8 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
     await PostApiService.toggleLike(widget.post.id);
     final refreshed = await PostApiService.fetchPostDetail(widget.post.id);
     setState(() {
-      // isLiked = refreshed.isLiked;
-      // likeCount = refreshed.likeCount;
+      isLiked = refreshed.isLiked;
+      likeCount = refreshed.likeCount;
       isLoading = false;
     });
   }
@@ -64,13 +69,24 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
                 ),
               ),
               const SizedBox(height: 2),
-              // Text(
-              //   // '조회수 ${widget.post.viewCount}  |  작성일 : ${widget.post.createdAt.split('T').first}',
-              //   // style: TextStyle(fontFamily: 'Jua', fontSize: 12, color: Colors.grey[600]),
-              // ),
+              // ★ 조회수 및 작성일 표시 (아래처럼 추가!)
+              Row(
+                children: [
+                  Text(
+                    '조회수 ${widget.post.viewCount} | 작성일 : ${_formatDate(widget.post.createdAt)}',
+                    style: TextStyle(
+                      fontFamily: 'Jua',
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
+
+
         // 하트 & 좋아요 수
         IconButton(
           icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border, color: Colors.pink),

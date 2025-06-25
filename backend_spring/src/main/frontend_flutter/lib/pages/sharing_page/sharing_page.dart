@@ -106,7 +106,6 @@ class _SharingPageState extends State<SharingPage> {
             ),
           ),
           SharingActionButtons(
-            onRequestTap: _handleRequestShare,
             onWriteTap: _navigateToWritePost,
           ),
         ],
