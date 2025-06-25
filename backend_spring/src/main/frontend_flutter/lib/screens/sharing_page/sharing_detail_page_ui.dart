@@ -7,6 +7,9 @@ import 'package:frontend_flutter/models/sharing_item.dart';
 import 'package:frontend_flutter/widgets/protected_image.dart';
 
 import '../../pages/chat/chat_room_message_page.dart';
+import '../../pages/chat/invite_modal.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 Widget SharingDetailPageUI(
     BuildContext context,
@@ -143,9 +146,29 @@ Widget SharingDetailPageUI(
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.grey.shade300),
                 ),
-                child: Text(
-                  item.content,
+                child: Linkify(
+                  text: item.content,
+                  onOpen: (link) async {
+                    final uri = Uri.tryParse(link.url);
+                    if (uri != null &&
+                        uri.pathSegments.length >= 3 &&
+                        uri.pathSegments[1] == 'invite') {
+                      final inviteCode = uri.pathSegments[2];
+                      showDialog(
+                        context: context,
+                        builder: (_) => InviteModal(inviteCode: inviteCode),
+                      );
+                    } else {
+                      if (await canLaunchUrl(uri!)) {
+                        await launchUrl(uri);
+                      }
+                    }
+                  },
                   style: const TextStyle(fontSize: 14),
+                  linkStyle: const TextStyle(
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
 
