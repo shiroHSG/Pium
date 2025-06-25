@@ -17,11 +17,9 @@ class MemberApi {
         'Authorization': 'Bearer $token',
       },
     );
-
     if (response.statusCode == 200) {
       final decodedBody = utf8.decode(response.bodyBytes);
       final List<dynamic> data = json.decode(decodedBody);
-
       return data.map((item) {
         // ✅ 상대 경로 → 절대 URL로 변환
         if (item['profileImageUrl'] != null &&

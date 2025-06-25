@@ -228,7 +228,8 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        print('$data');
         return data;
       } else {
         print('회원 정보 조회 실패: ${response.statusCode}, ${response.body}');
