@@ -79,7 +79,7 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
                 final user = _searchResults[index];
                 return PeopleSearchResultItem(
                   user: user,
-                  onMateButtonPressed: () => _handleMateButton(user['nickname']!),
+                  onMateButtonPressed: () => _handleMateButton(user['memberId']!),
                   onMessageButtonPressed: () => _handleMessageButton(user['memberId']),
 
                 );
