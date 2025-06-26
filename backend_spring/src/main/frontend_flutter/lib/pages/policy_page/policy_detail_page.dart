@@ -1,86 +1,67 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_flutter/widgets/custom_bottom_bar.dart';
-import 'package:frontend_flutter/widgets/custom_drawer.dart';
-import '../../screens/policy_page/policy_detail_page_ui.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
+import 'package:frontend_flutter/theme/app_theme.dart';
+import 'package:frontend_flutter/models/policy/PolicyResponse.dart';
 
-class PolicyDetailPage extends StatefulWidget {
-  final String title;
-  final String imageUrl;
-  final String target;
-  final String period;
-  final String content;
-  final String method;
-  final String link;
+class PolicyDetailPage extends StatelessWidget {
+  final PolicyResponse policy;
 
   const PolicyDetailPage({
     Key? key,
-    required this.title,
-    required this.imageUrl,
-    required this.target,
-    required this.period,
-    required this.content,
-    required this.method,
-    required this.link,
+    required this.policy,
   }) : super(key: key);
-
-  @override
-  State<PolicyDetailPage> createState() => _PolicyDetailPageState();
-}
-
-class _PolicyDetailPageState extends State<PolicyDetailPage> {
-  int _unreadCount = 0;
-  final String _baseUrl = 'http://YOUR_BACKEND_URL'; // ✅ 실제 주소로 변경
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchUnreadCount();
-  }
-
-  Future<void> _fetchUnreadCount() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('accessToken');
-
-      final response = await http.get(
-        Uri.parse('$_baseUrl/api/chatroom/unread-count'),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          _unreadCount = int.parse(response.body);
-        });
-      }
-    } catch (e) {
-      print('❌ 예외 발생: $e');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      endDrawer: CustomDrawer(
-        onItemSelected: (index) {},
-        onLoginStatusChanged: (isLoggedIn) {},
+      appBar: AppBar(
+        title: const Text(
+          '정책 상세정보',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: AppTheme.primaryPurple,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        selectedIndex: 3,
-        onItemTapped: (index) {},
-        unreadCount: _unreadCount, // ✅ 전달
-      ),
-      body: PolicyDetailPageUI(
-        title: widget.title,
-        imageUrl: widget.imageUrl,
-        target: widget.target,
-        period: widget.period,
-        content: widget.content,
-        method: widget.method,
-        link: widget.link,
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 제목
+            Text(
+              policy.title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                color: AppTheme.textPurple,
+              ),
+            ),
+            const SizedBox(height: 16),
+            // 등록일, 조회수
+            Row(
+              children: [
+                Text(
+                  '등록일: ${policy.createdAt.substring(0, 10)}',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  '조회수: ${policy.viewCount}',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            // 본문 내용
+            Expanded(
+              child: SingleChildScrollView(
+                child: Text(
+                  policy.content,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

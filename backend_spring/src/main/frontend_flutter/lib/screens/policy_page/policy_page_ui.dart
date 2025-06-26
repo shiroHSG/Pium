@@ -1,9 +1,11 @@
+import 'dart:math'; // min 함수
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
-import '../../pages/policy_page/policy_detail_page.dart';
+import 'package:frontend_flutter/models/policy/PolicyResponse.dart';
+import 'package:frontend_flutter/models/policy/policy_service.dart';
+import 'package:frontend_flutter/pages/policy_page/policy_detail_page.dart';
 
-// 정책 페이지 UI 전체
-class PolicyPageUI extends StatelessWidget {
+class PolicyPageUI extends StatefulWidget {
   final String dropdownValue;
   final void Function(String) onDropdownChanged;
   final TextEditingController searchController;
@@ -20,7 +22,80 @@ class PolicyPageUI extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<PolicyPageUI> createState() => _PolicyPageUIState();
+}
+
+class _PolicyPageUIState extends State<PolicyPageUI> {
+  List<PolicyResponse> _policies = [];
+  bool _isLoading = false;
+  int _totalPages = 1;
+
+  // 페이지네이션 블록 변수
+  static const int blockSize = 5;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPolicies();
+  }
+
+  void _fetchPolicies({String? keyword}) async {
+    setState(() => _isLoading = true);
+    try {
+      String sortBy;
+      switch (widget.dropdownValue) {
+        case '오래된순':
+          sortBy = 'oldest';
+          break;
+        case '인기순':
+          sortBy = 'views';
+          break;
+        default:
+          sortBy = 'latest';
+      }
+
+      Map<String, dynamic> result;
+      if (keyword != null && keyword.isNotEmpty) {
+        result = await PolicyService.searchPolicies(
+          keyword: keyword,
+          page: widget.currentPage,
+          size: 10,
+        );
+      } else {
+        result = await PolicyService.fetchPolicies(
+          page: widget.currentPage,
+          size: 10,
+          sortBy: sortBy,
+        );
+      }
+
+      setState(() {
+        _policies = result['content'] ?? [];
+        _totalPages = result['totalPages'] ?? 1;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      debugPrint('정책 데이터 불러오기 실패: $e');
+    }
+  }
+
+  @override
+  void didUpdateWidget(PolicyPageUI oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.dropdownValue != oldWidget.dropdownValue ||
+        widget.currentPage != oldWidget.currentPage) {
+      _fetchPolicies(keyword: widget.searchController.text);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // 페이지네이션 블록 계산
+    int currentBlock = ((widget.currentPage - 1) / blockSize).floor();
+    int startPage = currentBlock * blockSize + 1;
+    int endPage = min(startPage + blockSize - 1, _totalPages);
+
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
       children: [
@@ -38,17 +113,18 @@ class PolicyPageUI extends StatelessWidget {
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
-                    value: dropdownValue,
+                    value: widget.dropdownValue,
                     icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
                     dropdownColor: AppTheme.primaryPurple,
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     borderRadius: BorderRadius.circular(12),
                     onChanged: (newValue) {
                       if (newValue != null) {
-                        onDropdownChanged(newValue);
+                        widget.onDropdownChanged(newValue);
+                        _fetchPolicies(keyword: widget.searchController.text);
                       }
                     },
-                    items: <String>['최신순', '인기순', '오래된순']
+                    items: <String>['최신순', '오래된순', '인기순']
                         .map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
@@ -69,9 +145,9 @@ class PolicyPageUI extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   alignment: Alignment.centerLeft,
                   child: TextField(
-                    controller: searchController,
+                    controller: widget.searchController,
                     decoration: const InputDecoration(
-                      hintText: '',
+                      hintText: '정책명 또는 내용 검색',
                       border: InputBorder.none,
                     ),
                     style: const TextStyle(fontSize: 14),
@@ -82,7 +158,7 @@ class PolicyPageUI extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.search, color: AppTheme.textPurple),
                 onPressed: () {
-                  debugPrint('검색어: ${searchController.text}');
+                  _fetchPolicies(keyword: widget.searchController.text);
                 },
               ),
             ],
@@ -90,10 +166,18 @@ class PolicyPageUI extends StatelessWidget {
         ),
 
         // 정책 카드 목록
-        GridView.builder(
+        _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _policies.isEmpty
+            ? const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Text('정책이 없습니다.'),
+            ))
+            : GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: 10,
+          itemCount: _policies.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             childAspectRatio: 3 / 4,
@@ -101,110 +185,112 @@ class PolicyPageUI extends StatelessWidget {
             mainAxisSpacing: 12,
           ),
           itemBuilder: (context, index) {
-            return PolicyCard(
-              title: index == 0 ? '임신‧사전관리 지원사업' : '정책 제목 예시 $index',
-              content: index == 0
-                  ? '대상: 임신을 희망하는 만 20세~44세 여성\n내용: 건강검진, 상담 지원\n신청: 온라인 또는 방문'
-                  : '정책 설명이 여기에 들어갑니다.',
-              onPressed: () {
+            final policy = _policies[index];
+            String summary = '';
+            try {
+              if (policy.content.isNotEmpty) {
+                summary = policy.content.length > 60
+                    ? '${policy.content.substring(0, 60)}...'
+                    : policy.content;
+              }
+            } catch (e) {
+              print('[에러] summary substring에서 예외 발생: $e');
+            }
+
+            return InkWell(
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const PolicyDetailPage(
-                      title: '임신‧사전관리 지원사업',
-                      imageUrl: '',
-                      target: '임신을 희망하는 만 20세~44세 여성',
-                      period: '2025.01.01 ~ 2025.12.31',
-                      content: '건강검진, 상담 지원 등 제공',
-                      method: '온라인 신청 또는 보건소 방문',
-                      link: 'https://www.example.com',
-                    ),
+                    builder: (_) => PolicyDetailPage(policy: policy),
                   ),
                 );
               },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.lightPink,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      policy.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: Text(
+                        summary,
+                        style: const TextStyle(fontSize: 12),
+                        maxLines: 8,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('조회수: ${policy.viewCount}', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                    Text('등록일: ${policy.createdAt.substring(0, 10)}', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                  ],
+                ),
+              ),
             );
           },
         ),
         const SizedBox(height: 16),
 
-        // 페이지네이션
+        // 페이지네이션 블록 (< 6 7 8 9 10 > 이런식)
         Padding(
           padding: const EdgeInsets.only(bottom: 18.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(6, (index) {
-              if (index == 5) return const Text(' >');
-              final pageNum = index + 1;
-              final isSelected = pageNum == currentPage;
-
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: GestureDetector(
-                  onTap: () => onPageChanged(pageNum),
-                  child: Text(
-                    '$pageNum',
-                    style: TextStyle(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      color: isSelected ? AppTheme.primaryPurple : Colors.black,
+            children: [
+              if (startPage > 1)
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: () {
+                    // 이전 블록의 마지막 페이지로 이동
+                    int prevBlockPage = startPage - 1;
+                    widget.onPageChanged(prevBlockPage);
+                    _fetchPolicies(keyword: widget.searchController.text);
+                  },
+                ),
+              ...List.generate(endPage - startPage + 1, (idx) {
+                final pageNum = startPage + idx;
+                final isSelected = pageNum == widget.currentPage;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: GestureDetector(
+                    onTap: () {
+                      widget.onPageChanged(pageNum);
+                      _fetchPolicies(keyword: widget.searchController.text);
+                    },
+                    child: Text(
+                      '$pageNum',
+                      style: TextStyle(
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? AppTheme.primaryPurple : Colors.black,
+                      ),
                     ),
                   ),
+                );
+              }),
+              if (endPage < _totalPages)
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: () {
+                    int nextBlockPage = endPage + 1;
+                    widget.onPageChanged(nextBlockPage);
+                    _fetchPolicies(keyword: widget.searchController.text);
+                  },
                 ),
-              );
-            }),
+            ],
           ),
         ),
       ],
-    );
-  }
-}
-
-// 정책 카드 위젯
-class PolicyCard extends StatelessWidget {
-  final String title;
-  final String content;
-  final VoidCallback onPressed;
-
-  const PolicyCard({
-    Key? key,
-    required this.title,
-    required this.content,
-    required this.onPressed,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell( // 카드 전체 터치 가능하게 만듦
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppTheme.lightPink,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Expanded(
-              child: Text(content, style: const TextStyle(fontSize: 12)),
-            ),
-            const SizedBox(height: 8),
-            Center(
-              child: ElevatedButton(
-                onPressed: onPressed, // 버튼에서도 동일하게 이동
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryPurple,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 36),
-                ),
-                child: const Text('신청하기'),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
