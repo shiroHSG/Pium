@@ -162,6 +162,12 @@ class _SharingListItemState extends State<SharingListItem> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
+                      Icon(
+                        Icons.thumb_up_off_alt,
+                        color: Colors.grey.shade400,
+                        size: 22,
+                      ),
+                      SizedBox(width: 4), // 아이콘과 숫자 사이 간격
                       Text(
                         '${widget.item.likeCount}',
                         style: TextStyle(
@@ -169,22 +175,6 @@ class _SharingListItemState extends State<SharingListItem> {
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          _isFavorited ? Icons.favorite : Icons.favorite_border,
-                          color: _isFavorited ? Colors.pink : Colors.grey.shade400,
-                          size: 22,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isFavorited = !_isFavorited;
-                          });
-                          widget.onFavoriteTap();
-                        },
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        tooltip: '좋아요',
                       ),
                     ],
                   ),
