@@ -84,6 +84,10 @@ class _CommunitySearchBarState extends State<CommunitySearchBar> {
                       value: 'author',
                       child: Text('작성자'),
                     ),
+                    const PopupMenuItem(
+                      value: 'address',
+                      child: Text('주소'),
+                    ),
                   ],
                 ),
               ),
