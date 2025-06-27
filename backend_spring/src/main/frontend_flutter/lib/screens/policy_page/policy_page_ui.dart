@@ -36,6 +36,7 @@ class PolicyPageUI extends StatelessWidget {
                   color: AppTheme.primaryPurple,
                   borderRadius: BorderRadius.circular(12),
                 ),
+                // 드롭다운
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: dropdownValue,
