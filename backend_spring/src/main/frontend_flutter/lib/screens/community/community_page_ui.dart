@@ -21,13 +21,6 @@ class CommunityAppBar extends StatelessWidget implements PreferredSizeWidget {
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications_none),
-          onPressed: () {},
-          color: Colors.white,
-        ),
-      ],
     );
   }
 }

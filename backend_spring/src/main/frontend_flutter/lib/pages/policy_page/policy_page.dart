@@ -3,6 +3,7 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/widgets/custom_drawer.dart';
 
 import '../../screens/policy_page/policy_page_ui.dart';
+import '../../widgets/notification_page.dart';
 
 class PolicyPage extends StatefulWidget {
   const PolicyPage({Key? key}) : super(key: key);
@@ -42,11 +43,13 @@ class _PolicyPageState extends State<PolicyPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none),
+            icon: const Icon(Icons.notifications_none, color: Colors.white),
             onPressed: () {
-              // 알림 페이지 이동
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationPage()),
+              );
             },
-            color: Colors.white,
           ),
         ],
       ),

@@ -4,6 +4,7 @@ import 'package:frontend_flutter/models/post/post_api_services.dart';
 
 import '../../models/post/post_request.dart';
 import '../../screens/community/create_post_page_ui.dart';
+import '../../widgets/notification_page.dart';
 
 // CreatePostPage 위젯 정의
 class CreatePostPage extends StatefulWidget {
@@ -96,9 +97,13 @@ class _CreatePostPageState extends State<CreatePostPage> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {},
-            color: Colors.white,
+            icon: const Icon(Icons.notifications_none, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationPage()),
+              );
+            },
           ),
         ],
       ),

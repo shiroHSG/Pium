@@ -3,6 +3,8 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/post/post_response.dart';
 import 'package:frontend_flutter/screens/community/post_detail_page_ui.dart';
 
+import '../../widgets/notification_page.dart';
+
 class PostDetailPage extends StatelessWidget {
   final PostResponse post;
 
@@ -24,9 +26,13 @@ class PostDetailPage extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {},
-            color: Colors.white,
+            icon: const Icon(Icons.notifications_none, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationPage()),
+              );
+            },
           ),
         ],
       ),
