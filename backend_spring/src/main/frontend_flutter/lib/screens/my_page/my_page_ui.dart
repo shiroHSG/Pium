@@ -5,42 +5,19 @@ import 'package:frontend_flutter/pages/my_page/my_activity/my_activity_page.dart
 import 'package:frontend_flutter/pages/my_page/profile_edit/profile_edit_page.dart';
 import 'package:frontend_flutter/pages/my_page/setting_page/setting_page.dart';
 
-import '../../models/auth/auth_services.dart';
 import '../../widgets/protected_image.dart';
 
-class MyPageUI extends StatefulWidget {
-  const MyPageUI({Key? key}) : super(key: key);
+class MyPageUI extends StatelessWidget {
+  final String nickname;
+  final String? profileImageUrl;
+  final VoidCallback onProfileUpdated;
 
-  @override
-  State<MyPageUI> createState() => _MyPageUIState();
-}
-
-class _MyPageUIState extends State<MyPageUI> {
-  String nickname = '로딩 중...';
-  String? profileImageUrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserInfo();
-  }
-
-  Future<void> _loadUserInfo() async {
-    final data = await AuthService().fetchMemberInfo();
-    if (data != null && mounted) {
-      final imagePath = data['profileImageUrl'];
-      print('📸 프로필 이미지 경로: ${data['profileImageUrl']}');
-      final fullImageUrl = (imagePath != null && imagePath.isNotEmpty)
-          ? 'http://10.0.2.2:8080${imagePath.startsWith('/') ? imagePath : '/$imagePath'}?t=${DateTime.now().millisecondsSinceEpoch}'
-          : null;
-
-      print('🧪 최종 설정할 전체 URL: $fullImageUrl');
-      setState(() {
-        nickname = data['nickname'] ?? data['email'] ?? '알 수 없음';
-        profileImageUrl = fullImageUrl;
-      });
-    }
-  }
+  const MyPageUI({
+    Key? key,
+    required this.nickname,
+    required this.profileImageUrl,
+    required this.onProfileUpdated,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +27,7 @@ class _MyPageUIState extends State<MyPageUI> {
           children: [
             _MyPageHeader(nickname: nickname, profileImageUrl: profileImageUrl),
             const SizedBox(height: 60),
-            _MyPageButtonsGrid(onProfileUpdated: _loadUserInfo),
+            _MyPageButtonsGrid(onProfileUpdated: onProfileUpdated),
             const SizedBox(height: 30),
           ],
         ),
@@ -83,16 +60,22 @@ class _MyPageHeader extends StatelessWidget {
         child: Column(
           children: [
             profileImageUrl != null && profileImageUrl!.isNotEmpty
-                ? ProtectedImage(
-              imageUrl: profileImageUrl!,
+                ? ClipOval(
+              child: SizedBox(
+                width: 120,
+                height: 120,
+                child: ProtectedImage(
+                  imageUrl: profileImageUrl!,
+                  fit: BoxFit.cover,
+                ),
+              ),
             )
-                : const SizedBox(
-              width: 150,
-              height: 150,
-              child: Center(child: CircularProgressIndicator()),
+                : const CircleAvatar(
+              radius: 60,
+              backgroundColor: AppTheme.primaryPurple,
+              child: Icon(Icons.person, size: 60, color: Colors.white),
             ),
-
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
             Padding(
               padding: const EdgeInsets.only(bottom: 40.0),
               child: Text(
@@ -127,27 +110,25 @@ class _MyPageButtonsGrid extends StatelessWidget {
         crossAxisSpacing: 12.0,
         childAspectRatio: 1.4,
         children: [
-        _buildMyPageButton(
-        context,
-        icon: Icons.person_outline,
-        label: '프로필',
-          onTap: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProfileEditPage()),
-            );
-            if (result == 'updated') {
-              await Future.delayed(Duration(milliseconds: 100));
-              if (context.mounted) onProfileUpdated();
-            }
-          },
-        ),
+          _buildMyPageButton(
+            context,
+            icon: Icons.person_outline,
+            label: '프로필',
+            onTap: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileEditPage()),
+              );
+              if (result == 'updated') {
+                await Future.delayed(const Duration(milliseconds: 100));
+                if (context.mounted) onProfileUpdated();
+              }
+            },
+          ),
           _buildMyPageButton(
             context,
             icon: Icons.child_care_outlined,
             label: '아이 추가 및 정보 수정',
-            iconSize: 30,
-            textSize: 14,
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const BabyProfilePage()));
             },
@@ -181,24 +162,22 @@ class _MyPageButtonsGrid extends StatelessWidget {
         double iconSize = 30,
         double textSize = 14,
       }) {
-    return SizedBox(
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryPurple,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-          elevation: 2,
-          padding: EdgeInsets.zero,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: iconSize),
-            const SizedBox(height: 8),
-            Text(label, style: TextStyle(fontSize: textSize, fontWeight: FontWeight.bold)),
-          ],
-        ),
+    return ElevatedButton(
+      onPressed: onTap,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.primaryPurple,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+        elevation: 2,
+        padding: EdgeInsets.zero,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: iconSize),
+          const SizedBox(height: 8),
+          Text(label, style: TextStyle(fontSize: textSize, fontWeight: FontWeight.bold)),
+        ],
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
+import '../../widgets/notification_page.dart';
 import '../../widgets/protected_image.dart';
 
 class SharingAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -18,7 +19,12 @@ class SharingAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         IconButton(
           icon: const Icon(Icons.notifications_none, color: Colors.white),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => NotificationPage()),
+            );
+          },
         ),
       ],
     );

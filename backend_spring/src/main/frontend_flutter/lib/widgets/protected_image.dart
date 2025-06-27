@@ -3,12 +3,16 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:typed_data';
 
+import '../models/post/post_api_services.dart';
+
 class ProtectedImage extends StatefulWidget {
   final String imageUrl;
+  final BoxFit fit;
 
   const ProtectedImage({
     super.key,
     required this.imageUrl,
+    this.fit = BoxFit.contain, // 기본값: 게시판용
   });
 
   @override
@@ -54,9 +58,14 @@ class _ProtectedImageState extends State<ProtectedImage> {
       return;
     }
 
+    // ✅ 수정된 URL 처리: 이미지 전용 baseImageUrl 사용
+    final fullUrl = widget.imageUrl.startsWith('http')
+        ? widget.imageUrl
+        : '${PostApiService.baseImageUrl}${widget.imageUrl}';
+
     try {
       final response = await http.get(
-        Uri.parse(widget.imageUrl),
+        Uri.parse(fullUrl),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -93,7 +102,7 @@ class _ProtectedImageState extends State<ProtectedImage> {
 
     return Image.memory(
       imageBytes!,
-      fit: BoxFit.contain, // 원본 비율 유지
+      fit: widget.fit,
       key: ValueKey(widget.imageUrl),
     );
   }

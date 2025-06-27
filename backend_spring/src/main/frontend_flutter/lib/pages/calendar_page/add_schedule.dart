@@ -122,6 +122,7 @@ class _AddSchedulePopupState extends State<AddSchedulePopup> {
       _selectedColor,
       _onColorSelected,
       _saveSchedule,
+      existingSchedule: widget.existingSchedule,
     );
   }
 

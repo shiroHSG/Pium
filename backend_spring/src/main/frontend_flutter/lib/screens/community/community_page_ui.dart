@@ -5,6 +5,8 @@ import 'package:frontend_flutter/models/post/post_api_services.dart';
 import 'package:frontend_flutter/pages/community/create_post_page.dart';
 import 'package:frontend_flutter/pages/community/post_detail_page.dart';
 
+import '../../widgets/protected_image.dart';
+
 class CommunityAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CommunityAppBar({Key? key}) : super(key: key);
 
@@ -21,13 +23,6 @@ class CommunityAppBar extends StatelessWidget implements PreferredSizeWidget {
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications_none),
-          onPressed: () {},
-          color: Colors.white,
-        ),
-      ],
     );
   }
 }
@@ -43,7 +38,7 @@ class CommunitySearchBar extends StatefulWidget {
 
 class _CommunitySearchBarState extends State<CommunitySearchBar> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchType = 'title';
+  String _searchType = 'title'; // 기본 검색 타입
 
   @override
   Widget build(BuildContext context) {
@@ -163,6 +158,8 @@ class CommunityCategoryButtons extends StatelessWidget {
   }
 }
 
+
+
 class PostList extends StatelessWidget {
   final Future<List<PostResponse>> futurePosts;
 
@@ -185,30 +182,24 @@ class PostList extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
         ),
-        padding: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.only(left: 20, bottom: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            post.imageUrl.isNotEmpty
-                ? Container(
-              width: 80,
-              height: 80,
-              margin: const EdgeInsets.only(right: 12),
-              child: Image.network(
-                post.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(Icons.broken_image, size: 40, color: Colors.grey);
-                },
+            if (post.imageUrl != null && post.imageUrl!.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.only(right: 12),
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  margin: const EdgeInsets.only(right: 12),
+                  child: ProtectedImage(
+                    imageUrl: '${PostApiService.baseImageUrl}${post.imageUrl!}',
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
-            )
-                : Container(
-              width: 80,
-              height: 80,
-              color: Colors.grey.shade200,
-              margin: const EdgeInsets.only(right: 12),
-              child: const Icon(Icons.image_outlined, size: 40, color: Colors.grey),
-            ),
+            // 텍스트 정보는 항상 표시됨
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,27 +220,8 @@ class PostList extends StatelessWidget {
                     children: [
                       Icon(Icons.person, size: 16, color: Colors.grey.shade500),
                       const SizedBox(width: 4),
-                      Text(
-                        post.author,
-                        style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                      ),
+                      Text(post.author, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                       const SizedBox(width: 12),
-                      // ★ 주소 한줄 추가!
-                      if (post.addressCity.isNotEmpty ||
-                          post.addressDistrict.isNotEmpty ||
-                          post.addressDong.isNotEmpty)
-                        Row(
-                          children: [
-                            Icon(Icons.place, size: 16, color: Colors.pink.shade200),
-                            const SizedBox(width: 2),
-                            Text(
-                              "${post.addressCity} ${post.addressDistrict} ${post.addressDong}".trim(),
-                              style: TextStyle(color: Colors.pink.shade300, fontSize: 12, fontWeight: FontWeight.w600),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(width: 12),
-                          ],
-                        ),
                       Icon(Icons.comment, size: 16, color: Colors.grey.shade500),
                       const SizedBox(width: 4),
                       Text('${post.commentCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
@@ -276,10 +248,12 @@ class PostList extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
+          // 오류 발생 시 디버깅을 위해 상세 에러 메시지를 출력합니다.
           print('PostList FutureBuilder Error: ${snapshot.error}');
           return Center(child: Text('게시글을 불러오는데 실패했습니다: ${snapshot.error}'));
         } else if (snapshot.hasData) {
           final posts = snapshot.data!;
+          print(posts);
           if (posts.isEmpty) {
             return const Center(
               child: Padding(

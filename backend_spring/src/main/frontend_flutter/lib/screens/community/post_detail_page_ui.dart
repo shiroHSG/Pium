@@ -4,6 +4,9 @@ import 'package:frontend_flutter/models/post/post_response.dart';
 import 'package:frontend_flutter/models/post/post_comment.dart';
 import 'package:frontend_flutter/models/post/post_api_services.dart';
 
+import '../../widgets/fullscreen_image.dart';
+import '../../widgets/protected_image.dart';
+
 // 1. 프로필/헤더
 class PostDetailHeader extends StatefulWidget {
   final PostResponse post;
@@ -202,17 +205,49 @@ class PostDetailImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imageUrl == null || imageUrl!.isEmpty) return const SizedBox.shrink();
-    return Container(
-      width: double.infinity,
-      height: 180,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: Colors.grey.shade200,
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => FullscreenImagePage(imageUrl: imageUrl!),
+          ),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        height: 180,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          color: Colors.grey.shade200,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: ProtectedImage(
+          imageUrl: imageUrl!,
+          fit: BoxFit.cover,
+        ),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: Image.network(
-        imageUrl!,
-        fit: BoxFit.cover,
+    );
+  }
+}
+// 전체 이미지 보이기
+class FullscreenImagePage extends StatelessWidget {
+  final String imageUrl;
+
+  const FullscreenImagePage({Key? key, required this.imageUrl}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          FullscreenImage(
+            imageUrl: imageUrl,
+            onTap: () => Navigator.pop(context),
+          ),
+        ],
       ),
     );
   }
