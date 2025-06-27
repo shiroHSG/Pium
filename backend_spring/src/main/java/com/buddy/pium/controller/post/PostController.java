@@ -28,6 +28,7 @@ public class PostController {
 
     private final PostService postService;
 
+    // 게시글 등록 (이미지 포함)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createPost(
             @RequestPart("postData") String postDataJson,
@@ -41,7 +42,6 @@ public class PostController {
             PostRequestDto dto = mapper.readValue(postDataJson, PostRequestDto.class);
 
             postService.create(dto, member, image);
-
             return ResponseEntity.ok(Map.of("message", "게시글 등록이 완료되었습니다."));
         } catch (Exception e) {
             e.printStackTrace();
@@ -49,18 +49,25 @@ public class PostController {
         }
     }
 
-
+    // 게시글 단건 조회
     @GetMapping("/{postId}")
-    public ResponseEntity<PostResponseDto> get(@PathVariable Long postId, @CurrentMember Member member) {
-        return ResponseEntity.ok(postService.get(postId));
+    public ResponseEntity<PostResponseDto> getPost(
+            @PathVariable Long postId,
+            @CurrentMember Member member
+    ) {
+        return ResponseEntity.ok(postService.get(postId, member.getId()));
     }
 
+    // 게시글 전체/카테고리별 조회
     @GetMapping
-    public ResponseEntity<List<PostResponseDto>> getAll(@RequestParam String category,
-                                                        @CurrentMember Member member) {
-        return ResponseEntity.ok(postService.getAll(category));
+    public ResponseEntity<List<PostResponseDto>> getAll(
+            @RequestParam(required = false) String category,
+            @CurrentMember Member member
+    ) {
+        return ResponseEntity.ok(postService.getAll(category, member.getId()));
     }
 
+    // 게시글 수정 (이미지 포함, PATCH 방식 권장)
     @PatchMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updatePost(
             @PathVariable Long postId,
@@ -83,24 +90,23 @@ public class PostController {
         }
     }
 
-
+    // 게시글 삭제
     @DeleteMapping("/{postId}")
-    public ResponseEntity<?> deleteDiary(@PathVariable Long postId, @CurrentMember Member member) {
+    public ResponseEntity<?> deletePost(
+            @PathVariable Long postId,
+            @CurrentMember Member member
+    ) {
         postService.delete(postId, member);
         return ResponseEntity.ok(Map.of("message", "게시글을 삭제했습니다."));
     }
 
+    // 게시글 검색(제목/내용/작성자 등)
     @GetMapping("/search")
-    public ResponseEntity<Page<PostResponseDto>> search(
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String sort,
-            @CurrentMember Member member,
-            Pageable pageable
+    public ResponseEntity<List<PostResponseDto>> searchPosts(
+            @RequestParam String type,
+            @RequestParam String keyword,
+            @CurrentMember Member member
     ) {
-        if ("likes".equals(sort)) {
-            return ResponseEntity.ok(postService.searchByLikes(pageable));
-        }
-        return ResponseEntity.ok(postService.search(type, keyword, pageable));
+        return ResponseEntity.ok(postService.search(type, keyword, member.getId()));
     }
 }

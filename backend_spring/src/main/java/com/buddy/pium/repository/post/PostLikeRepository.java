@@ -1,3 +1,4 @@
+// PostLikeRepository.java
 package com.buddy.pium.repository.post;
 
 import com.buddy.pium.entity.common.Member;
@@ -9,5 +10,6 @@ import java.util.Optional;
 
 public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
     Optional<PostLike> findByPostAndMember(Post post, Member member);
+
     long countByPost(Post post);
 }

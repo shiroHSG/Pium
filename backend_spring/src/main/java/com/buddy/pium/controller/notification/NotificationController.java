@@ -8,10 +8,7 @@ import com.buddy.pium.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
@@ -42,6 +39,13 @@ public class NotificationController {
     public ResponseEntity<?> markAsRead(@CurrentMember Member member) {
         notificationService.markAllAsRead(member.getId());
         return ResponseEntity.ok(Map.of("message", "읽음 처리 완료"));
+    }
+
+    // ✅ 안 읽은 알림 수 반환
+    @GetMapping("/unread-count")
+    public ResponseEntity<Integer> getUnreadCount(@CurrentMember Member member) {
+        int count = notificationService.getUnreadNotificationCount(member.getId());
+        return ResponseEntity.ok(count);
     }
 }
 

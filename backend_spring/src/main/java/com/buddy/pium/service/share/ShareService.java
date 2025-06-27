@@ -3,7 +3,6 @@ package com.buddy.pium.service.share;
 import com.buddy.pium.dto.share.ShareRequestDto;
 import com.buddy.pium.dto.share.ShareResponseDto;
 import com.buddy.pium.entity.common.Member;
-import com.buddy.pium.entity.post.Post;
 import com.buddy.pium.entity.share.Share;
 import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MemberRepository;
@@ -16,7 +15,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.util.List;
 
 @Service
@@ -26,45 +24,59 @@ public class ShareService {
     private final ShareRepository shareRepository;
     private final MemberRepository memberRepository;
     private final ShareLikeRepository shareLikeRepository;
-
     private final FileUploadService fileUploadService;
 
     @Transactional
     public void create(ShareRequestDto dto, Member member, MultipartFile image) {
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
-            imageUrl = fileUploadService.upload(image, "shares"); // 파일 저장 후 URL 리턴
+            imageUrl = fileUploadService.upload(image, "shares");
         }
-
         Share share = Share.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
                 .imageUrl(imageUrl)
                 .member(member)
+                .category(dto.getCategory())
                 .viewCount(0L)
                 .build();
-
         shareRepository.save(share);
     }
 
     public ShareResponseDto get(Long shareId) {
         Share share = validateShare(shareId);
-
-        share.setViewCount(share.getViewCount() + 1);
-        shareRepository.save(share);
-
-        return ShareResponseDto.from(share);
+        int likeCount = shareLikeRepository.countByShare(share).intValue();
+        return ShareResponseDto.from(share, likeCount);
     }
 
     public List<ShareResponseDto> getAll() {
         return shareRepository.findAll().stream()
-                .map(ShareResponseDto::from)
+                .map(share -> {
+                    int likeCount = shareLikeRepository.countByShare(share).intValue();
+                    return ShareResponseDto.from(share, likeCount);
+                })
                 .toList();
     }
 
-    public void updateShare(Long shareId, Member member, ShareRequestDto dto, MultipartFile image) {
+    public List<ShareResponseDto> getByCategory(String category) {
+        return shareRepository.findByCategory(category).stream()
+                .map(share -> {
+                    int likeCount = shareLikeRepository.countByShare(share).intValue();
+                    return ShareResponseDto.from(share, likeCount);
+                })
+                .toList();
+    }
+
+    // ✅ 글 수정(수정 후 반드시 save 호출)
+    @Transactional
+    public void updateShare(
+            Long shareId,
+            Member member,
+            ShareRequestDto dto,
+            MultipartFile image) {
         Share share = validateShareOwner(shareId, member);
 
+        // 이미지가 새로 왔으면 기존 이미지 삭제 + 새 이미지 저장
         if (image != null && !image.isEmpty()) {
             if (share.getImageUrl() != null) {
                 fileUploadService.delete(share.getImageUrl());
@@ -73,8 +85,13 @@ public class ShareService {
             share.setImageUrl(imageUrl);
         }
 
+        // 제목/내용/카테고리 수정
         share.setTitle(dto.getTitle());
         share.setContent(dto.getContent());
+        share.setCategory(dto.getCategory());
+
+        // ⭐⭐ 실제로 DB에 반영하려면 save 호출!
+        shareRepository.save(share);
     }
 
     public void delete(Long shareId, Member member) {
@@ -92,6 +109,7 @@ public class ShareService {
         }
         return share;
     }
+
     public Share validateShare(Long shareId) {
         return shareRepository.findById(shareId)
                 .orElseThrow(() -> new ResourceNotFoundException("글이 없습니다."));

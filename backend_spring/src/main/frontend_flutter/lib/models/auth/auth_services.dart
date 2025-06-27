@@ -228,7 +228,8 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        print('$data');
         return data;
       } else {
         print('회원 정보 조회 실패: ${response.statusCode}, ${response.body}');
@@ -273,6 +274,24 @@ class AuthService {
     } catch (e) {
       print('회원 탈퇴 에러: $e');
       return false;
+    }
+  }
+
+  // 닉네임 중복 확인
+  Future<String?> checkNicknameDuplicate(String nickname) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/member/checkNickName?nickName=$nickname'));
+
+      if (response.statusCode == 200) {
+        return null; // 사용 가능
+      } else if (response.statusCode == 409) {
+        final data = jsonDecode(response.body);
+        return data['message']; // 이미 사용 중
+      } else {
+        return '서버 오류가 발생했습니다.';
+      }
+    } catch (e) {
+      return '네트워크 오류가 발생했습니다.';
     }
   }
 }

@@ -34,6 +34,7 @@ class SharingApiService {
   static Future<void> createShare({
     required String title,
     required String content,
+    required String category,
     File? imageFile,
   }) async {
     final prefs = await SharedPreferences.getInstance();
@@ -48,6 +49,7 @@ class SharingApiService {
     request.fields['shareData'] = jsonEncode({
       'title': title,
       'content': content,
+      'category': category,
     });
 
     if (imageFile != null) {
@@ -118,5 +120,58 @@ class SharingApiService {
     }
   }
 
+  // 글 수정 (PATCH)
+  static Future<void> updateShare({
+    required int id,
+    required String title,
+    required String content,
+    required String category,
+    File? imageFile, // null이면 이미지 삭제
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    if (token == null) throw Exception('로그인 정보가 없습니다.');
 
+    final uri = Uri.parse('$baseUrl/$id');
+    final request = http.MultipartRequest('PATCH', uri);
+
+    request.headers['Authorization'] = 'Bearer $token';
+
+    request.fields['shareData'] = jsonEncode({
+      'title': title,
+      'content': content,
+      'category': category,
+    });
+
+    if (imageFile != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath('image', imageFile.path),
+      );
+    }
+    // imageFile == null이면 이미지 삭제로 처리
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode != 200) {
+      throw Exception('글 수정 실패: ${response.body}');
+    }
+  }
+
+  // 글 삭제
+  static Future<void> deleteShare(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    if (token == null) throw Exception('로그인 정보가 없습니다.');
+
+    final uri = Uri.parse('$baseUrl/$id');
+    final response = await http.delete(
+      uri,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('글 삭제 실패: ${response.body}');
+    }
+  }
 }

@@ -73,7 +73,7 @@ class WriteSharingCategoryDropdown extends StatelessWidget {
           dropdownColor: AppTheme.primaryPurple,
           icon: const Icon(Icons.arrow_drop_down, color: Colors.white, size: 20),
           style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
-          items: ['나눔', '품앗이'].map((String value) {
+          items: ['나눔', '품앗이', '요청'].map((String value) {
             return DropdownMenuItem<String>(
               value: value,
               child: Text(

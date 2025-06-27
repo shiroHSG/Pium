@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/notification/notification.dart';
+import '../models/post/post_api_services.dart';
+import '../pages/community/post_detail_page.dart';
+import '../pages/my_page/profile_edit/profile_edit_page.dart';
 import '../theme/app_theme.dart';
 
 class NotificationPage extends StatefulWidget {
@@ -12,7 +15,7 @@ class NotificationPage extends StatefulWidget {
 
 class _NotificationPageState extends State<NotificationPage> {
   String selectedCategory = '전체';
-  final List<String> categories = ['전체', '커뮤니티', '나눔 품앗이', '메이트 요청'];
+  final List<String> categories = ['전체', '커뮤니티', '메이트 요청'];
   List<Map<String, dynamic>> allNotifications = [];
 
   @override
@@ -140,10 +143,41 @@ class _NotificationPageState extends State<NotificationPage> {
               itemBuilder: (context, index) {
                 final notification = filtered[index];
                 return ListTile(
-                  leading:
-                  Icon(notification['icon'], color: AppTheme.textPurple),
+                  leading: Icon(notification['icon'], color: AppTheme.textPurple),
                   title: Text(notification['message']),
                   subtitle: Text(notification['date']),
+                  onTap: () async {
+                    if (notification['type'] == 'MATE_REQUEST') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ProfileEditPage(openMateModal: true),
+                        ),
+                      );
+                    }
+                    if (notification['type'] == 'COMMENT' && notification['targetType'] == 'POST') {
+                      final postId = notification['targetId'];
+                      final prefs = await SharedPreferences.getInstance();
+                      final token = prefs.getString('accessToken');
+
+                      if (token != null && postId != null) {
+                        try {
+                          // 게시글 단건 조회 API 호출
+                          final response = await PostApiService.fetchPostDetail(postId);
+                          if (response != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PostDetailPage(post: response),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          print('❌ 게시글 이동 실패: $e');
+                        }
+                      }
+                    }
+                  },
                 );
               },
             ),

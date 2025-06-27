@@ -128,9 +128,27 @@ class _SignupPageState extends State<SignupPage> {
     );
   }
 
-  void _checkNicknameDuplicate() {
-    debugPrint('닉네임 중복 확인: ${_nicknameController.text}');
-    // 추후 구현
+  void _checkNicknameDuplicate() async {
+    final nickname = _nicknameController.text.trim();
+
+    if (nickname.isEmpty) {
+      setState(() {
+        _nicknameError = '닉네임을 입력하세요.';
+      });
+      return;
+    }
+
+    final error = await _authService.checkNicknameDuplicate(nickname);
+
+    setState(() {
+      _nicknameError = error ?? ''; // 사용 가능 시 오류 메시지 없음
+    });
+
+    if (error == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('사용 가능한 닉네임입니다.')),
+      );
+    }
   }
 
   Future<void> _selectDate(BuildContext context) async {

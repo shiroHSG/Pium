@@ -9,7 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/posts/{postId}/like")
+@RequestMapping("/api/posts/{postId}/like")
 @RequiredArgsConstructor
 public class PostLikeController {
 
@@ -18,7 +18,7 @@ public class PostLikeController {
     // 좋아요 토글 API
     @PostMapping
     public ResponseEntity<?> toggleLike(@PathVariable Long postId,
-                                             @CurrentMember Member member) {
+                                        @CurrentMember Member member) {
         boolean liked = postLikeService.toggleLike(postId, member);
         return ResponseEntity.ok(liked ? "liked" : "unliked");
     }

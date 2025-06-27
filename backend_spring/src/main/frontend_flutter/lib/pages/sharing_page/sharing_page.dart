@@ -15,7 +15,12 @@ class SharingPage extends StatefulWidget {
 
 class _SharingPageState extends State<SharingPage> {
   List<SharingItem> _sharingItems = []; // 빈 리스트로 초기화
-  String selectedCategory = '나눔';
+  String selectedCategory = '전체';
+
+  List<SharingItem> get filteredItems {
+    if (selectedCategory == '전체') return _sharingItems;
+    return _sharingItems.where((item) => item.category == selectedCategory).toList();
+  }
 
   @override
   void initState() {
@@ -89,9 +94,9 @@ class _SharingPageState extends State<SharingPage> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: _sharingItems.length,
+              itemCount: filteredItems.length,
               itemBuilder: (context, index) {
-                final item = _sharingItems[index];
+                final item = filteredItems[index];
                 return SharingListItem(
                   item: item,
                   onTap: () => _navigateToDetail(item),
@@ -101,7 +106,6 @@ class _SharingPageState extends State<SharingPage> {
             ),
           ),
           SharingActionButtons(
-            onRequestTap: _handleRequestShare,
             onWriteTap: _navigateToWritePost,
           ),
         ],

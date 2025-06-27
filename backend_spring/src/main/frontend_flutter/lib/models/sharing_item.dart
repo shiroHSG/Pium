@@ -9,6 +9,9 @@ class SharingItem {
   final String postDate;
   final String details;
   final int likes;
+  final String category;
+  final int likeCount;
+  final bool isLiked;
 
   SharingItem({
     required this.id,
@@ -21,6 +24,9 @@ class SharingItem {
     required this.postDate,
     required this.details,
     required this.likes,
+    required this.category,
+    required this.likeCount,
+    this.isLiked = false,
   });
 
   factory SharingItem.fromJson(Map<String, dynamic> json) {
@@ -44,6 +50,9 @@ class SharingItem {
       postDate: formattedDate,
       details: '조회수 ${json['viewCount'] ?? 0}회 · $formattedDate',
       likes: json['likes'] ?? 0,
+        category: json['category'] ?? '나눔',
+      likeCount: json['likeCount'] ?? 0,
+      isLiked: json['isLiked'] ?? false,
     );
   }
 }

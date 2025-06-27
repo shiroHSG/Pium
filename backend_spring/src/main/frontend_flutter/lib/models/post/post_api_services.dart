@@ -4,9 +4,10 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'post_response.dart';
 import 'package:frontend_flutter/models/post/post_comment.dart';
+import 'dart:io';
 
 class PostApiService {
-  static const String baseUrl = 'http://10.0.2.2:8080/posts';
+  static const String baseUrl = 'http://10.0.2.2:8080/api/posts';
 
   // 게시글 목록 조회
   static Future<List<PostResponse>> fetchPosts(
@@ -15,20 +16,33 @@ class PostApiService {
         String? keyword,
         String? sort,
       }) async {
-    print('[DEBUG] API 요청: category=$category, type=$type, keyword=$keyword, sort=$sort');
-
-    final Map<String, String> queryParameters = {};
-    if (category != null && category.isNotEmpty) {
-      queryParameters['category'] = category;
-    }
-    if (type != null) queryParameters['type'] = type;
-    if (keyword != null) queryParameters['keyword'] = keyword;
-    if (sort != null) queryParameters['sort'] = sort;
-
-    final Uri uri = Uri.parse(baseUrl).replace(queryParameters: queryParameters);
+    print(
+        '[DEBUG] API 요청: category=$category, type=$type, keyword=$keyword, sort=$sort');
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
+
+    Uri uri;
+
+    // 1) 검색 조건이 있으면 → /search로!
+    if (type != null && type.isNotEmpty && keyword != null && keyword.isNotEmpty) {
+      uri = Uri.parse('$baseUrl/search').replace(
+        queryParameters: {
+          'type': type,
+          'keyword': keyword,
+        },
+      );
+    } else {
+      // 2) 아니면 목록 조회 (카테고리/정렬)
+      final Map<String, String> queryParameters = {};
+      if (category != null && category.isNotEmpty) {
+        queryParameters['category'] = category;
+      }
+      if (sort != null) queryParameters['sort'] = sort;
+
+      uri = Uri.parse(baseUrl).replace(queryParameters: queryParameters);
+    }
+
     if (token == null) {
       throw Exception('로그인 토큰이 없습니다. 로그인 해주세요.');
     }
@@ -52,34 +66,44 @@ class PostApiService {
     }
   }
 
-  // 게시글 작성
-  static Future<PostResponse> createPost({
-    required PostRequest postRequest,
+
+  // 게시글 등록
+  static Future<void> createPostMultipart({
+    required String title,
+    required String content,
+    required String category,
+    File? imageFile,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    print("저장된 토큰: $token");
+    final url = Uri.parse(baseUrl);
 
-    if (token == null) {
-      throw Exception('로그인 토큰이 없습니다. 로그인 해주세요.');
+    final request = http.MultipartRequest('POST', url);
+    request.headers['Authorization'] = 'Bearer $token';
+
+    // postData(json) 필드로 보내기
+    final postData = jsonEncode({
+      'title': title,
+      'content': content,
+      'category': category,
+    });
+    request.fields['postData'] = postData;
+
+    // 파일이 있으면 첨부
+    if (imageFile != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath('image', imageFile.path),
+      );
     }
 
-    final url = Uri.parse('$baseUrl');
-    final response = await http.post(
-      url,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(postRequest.toJson()),
-    );
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
 
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      print("PostApiServices 게시글 작성 성공");
-      return PostResponse.fromJson(jsonDecode(response.body));
+    if (response.statusCode == 200) {
+      print('게시글 등록 성공: ${response.body}');
     } else {
-      print('PostApiServices 게시글 작성 실패: ${response.statusCode} ${response.body}');
-      throw Exception('PostApiServices 게시글 작성에 실패했습니다: ${response.statusCode} ${response.body}');
+      print('게시글 등록 실패: ${response.statusCode} ${response.body}');
+      throw Exception('게시글 작성 실패');
     }
   }
 
@@ -145,7 +169,7 @@ class PostApiService {
     }
   }
 
-// 댓글 목록 조회
+  // 댓글 목록 조회
   static Future<List<Comment>> fetchComments(int postId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
@@ -165,7 +189,7 @@ class PostApiService {
     }
   }
 
-  // 수정 삭제
+  // 게시글 삭제
   static Future<bool> deletePost(int postId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
@@ -180,24 +204,42 @@ class PostApiService {
     return response.statusCode == 200 || response.statusCode == 204;
   }
 
-  static Future<bool> updatePost(int postId, {required String title, required String content, String? imgUrl}) async {
+  // 게시글 수정
+  static Future<void> updatePostMultipart({
+    required int postId,
+    required String title,
+    required String content,
+    required String category,
+    File? imageFile,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    final url = '$baseUrl/$postId';
-    final body = jsonEncode({
+    final url = Uri.parse('$baseUrl/$postId');
+
+    final request = http.MultipartRequest('PATCH', url);
+    request.headers['Authorization'] = 'Bearer $token';
+
+    final postData = jsonEncode({
       'title': title,
       'content': content,
-      'imgUrl': imgUrl ?? '',
+      'category': category,
     });
-    final response = await http.put(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: body,
-    );
-    return response.statusCode == 200;
-  }
+    request.fields['postData'] = postData;
 
+    if (imageFile != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath('image', imageFile.path),
+      );
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200) {
+      print('게시글 수정 성공: ${response.body}');
+    } else {
+      print('게시글 수정 실패: ${response.statusCode} ${response.body}');
+      throw Exception('게시글 수정 실패');
+    }
+  }
 }

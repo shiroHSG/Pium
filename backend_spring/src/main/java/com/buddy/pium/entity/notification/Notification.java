@@ -41,7 +41,7 @@ public class Notification {
     private Long targetId;
 
     // 읽음 여부
-    private boolean isRead = false;
+    private boolean isRead;
 
     // 생성 시각
     @CreatedDate

@@ -5,17 +5,22 @@ import 'package:frontend_flutter/models/chat/chatroom.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
 import 'package:frontend_flutter/widgets/protected_image.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../pages/chat/chat_room_message_page.dart';
+import '../../pages/chat/invite_modal.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 Widget SharingDetailPageUI(
     BuildContext context,
     SharingItem item,
     int likeCount,
     bool isLiked,
-    VoidCallback onLikePressed,
-    ) {
+    VoidCallback onLikePressed, {
+      bool canEdit = false,
+      VoidCallback? onEdit,
+      VoidCallback? onDelete,
+    }) {
   return Scaffold(
     appBar: AppBar(
       backgroundColor: AppTheme.primaryPurple,
@@ -131,6 +136,8 @@ Widget SharingDetailPageUI(
                 ],
               ),
               const SizedBox(height: 20),
+
+              // 본문 내용
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(15),
@@ -139,15 +146,59 @@ Widget SharingDetailPageUI(
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.grey.shade300),
                 ),
-                child: Text(
-                  item.content,
+                child: Linkify(
+                  text: item.content,
+                  onOpen: (link) async {
+                    final uri = Uri.tryParse(link.url);
+                    if (uri != null &&
+                        uri.pathSegments.length >= 3 &&
+                        uri.pathSegments[1] == 'invite') {
+                      final inviteCode = uri.pathSegments[2];
+                      showDialog(
+                        context: context,
+                        builder: (_) => InviteModal(inviteCode: inviteCode),
+                      );
+                    } else {
+                      if (await canLaunchUrl(uri!)) {
+                        await launchUrl(uri);
+                      }
+                    }
+                  },
                   style: const TextStyle(fontSize: 14),
+                  linkStyle: const TextStyle(
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
-              const SizedBox(height: 100),
+
+              // 수정/삭제 버튼 (내 글일 때만)
+              if (canEdit && (onEdit != null && onDelete != null))
+                Padding(
+                  padding: const EdgeInsets.only(top: 10, bottom: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.deepPurple),
+                        tooltip: '수정',
+                        onPressed: onEdit,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                        tooltip: '삭제',
+                        onPressed: onDelete,
+                      ),
+                    ],
+                  ),
+                ),
+
+              const SizedBox(height: 80), // 채팅하기 버튼 위한 여백
             ],
           ),
         ),
+
+        // 채팅하기 버튼 (항상 하단 고정)
         Align(
           alignment: Alignment.bottomCenter,
           child: Padding(
@@ -177,11 +228,11 @@ Widget SharingDetailPageUI(
   );
 }
 
-// ✅ 분리된 함수
+// ✅ 채팅 버튼 핸들러
 Future<void> _handleChatButtonPressed(BuildContext context, SharingItem item) async {
   try {
     final chatRoom = await createOrGetShareChatRoom(
-      receiverId: item.authorMemberId, // 꼭 int 타입으로 있어야 함!
+      receiverId: item.authorMemberId,
       sharePostId: item.id,
     );
 

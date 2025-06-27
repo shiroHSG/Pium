@@ -16,8 +16,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/calendar/calendar_api.dart';
 import '../../models/chat/chat_service.dart';
-import '../../models/child/child_api.dart';
+import '../../models/notification/notification.dart';
 import '../../models/webSocket/connectWebSocket.dart';
+import '../../models/child/child_api.dart';
 import '../community/community_page.dart';
 import '../my_page/baby_profile/babyProfile_page.dart';
 
@@ -34,6 +35,8 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   int _currentPage = 0;
   int _unreadCount = 0;
+  int _unreadAlarmCount = 0;
+  String? _token;
   final PageController _pageController = PageController();
 
   List<BabyProfile> _children = [];
@@ -43,11 +46,18 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
-    _checkLoginStatus(); // 로그인 상태 체크
-    _loadBabyProfile(); // 아기정보 불러오기
-    _loadSchedules(); //  일정 불러오기
+    _checkLoginStatus();
+    _loadBabyProfile();
+    _loadSchedules();
     _fetchUnreadCount();
+    _fetchUnreadMessageCount();
     _connectWebSocket();
+
+    onUnreadAlarmCountUpdate = (count) {
+      setState(() {
+        _unreadAlarmCount = count; // AppBar 전용
+      });
+    };
   }
 
   Future<void> _checkLoginStatus() async {
@@ -67,9 +77,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final String? token = prefs.getString('accessToken');
     final int? myId = prefs.getInt('memberId');
 
-    print('📦 토큰: $token, 아이디: $myId');
-
     if (token != null && myId != null) {
+      _token = token;
       connectStomp(token, myId, _updateUnreadCount);
     } else {
       print('❌ WebSocket 연결 실패: token 또는 memberId 없음');
@@ -77,44 +86,30 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _updateUnreadCount(int count) {
-    print('📩 새로 받은 안읽은 수: $count');
     setState(() {
       _unreadCount = count;
     });
   }
 
-  void updateSidebarBadge(dynamic data) {
-    final int newUnreadCount = data['unreadCount'];
-    setState(() {
-      _unreadCount = newUnreadCount;
-    });
-  }
-
-  Future<void> _fetchUnreadCount() async {
+  Future<void> _fetchUnreadMessageCount() async {
     final count = await getUnreadCount();
     setState(() {
       _unreadCount = count;
     });
   }
 
-  Future<void> _loadBabyProfile() async {
-    final children = await ChildApi.fetchMyChildren();
-    if (children.isNotEmpty) {
-      setState(() {
-        _children = children;
-      });
-    }
-  }
+  Future<void> _fetchUnreadCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    print("fetchunreadCount : $token");
+    if (token == null) return;
 
-  Future<void> _loadSchedules() async {
-    try {
-      final schedules = await CalendarApi.fetchSchedules();
+    _token = token;
+    await fetchUnreadNotificationCount(token, (count) {
       setState(() {
-        _schedules = schedules..sort((a, b) => a.startTime.compareTo(b.startTime));
+        _unreadAlarmCount = count;
       });
-    } catch (e) {
-      print('일정 불러오기 실패: $e');
-    }
+    });
   }
 
   void _onItemTapped(int index) {
@@ -146,12 +141,31 @@ class _MyHomePageState extends State<MyHomePage> {
     ).then((_) => _loadBabyProfile());
   }
 
+  Future<void> _loadBabyProfile() async {
+    final children = await ChildApi.fetchMyChildren();
+    if (children.isNotEmpty) {
+      setState(() {
+        _children = children;
+      });
+    }
+  }
+
+  Future<void> _loadSchedules() async {
+    try {
+      final schedules = await CalendarApi.fetchSchedules();
+      setState(() {
+        _schedules = schedules..sort((a, b) => a.startTime.compareTo(b.startTime));
+      });
+    } catch (e) {
+      print('일정 불러오기 실패: $e');
+    }
+  }
+
   Future<void> _navigateToCalendarPage() async {
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const CalendarPage()),
     );
-    // 캘린더 페이지에서 돌아왔을 때 일정 다시 로드
     await _loadSchedules();
   }
 
@@ -231,12 +245,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
       key: _scaffoldKey,
-      appBar: CustomAppBar(onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer()),
+      appBar: CustomAppBar(
+        onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+        unreadCount:  _unreadAlarmCount,
+        onReloadNotificationCount: _fetchUnreadCount,
+      ),
       endDrawer: CustomDrawer(
         onItemSelected: _onItemTapped,
         onLoginStatusChanged: _onLoginStatusChanged,
       ),
-      body: _getPageContent(todaySchedules),  // 선택된 탭(인덱스)에 따라 화면을 바꿔줌
+      body: _getPageContent(todaySchedules),
       bottomNavigationBar: CustomBottomNavigationBar(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
@@ -259,7 +277,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     name: '등록된 아이 없음',
                     birthDate: DateTime.now(),
                     gender: null,
-                    // developmentStep: '아이 정보를 등록해주세요.',
                   ),
                   babyImage: null,
                   onEditPressed: _BabyProfilePage,
