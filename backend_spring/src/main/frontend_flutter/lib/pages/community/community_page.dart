@@ -29,15 +29,14 @@ class _CommunityPageState extends State<CommunityPage> {
   // SharedPreferences에서 로그인된 사용자 ID를 비동기적으로 로드하는 함수
   Future<void> _loadLoggedInUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('loggedInUserId'); // 'loggedInUserId' 키로 저장된 값을 가져옴
-    if (userId != null) {
+    final id = prefs.getInt('memberId');
+    if (id != null) {
       setState(() {
-        _loggedInUserId = userId; // 로드된 ID로 상태 업데이트
+        _loggedInUserId = id.toString(); // 문자열로 변환
       });
-      print("로드된 사용자 ID: $_loggedInUserId"); // 확인용 출력
+      print("로드된 사용자 ID: $_loggedInUserId");
     } else {
       print("로그인된 사용자 ID를 찾을 수 없습니다. (아마 로그인 전이거나, 저장된 ID가 없음)");
-      // TODO: 로그인되어 있지 않은 경우에 대한 추가 처리 (예: 로그인 페이지로 강제 이동)를 여기에 구현할 수 있습니다.
     }
   }
 
