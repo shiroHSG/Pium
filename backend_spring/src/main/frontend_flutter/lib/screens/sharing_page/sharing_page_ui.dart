@@ -25,6 +25,7 @@ class SharingAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
+/// ⭐️ 카테고리 드롭다운 위젯
 class SharingCategoryDropdown extends StatelessWidget {
   final String selectedCategory;
   final ValueChanged<String?> onCategoryChanged;
@@ -102,8 +103,9 @@ class _SharingListItemState extends State<SharingListItem> {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = widget.item.imageUrl;
-    final hasImage = imageUrl != null && imageUrl.trim().isNotEmpty;
+    // ⭐️ 여기 반드시 fullImageUrl
+    final imageUrl = widget.item.fullImageUrl;
+    final hasImage = imageUrl.isNotEmpty;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -123,7 +125,7 @@ class _SharingListItemState extends State<SharingListItem> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: hasImage
-                      ? ProtectedImage(imageUrl: imageUrl!)
+                      ? ProtectedImage(imageUrl: imageUrl)
                       : Container(
                     color: const Color(0xFFf9d9e7),
                     child: const Center(
@@ -141,7 +143,7 @@ class _SharingListItemState extends State<SharingListItem> {
                     // 제목
                     Text(widget.item.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4),
-                    // ✅ 주소 표시 (추가)
+                    // ✅ 주소 표시
                     if (widget.item.addressCity.isNotEmpty || widget.item.addressDistrict.isNotEmpty || widget.item.addressDong.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 2.0),
@@ -167,7 +169,7 @@ class _SharingListItemState extends State<SharingListItem> {
                         color: Colors.grey.shade400,
                         size: 22,
                       ),
-                      SizedBox(width: 4), // 아이콘과 숫자 사이 간격
+                      SizedBox(width: 4),
                       Text(
                         '${widget.item.likeCount}',
                         style: TextStyle(
@@ -205,7 +207,10 @@ class SharingActionButtons extends StatelessWidget {
         children: [
           Expanded(
             child: ElevatedButton(
-              onPressed: onWriteTap,
+              onPressed: () {
+                print('임시 테스트 버튼 클릭됨');
+                onWriteTap();
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryPurple,
                 foregroundColor: Colors.white,
