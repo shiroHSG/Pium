@@ -4,6 +4,7 @@ import 'package:frontend_flutter/models/post/post_response.dart';
 import 'package:frontend_flutter/models/post/post_comment.dart';
 import 'package:frontend_flutter/models/post/post_api_services.dart';
 
+import '../../widgets/fullscreen_image.dart';
 import '../../widgets/protected_image.dart';
 
 // 1. 프로필/헤더
@@ -223,16 +224,13 @@ class FullscreenImagePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: GestureDetector(
-        onTap: () => Navigator.pop(context),
-        child: Center(
-          child: InteractiveViewer( // ✨ 확대/축소 가능하게
-            child: ProtectedImage(
-              imageUrl: imageUrl,
-              fit: BoxFit.contain,
-            ),
+      body: Stack(
+        children: [
+          FullscreenImage(
+            imageUrl: imageUrl,
+            onTap: () => Navigator.pop(context),
           ),
-        ),
+        ],
       ),
     );
   }
