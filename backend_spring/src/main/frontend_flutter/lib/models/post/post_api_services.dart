@@ -171,7 +171,8 @@ class PostApiService {
       },
     );
     if (response.statusCode == 200) {
-      final jsonMap = json.decode(response.body);
+      final decodedBody = utf8.decode(response.bodyBytes); // 디코딩 적용
+      final jsonMap = json.decode(decodedBody); // 디코딩된 body 사용
       return PostResponse.fromJson(jsonMap);
     } else {
       throw Exception('게시글 상세 조회 실패');

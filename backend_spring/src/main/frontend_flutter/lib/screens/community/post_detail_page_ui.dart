@@ -35,14 +35,27 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
 
   Future<void> _toggleLike() async {
     if (isLoading) return;
-    setState(() => isLoading = true);
-    await PostApiService.toggleLike(widget.post.id);
-    final refreshed = await PostApiService.fetchPostDetail(widget.post.id);
     setState(() {
-      isLiked = refreshed.isLiked;
-      likeCount = refreshed.likeCount;
-      isLoading = false;
+      isLoading = true;
+      // 1. UI 먼저 반영
+      isLiked = !isLiked;
+      likeCount += isLiked ? 1 : -1;
     });
+
+    final success = await PostApiService.toggleLike(widget.post.id);
+
+    if (!success) {
+      // 2. 실패 시 롤백
+      setState(() {
+        isLiked = !isLiked;
+        likeCount += isLiked ? 1 : -1;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('좋아요 처리 실패')),
+      );
+    }
+
+    setState(() => isLoading = false);
   }
 
   @override

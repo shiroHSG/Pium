@@ -172,7 +172,7 @@ class PostList extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => PostDetailPage(
-              post: post,
+              postId: post.id, // postId만 전달
             ),
           ),
         );
