@@ -5,6 +5,8 @@ import 'package:frontend_flutter/models/post/post_api_services.dart';
 import 'package:frontend_flutter/pages/community/create_post_page.dart';
 import 'package:frontend_flutter/pages/community/post_detail_page.dart';
 
+import '../../widgets/protected_image.dart';
+
 class CommunityAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CommunityAppBar({Key? key}) : super(key: key);
 
@@ -186,15 +188,15 @@ class PostList extends StatelessWidget {
           children: [
             if (post.imageUrl != null && post.imageUrl!.isNotEmpty)
               Container(
-                width: 80,
-                height: 80,
                 margin: const EdgeInsets.only(right: 12),
-                child: Image.network(
-                  '${PostApiService.baseUrl}/${post.imageUrl!}',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.broken_image, size: 40, color: Colors.grey);
-                  },
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  margin: const EdgeInsets.only(right: 12),
+                  child: ProtectedImage(
+                    imageUrl: '${PostApiService.baseImageUrl}${post.imageUrl!}',
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             // 텍스트 정보는 항상 표시됨
