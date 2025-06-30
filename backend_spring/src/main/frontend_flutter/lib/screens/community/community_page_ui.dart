@@ -40,6 +40,19 @@ class _CommunitySearchBarState extends State<CommunitySearchBar> {
   final TextEditingController _searchController = TextEditingController();
   String _searchType = 'title'; // 기본 검색 타입
 
+  String get searchTypeLabel {
+    switch (_searchType) {
+      case 'title':
+        return '제목';
+      case 'content':
+        return '내용';
+      case 'author':
+        return '작성자';
+      default:
+        return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -50,7 +63,7 @@ class _CommunitySearchBarState extends State<CommunitySearchBar> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: '검색어를 입력해주세요',
+                hintText: '${searchTypeLabel}으로 검색',
                 prefixIcon: const Icon(Icons.search, color: AppTheme.textPurple),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
