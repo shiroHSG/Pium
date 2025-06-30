@@ -171,8 +171,6 @@ class CommunityCategoryButtons extends StatelessWidget {
   }
 }
 
-
-
 class PostList extends StatelessWidget {
   final Future<List<PostResponse>> futurePosts;
 
