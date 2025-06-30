@@ -3,6 +3,8 @@ import '../models/auth/auth_services.dart';
 import '../pages/calendar_page/calendar_page.dart';
 import '../pages/my_page/baby_profile/babyProfile_page.dart';
 import '../pages/my_page/my_activity/my_activity_page.dart';
+import '../pages/my_page/profile_edit/profile_edit_page.dart';
+import '../pages/my_page/setting_page/setting_page.dart';
 import '../pages/policy_page/policy_page.dart';
 import '../pages/search/people_search_page.dart';
 import '../pages/sharing_page/sharing_page.dart';
@@ -116,7 +118,10 @@ class CustomDrawer extends StatelessWidget {
               title: const Text('내정보'),
               onTap: () {
                 Navigator.pop(context);
-                onItemSelected(4);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfileEditPage()),
+                );
               },
             ),
             ListTile(
@@ -146,6 +151,10 @@ class CustomDrawer extends StatelessWidget {
               title: const Text('환경 설정'),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsPage()),
+                );
               },
             ),
             const Divider(),
