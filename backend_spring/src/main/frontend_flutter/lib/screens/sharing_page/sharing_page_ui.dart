@@ -111,7 +111,7 @@ class _SharingListItemState extends State<SharingListItem> {
   Widget build(BuildContext context) {
     // ⭐️ 여기 반드시 fullImageUrl
     final imageUrl = widget.item.fullImageUrl;
-    final hasImage = imageUrl.isNotEmpty;
+    final hasImage = imageUrl != null && imageUrl.isNotEmpty;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -124,23 +124,17 @@ class _SharingListItemState extends State<SharingListItem> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 이미지 영역
-              SizedBox(
-                width: 80,
-                height: 80,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: hasImage
-                      ? ProtectedImage(imageUrl: imageUrl)
-                      : Container(
-                    color: const Color(0xFFf9d9e7),
-                    child: const Center(
-                      child: Text('이미지 없음', style: TextStyle(color: Colors.grey)),
-                    ),
+              if (hasImage) ...[
+                SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: ProtectedImage(imageUrl: imageUrl),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
+                const SizedBox(width: 12),
+              ],
               // 글 영역
               Expanded(
                 child: Column(

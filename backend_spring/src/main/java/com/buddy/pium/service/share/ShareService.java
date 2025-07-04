@@ -15,8 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.stream.Collectors;
 
+import java.util.stream.Collectors;
 import java.util.List;
 
 @Service
@@ -45,8 +45,15 @@ public class ShareService {
         shareRepository.save(share);
     }
 
+    // ⭐ 조회수 증가 로직 추가
+    @Transactional
     public ShareResponseDto get(Long shareId) {
         Share share = validateShare(shareId);
+
+        // 조회수 증가
+        share.setViewCount(share.getViewCount() + 1);
+        shareRepository.save(share);
+
         int likeCount = shareLikeRepository.countByShare(share).intValue();
         Member author = share.getMember();
         String[] addressTokens = AddressParser.parse(author.getAddress());
@@ -84,7 +91,6 @@ public class ShareService {
                 .toList();
     }
 
-    // ✅ 글 수정(수정 후 반드시 save 호출)
     @Transactional
     public void updateShare(
             Long shareId,
@@ -93,7 +99,6 @@ public class ShareService {
             MultipartFile image) {
         Share share = validateShareOwner(shareId, member);
 
-        // 이미지가 새로 왔으면 기존 이미지 삭제 + 새 이미지 저장
         if (image != null && !image.isEmpty()) {
             if (share.getImageUrl() != null) {
                 fileUploadService.delete(share.getImageUrl());
@@ -102,12 +107,10 @@ public class ShareService {
             share.setImageUrl(imageUrl);
         }
 
-        // 제목/내용/카테고리 수정
         share.setTitle(dto.getTitle());
         share.setContent(dto.getContent());
         share.setCategory(dto.getCategory());
 
-        // ⭐⭐ 실제로 DB에 반영하려면 save 호출!
         shareRepository.save(share);
     }
 
@@ -134,13 +137,10 @@ public class ShareService {
 
     // 🔎 통합 검색 기능
     public List<ShareResponseDto> searchShares(String keyword) {
-        // null/공백 방어
         if (keyword == null || keyword.trim().isEmpty()) {
-            return getAll(); // 또는 빈 배열 반환 new ArrayList<>()
+            return getAll();
         }
-
         List<Share> shares = shareRepository.searchByKeyword(keyword.trim());
-
         return shares.stream()
                 .map(share -> {
                     int likeCount = shareLikeRepository.countByShare(share).intValue();

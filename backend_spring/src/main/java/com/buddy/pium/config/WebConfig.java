@@ -21,15 +21,16 @@ public class WebConfig implements WebMvcConfigurer {
         resolvers.add(currentMemberArgumentResolver);
     }
 
-    // @Override
-    // public void addResourceHandlers(ResourceHandlerRegistry registry) {
-    //     registry.addResourceHandler("/uploads/**")
-    //             .addResourceLocations("file:///C:/Users/TJ/tdchoi/Pium/backend_spring/uploads/");
+     @Override
+     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+         registry.addResourceHandler("/uploads/**")
+                 .addResourceLocations("file:///C:/Users/TJ/Hwan/Pium/backend_spring/uploads/");
+     }
 
-    // 정적 리소스 매핑 추가
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/uploads/**")  // 사용자가 url로 접근했을때
-                .addResourceLocations("file:" + System.getProperty("user.dir") + "/uploads/");  // 실제 서버의 파일 경로에서 파일을 찾도록 설정함
-    }
+//    // 정적 리소스 매핑 추가
+//    @Override
+//    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+//        registry.addResourceHandler("/uploads/**")  // 사용자가 url로 접근했을때
+//                .addResourceLocations("file:" + System.getProperty("user.dir") + "/uploads/");  // 실제 서버의 파일 경로에서 파일을 찾도록 설정함
+//    }
 }
