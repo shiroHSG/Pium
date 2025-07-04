@@ -260,7 +260,7 @@ class _ProfileEditHeader extends StatelessWidget {
               child: selectedImage != null
                   ? Image.file(selectedImage!, fit: BoxFit.cover)
                   : (profileImageUrl != null && profileImageUrl!.startsWith('http'))
-                  ? ProtectedImage(imageUrl: profileImageUrl!)
+                  ? ProtectedImage(imageUrl: profileImageUrl!, fit: BoxFit.cover)
                   : const Icon(Icons.camera_alt, color: AppTheme.primaryPurple, size: 50),
             ),
           ),

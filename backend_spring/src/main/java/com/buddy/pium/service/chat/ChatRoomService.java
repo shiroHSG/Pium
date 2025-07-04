@@ -338,10 +338,14 @@ public class ChatRoomService {
 
         int totalUnread = 0;
         for (ChatRoomMember crm : joinedRooms) {
-            int unread = messageRepository.countUnreadMessagesForMember(
+            Long lastReadId = crm.getLastReadMessageId();
+
+            int unread = messageRepository.countUnreadMessagesAfterJoinedAtAndLastRead(
                     crm.getChatRoom().getId(),
-                    member.getId()
+                    crm.getJoinedAt(),
+                    lastReadId
             );
+
             totalUnread += unread;
         }
 

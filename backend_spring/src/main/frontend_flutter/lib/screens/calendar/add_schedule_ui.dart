@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 
+import '../../models/calendar/schedule.dart';
+
 Future<void> onDateTap(BuildContext context, TextEditingController dateController) async {
   final DateTime? picked = await showDatePicker(
     context: context,
@@ -22,7 +24,8 @@ Future<void> showCustomTimePicker(BuildContext context, TextEditingController ti
     now = now.add(const Duration(hours: 1));
     roundedMinute = 0;
   }
-  DateTime initialTime = DateTime(now.year, now.month, now.day, now.hour, roundedMinute);
+  DateTime initialTime = DateTime(
+      now.year, now.month, now.day, now.hour, roundedMinute);
 
   await showCupertinoModalPopup(
     context: context,
@@ -59,9 +62,13 @@ Future<void> showCustomTimePicker(BuildContext context, TextEditingController ti
                     onPressed: () {
                       Navigator.of(context).pop();
                       final amPm = initialTime.hour < 12 ? '오전' : '오후';
-                      final displayHour = initialTime.hour % 12 == 0 ? 12 : initialTime.hour % 12;
+                      final displayHour = initialTime.hour % 12 == 0
+                          ? 12
+                          : initialTime.hour % 12;
                       timeController.text =
-                      '$amPm ${displayHour.toString().padLeft(2, '0')}시 ${initialTime.minute.toString().padLeft(2, '0')}분';
+                      '$amPm ${displayHour.toString().padLeft(
+                          2, '0')}시 ${initialTime.minute.toString().padLeft(
+                          2, '0')}분';
                     },
                   ),
                 ],
@@ -105,7 +112,10 @@ Widget buildScheduleDialog(
     Color? selectedColor,
     ValueChanged<Color> onColorSelected,
     VoidCallback onSave,
+    {Schedule? existingSchedule} // 추가된 파라미터
     ) {
+  final isEdit = existingSchedule != null; // 수정 여부 판단
+
   return AlertDialog(
     contentPadding: EdgeInsets.zero,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
@@ -120,7 +130,10 @@ Widget buildScheduleDialog(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _AddScheduleHeader(onClose: () => Navigator.of(context).pop()),
+          _AddScheduleHeader(
+            onClose: () => Navigator.of(context).pop(),
+            isEdit: isEdit, // 여기서 전달
+          ),
           _ScheduleInputField(hint: '일정 제목', controller: titleController),
           const SizedBox(height: 15),
           _ScheduleInputField(
@@ -148,7 +161,12 @@ Widget buildScheduleDialog(
 
 class _AddScheduleHeader extends StatelessWidget {
   final VoidCallback onClose;
-  const _AddScheduleHeader({required this.onClose});
+  final bool isEdit;
+
+  const _AddScheduleHeader({
+    required this.onClose,
+    this.isEdit = false, // 기본값 false
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -162,10 +180,10 @@ class _AddScheduleHeader extends StatelessWidget {
             color: AppTheme.textPurple,
           ),
         ),
-        const Center(
+        Center(
           child: Text(
-            '일정 추가',
-            style: TextStyle(
+            isEdit ? '일정 수정' : '일정 추가',
+            style: const TextStyle(
               fontFamily: 'Jua',
               fontSize: 23,
               fontWeight: FontWeight.bold,

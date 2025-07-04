@@ -169,16 +169,21 @@ class AuthService {
     }
   }
 
-  // 로그아웃
+// 로그아웃
   Future<bool> logout() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? accessToken = prefs.getString('accessToken');
-      print('로그아웃 시도 - accessToken: $accessToken'); // 디버그 로그 추가
+      print('로그아웃 시도 - accessToken: $accessToken');
 
+      // 토큰이 없더라도 로컬 정보 삭제하고 로그아웃 처리
       if (accessToken == null) {
-        print('로그아웃 실패: 토큰 없음');
-        return false;
+        print('accessToken 없음 - 토큰 삭제 후 로그아웃 처리');
+        await prefs.remove('accessToken');
+        await prefs.remove('refreshToken');
+        await prefs.remove('memberId');
+        disposeEventSource();
+        return true;
       }
 
       final response = await http.post(
@@ -190,21 +195,18 @@ class AuthService {
         },
       );
 
-      print(
-        '로그아웃 API 응답: ${response.statusCode}, ${response.body}',
-      ); // 디버그 로그 추가
+      print('로그아웃 API 응답: ${response.statusCode}, ${response.body}');
 
-      if (response.statusCode == 200) {
+      // 로그아웃 성공 또는 토큰 만료(401) 모두 토큰 삭제 및 로그아웃 처리
+      if (response.statusCode == 200 || response.statusCode == 401) {
         await prefs.remove('accessToken');
         await prefs.remove('refreshToken');
         await prefs.remove('memberId');
         disposeEventSource();
-
         print('로그아웃 완료');
         return true;
       } else {
-        print('응답 상태 코드: ${response.statusCode}');
-        print('응답 본문: ${response.body}');
+        print('예외 응답 상태 코드: ${response.statusCode}');
         return false;
       }
     } catch (e) {
@@ -212,6 +214,7 @@ class AuthService {
       return false;
     }
   }
+
 
   // 내 정보 조회
   Future<Map<String, dynamic>?> fetchMemberInfo() async {
@@ -228,7 +231,8 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        print('$data');
         return data;
       } else {
         print('회원 정보 조회 실패: ${response.statusCode}, ${response.body}');

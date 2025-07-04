@@ -1,14 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:frontend_flutter/theme/app_theme.dart';
-import 'package:frontend_flutter/models/post/post_api_services.dart';
-import '../../models/post/post_request.dart';
-import 'package:frontend_flutter/models/post/post_response.dart';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:frontend_flutter/models/auth/auth_services.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:frontend_flutter/models/post/post_api_services.dart';
+import 'package:frontend_flutter/models/post/post_response.dart';
+
+import '../../screens/community/create_post_page_ui.dart';
 
 class CreatePostPage extends StatefulWidget {
   final bool isEdit;
@@ -25,7 +21,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
   final _contentController = TextEditingController();
   String? _selectedCategory;
   File? _selectedImage;
-  String myAddress = ''; // ✅ 주소 변수
 
   final List<String> _categories = ['자유', '팁', '질문', '모임'];
 
@@ -36,32 +31,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
       _titleController.text = widget.post!.title;
       _contentController.text = widget.post!.content;
       _selectedCategory = widget.post!.category;
-    }
-    _fetchMyAddress();
-  }
-
-  Future<void> _fetchMyAddress() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('accessToken');
-      if (token == null) return;
-
-      final response = await http.get(
-        Uri.parse('http://10.0.2.2:8080/api/member'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-      if (response.statusCode == 200) {
-        final data = json.decode(utf8.decode(response.bodyBytes));
-        setState(() {
-          myAddress = [
-            data['addressCity'] ?? '',
-            data['addressDistrict'] ?? '',
-            data['addressDong'] ?? ''
-          ].where((e) => e != null && e.toString().isNotEmpty).join(' ');
-        });
-      }
-    } catch (e) {
-      print('내 주소 불러오기 실패: $e');
     }
   }
 
@@ -134,96 +103,18 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.isEdit ? '글 수정' : '글 쓰기'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // 주소 표시
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Row(
-                children: [
-                  Icon(Icons.place, size: 18, color: Colors.pink.shade300),
-                  const SizedBox(width: 6),
-                  Text(
-                    myAddress.isNotEmpty ? myAddress : "주소 정보 없음",
-                    style: TextStyle(
-                      color: Colors.pink.shade400,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                      fontFamily: 'Jua',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              value: _selectedCategory,
-              decoration: const InputDecoration(
-                labelText: '카테고리',
-                border: OutlineInputBorder(),
-              ),
-              items: _categories
-                  .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
-                  .toList(),
-              onChanged: (v) => setState(() => _selectedCategory = v),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: '제목',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _contentController,
-              decoration: const InputDecoration(
-                labelText: '내용',
-                border: OutlineInputBorder(),
-              ),
-              minLines: 6,
-              maxLines: 15,
-            ),
-            const SizedBox(height: 16),
-            // 이미지 미리보기 및 선택/삭제 UI
-            if (_selectedImage != null)
-              Stack(
-                children: [
-                  Image.file(_selectedImage!, height: 150),
-                  Positioned(
-                    right: 0,
-                    child: IconButton(
-                      icon: const Icon(Icons.close, color: Colors.red),
-                      onPressed: _removeImage,
-                    ),
-                  ),
-                ],
-              ),
-            TextButton.icon(
-              onPressed: _pickImage,
-              icon: const Icon(Icons.image),
-              label: const Text('이미지 선택'),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                const Spacer(),
-                ElevatedButton(
-                  onPressed: _createOrUpdatePost,
-                  child: Text(widget.isEdit ? '수정하기' : '등록하기'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+    return buildCreatePostScaffold(
+      context: context,
+      isEdit: widget.isEdit,
+      selectedCategory: _selectedCategory,
+      categories: _categories,
+      onCategorySelected: (value) => setState(() => _selectedCategory = value),
+      titleController: _titleController,
+      contentController: _contentController,
+      selectedImage: _selectedImage,
+      onRemoveImage: _removeImage,
+      onPickImage: _pickImage,
+      onCreateOrUpdatePost: _createOrUpdatePost,
     );
   }
 }

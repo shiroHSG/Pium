@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 
+import '../../../widgets/notification_page.dart';
+
 class MyActivityPage extends StatelessWidget {
   const MyActivityPage({super.key});
 
@@ -62,7 +64,12 @@ class MyActivityPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.white),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationPage()),
+              );
+            },
           ),
         ],
       ),

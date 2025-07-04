@@ -63,7 +63,7 @@ Future<void> subscribeToNotifications(String token) async {
     );
 
     _eventSource?.listen((Event event) {
-      print('📥 이벤트 수신: ${event.event} / ${event.data}');
+      // print('📥 이벤트 수신: ${event.event} / ${event.data}');
 
       if (event.event == 'notification') {
         final data = jsonDecode(event.data!);
