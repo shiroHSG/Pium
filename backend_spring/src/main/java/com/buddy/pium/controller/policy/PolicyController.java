@@ -30,7 +30,12 @@ public class PolicyController {
     }
 
     @GetMapping("/search")
-    public List<PolicyResponseDto> searchPolicies(@RequestParam String keyword) {
-        return policyService.searchPolicies(keyword);
+    public Page<PolicyResponseDto> searchPolicies(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return policyService.searchPolicies(keyword, page, size);
     }
+
 }

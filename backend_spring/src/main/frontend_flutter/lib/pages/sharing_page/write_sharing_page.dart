@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
-import 'package:frontend_flutter/models/share/sharing_api_service.dart';
+import 'package:frontend_flutter/models/sharing_page/sharing_api_service.dart';
 import 'package:frontend_flutter/widgets/custom_drawer.dart';
 import 'package:frontend_flutter/screens/sharing_page/write_sharing_page_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
