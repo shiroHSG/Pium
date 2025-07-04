@@ -5,7 +5,6 @@ import 'package:frontend_flutter/models/chat/chatroom.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
 import 'package:frontend_flutter/widgets/protected_image.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../pages/chat/chat_room_message_page.dart';
 import '../../pages/chat/invite_modal.dart';
@@ -17,8 +16,11 @@ Widget SharingDetailPageUI(
     SharingItem item,
     int likeCount,
     bool isLiked,
-    VoidCallback onLikePressed,
-    ) {
+    VoidCallback onLikePressed, {
+      bool canEdit = false,
+      VoidCallback? onEdit,
+      VoidCallback? onDelete,
+    }) {
   return Scaffold(
     appBar: AppBar(
       backgroundColor: AppTheme.primaryPurple,
@@ -101,6 +103,15 @@ Widget SharingDetailPageUI(
                             '작성일 : ${item.postDate}',
                             style: const TextStyle(fontSize: 14, color: Colors.grey),
                           ),
+                          // ✅ 주소 정보 표시 (추가)
+                          if (item.addressCity.isNotEmpty || item.addressDistrict.isNotEmpty || item.addressDong.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2.0),
+                              child: Text(
+                                '주소 : ${item.addressCity} ${item.addressDistrict} ${item.addressDong}',
+                                style: const TextStyle(fontSize: 13, color: Colors.grey),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -134,6 +145,8 @@ Widget SharingDetailPageUI(
                 ],
               ),
               const SizedBox(height: 20),
+
+              // 본문 내용
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(15),
@@ -167,10 +180,34 @@ Widget SharingDetailPageUI(
                   ),
                 ),
               ),
-              const SizedBox(height: 100),
+
+              // 수정/삭제 버튼 (내 글일 때만)
+              if (canEdit && (onEdit != null && onDelete != null))
+                Padding(
+                  padding: const EdgeInsets.only(top: 10, bottom: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.deepPurple),
+                        tooltip: '수정',
+                        onPressed: onEdit,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                        tooltip: '삭제',
+                        onPressed: onDelete,
+                      ),
+                    ],
+                  ),
+                ),
+
+              const SizedBox(height: 80), // 채팅하기 버튼 위한 여백
             ],
           ),
         ),
+
+        // 채팅하기 버튼 (항상 하단 고정)
         Align(
           alignment: Alignment.bottomCenter,
           child: Padding(
@@ -200,7 +237,7 @@ Widget SharingDetailPageUI(
   );
 }
 
-// ✅ 분리된 함수
+// ✅ 채팅 버튼 핸들러
 Future<void> _handleChatButtonPressed(BuildContext context, SharingItem item) async {
   try {
     final chatRoom = await createOrGetShareChatRoom(

@@ -21,8 +21,13 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
   @override
   void initState() {
     super.initState();
-    // isLiked = widget.post.isLiked;
-    // likeCount = widget.post.likeCount;
+    isLiked = widget.post.isLiked;
+    likeCount = widget.post.likeCount;
+  }
+
+  String _formatDate(DateTime? dt) {
+    if (dt == null) return '';
+    return '${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
   }
 
   Future<void> _toggleLike() async {
@@ -31,8 +36,8 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
     await PostApiService.toggleLike(widget.post.id);
     final refreshed = await PostApiService.fetchPostDetail(widget.post.id);
     setState(() {
-      // isLiked = refreshed.isLiked;
-      // likeCount = refreshed.likeCount;
+      isLiked = refreshed.isLiked;
+      likeCount = refreshed.likeCount;
       isLoading = false;
     });
   }
@@ -49,7 +54,7 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
           child: Icon(Icons.person, size: 32, color: Colors.grey[400]),
         ),
         const SizedBox(width: 12),
-        // 닉네임, 조회수, 날짜
+        // 닉네임, 주소, 조회수, 날짜
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,11 +68,39 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
                   color: AppTheme.textPurple,
                 ),
               ),
+              // ★ 주소 한 줄 추가!
+              if (widget.post.addressCity.isNotEmpty ||
+                  widget.post.addressDistrict.isNotEmpty ||
+                  widget.post.addressDong.isNotEmpty)
+                Row(
+                  children: [
+                    Icon(Icons.place, size: 15, color: Colors.pink.shade200),
+                    const SizedBox(width: 2),
+                    Text(
+                      "${widget.post.addressCity} ${widget.post.addressDistrict} ${widget.post.addressDong}".trim(),
+                      style: TextStyle(
+                        fontFamily: 'Jua',
+                        fontSize: 13,
+                        color: Colors.pink.shade400,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               const SizedBox(height: 2),
-              // Text(
-              //   // '조회수 ${widget.post.viewCount}  |  작성일 : ${widget.post.createdAt.split('T').first}',
-              //   // style: TextStyle(fontFamily: 'Jua', fontSize: 12, color: Colors.grey[600]),
-              // ),
+              Row(
+                children: [
+                  Text(
+                    '조회수 ${widget.post.viewCount} | 작성일 : ${_formatDate(widget.post.createdAt)}',
+                    style: TextStyle(
+                      fontFamily: 'Jua',
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),

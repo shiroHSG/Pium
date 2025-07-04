@@ -23,13 +23,13 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
-
     private final FileUploadService fileUploadService;
 
+    // 게시글 등록
     public void create(PostRequestDto dto, Member member, MultipartFile image) {
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
-            imageUrl = fileUploadService.upload(image, "posts"); // 파일 저장 후 URL 리턴
+            imageUrl = fileUploadService.upload(image, "posts");
         }
 
         Post post = Post.builder()
@@ -44,21 +44,30 @@ public class PostService {
         postRepository.save(post);
     }
 
-    public PostResponseDto get(Long postId) {
+    // 게시글 단건 조회(+조회수 증가)
+    public PostResponseDto get(Long postId, Long memberId) {
         Post post = validatePost(postId);
 
-        post.setViewCount(post.getViewCount() + 1);
+        post.setViewCount(post.getViewCount() == null ? 1 : post.getViewCount() + 1);
         postRepository.save(post);
 
-        return PostResponseDto.from(post);
+        return PostResponseDto.from(post, memberId);
     }
 
-    public List<PostResponseDto> getAll(String category) {
-        return postRepository.findAllByCategory(category).stream()
-                .map(PostResponseDto::from)
+    // 전체/카테고리별 리스트
+    public List<PostResponseDto> getAll(String category, Long memberId) {
+        List<Post> posts;
+        if (category == null || category.isBlank()) {
+            posts = postRepository.findAll();
+        } else {
+            posts = postRepository.findByCategory(category);
+        }
+        return posts.stream()
+                .map(post -> PostResponseDto.from(post, memberId))
                 .toList();
     }
 
+    // 게시글 수정
     public void updatePost(Long postId, PostUpdateDto dto, Member member, MultipartFile image) {
         Post post = validatePostOwner(postId, member);
 
@@ -72,8 +81,12 @@ public class PostService {
 
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
+        post.setCategory(dto.getCategory());
+
+        postRepository.save(post);
     }
 
+    // 게시글 삭제
     public void delete(Long postId, Member member) {
         Post post = validatePostOwner(postId, member);
         if (post.getImageUrl() != null) {
@@ -82,31 +95,29 @@ public class PostService {
         postRepository.delete(post);
     }
 
-    public Page<PostResponseDto> search(String type, String keyword, Pageable pageable) {
-        Page<Post> posts;
+    // 검색 (예시: 제목, 내용, 작성자)
+    public List<PostResponseDto> search(String type, String keyword, Long memberId) {
+        List<Post> posts;
 
         if (type == null || keyword == null || keyword.isBlank()) {
-            posts = postRepository.findAll(pageable);
+            posts = postRepository.findAll();
         } else {
             switch (type) {
-                case "title" -> posts = postRepository.findByTitleContaining(keyword, pageable);
-                case "content" -> posts = postRepository.findByContentContaining(keyword, pageable);
-                case "writer" -> posts = postRepository.findByWriterNickname(keyword, pageable);
+                case "title" -> posts = postRepository.findByTitleContaining(keyword);
+                case "content" -> posts = postRepository.findByContentContaining(keyword);
+                case "author" -> posts = postRepository.findByMemberNickname(keyword);
+                case "address" -> posts = postRepository.findByMemberAddress(keyword);
+                case "title_content" -> posts = postRepository.searchByTitleOrContent(keyword);
                 default -> throw new IllegalArgumentException("유효하지 않은 검색 타입입니다.");
             }
         }
-
-        return posts.map(PostResponseDto::from);
+        return posts.stream().map(post -> PostResponseDto.from(post, memberId)).toList();
     }
 
-    public Page<PostResponseDto> searchByLikes(Pageable pageable) {
-        return postRepository.findAllOrderByLikeCountDesc(pageable)
-                .map(PostResponseDto::from);
-    }
-
+    // ========== 유틸 ==========
     public Post validatePostOwner(Long postId, Member member) {
         Post post = validatePost(postId);
-        if (!post.getMember().equals(member)) {
+        if (!post.getMember().getId().equals(member.getId())) {
             throw new AccessDeniedException("권한이 없습니다.");
         }
         return post;

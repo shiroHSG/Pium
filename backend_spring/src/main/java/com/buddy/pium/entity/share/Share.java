@@ -54,4 +54,9 @@ public class Share {
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    // 글 삭제시 좋아요도 같이 삭제
+    @Builder.Default
+    @OneToMany(mappedBy = "share", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ShareLike> likes = new ArrayList<>();
 }

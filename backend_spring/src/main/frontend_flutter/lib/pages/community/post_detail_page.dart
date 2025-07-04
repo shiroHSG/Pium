@@ -7,7 +7,6 @@ import 'package:frontend_flutter/models/auth/auth_services.dart';
 import 'package:frontend_flutter/pages/community/create_post_page.dart';
 import 'package:frontend_flutter/models/post/post_api_services.dart';
 
-
 class PostDetailPage extends StatelessWidget {
   final PostResponse post;
 
@@ -41,37 +40,37 @@ class PostDetailPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ... (프로필, 제목, 내용 등)
+              // 작성자, 주소, 날짜, 좋아요 등 헤더
               PostDetailHeader(post: post),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               PostDetailCategory(category: post.category),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               PostDetailTitle(title: post.title),
-              SizedBox(height: 13),
+              const SizedBox(height: 13),
               PostDetailContent(content: post.content),
-              SizedBox(height: 16),
-              PostDetailImage(imageUrl: post.imgUrl),
-              SizedBox(height: 24),
+              const SizedBox(height: 16),
+              PostDetailImage(imageUrl: post.imageUrl),
+              const SizedBox(height: 24),
 
-              // ✨ 수정/삭제 버튼만 있는 줄 (FutureBuilder)
+              // ✨ 수정/삭제 버튼 (본인 글만)
               FutureBuilder<Map<String, dynamic>?>(
                 future: AuthService().fetchMemberInfo(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) return const SizedBox.shrink();
                   final nickname = snapshot.data!['nickname'];
                   final isOwner = nickname == post.author;
-                  if (!isOwner) return SizedBox.shrink();
+                  if (!isOwner) return const SizedBox.shrink();
                   return Row(
-                    mainAxisAlignment: MainAxisAlignment.end, // 오른쪽 정렬(원하면 변경)
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
                         onPressed: () async {
-                          // 수정 이동
+                          // 수정 페이지 이동
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => CreatePostPage(
-                                mode: PostEditMode.edit,
+                                isEdit: true,
                                 post: post,
                               ),
                             ),
@@ -81,7 +80,7 @@ class PostDetailPage extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: () async {
-                          // 삭제 다이얼로그
+                          // 삭제 확인 다이얼로그
                           final confirmed = await showDialog<bool>(
                             context: context,
                             builder: (ctx) => AlertDialog(
@@ -119,14 +118,11 @@ class PostDetailPage extends StatelessWidget {
                   );
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-              // 👇 댓글 타이틀/댓글 목록/입력창 한 번만!
-              // Text('댓글', style: TextStyle(/* ... */)),
+              // 댓글 섹션
               CommentSection(postId: post.id),
-              SizedBox(height: 12),
-              // 댓글 입력 창이 CommentSection에 포함되어 있지 않으면 추가
-              // PostDetailCommentInput(postId: post.id, onCommentPosted: ...),
+              const SizedBox(height: 12),
             ],
           ),
         ),

@@ -43,7 +43,7 @@ class CommunitySearchBar extends StatefulWidget {
 
 class _CommunitySearchBarState extends State<CommunitySearchBar> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchType = 'title'; // 기본 검색 타입
+  String _searchType = 'title';
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +83,10 @@ class _CommunitySearchBarState extends State<CommunitySearchBar> {
                     const PopupMenuItem(
                       value: 'author',
                       child: Text('작성자'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'address',
+                      child: Text('주소'),
                     ),
                   ],
                 ),
@@ -163,8 +167,6 @@ class CommunityCategoryButtons extends StatelessWidget {
   }
 }
 
-
-
 class PostList extends StatelessWidget {
   final Future<List<PostResponse>> futurePosts;
 
@@ -191,14 +193,13 @@ class PostList extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // postImg는 nullable이므로 null 체크 필요
-            post.imgUrl != null && post.imgUrl!.isNotEmpty
+            post.imageUrl.isNotEmpty
                 ? Container(
               width: 80,
               height: 80,
               margin: const EdgeInsets.only(right: 12),
               child: Image.network(
-                '${PostApiService.baseUrl}/${post.imgUrl!}',
+                post.imageUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(Icons.broken_image, size: 40, color: Colors.grey);
@@ -222,39 +223,44 @@ class PostList extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    // content는 항상 String이라고 가정하지만, 혹시 길이에 따른 에러가 발생할 수도 있으니 확인
                     post.content.length > 50 ? '${post.content.substring(0, 50)}...' : post.content,
                     style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
-                  // 작성자 정보 및 좋아요/댓글 (이 부분에 작성자 이름 추가)
                   Row(
                     children: [
                       Icon(Icons.person, size: 16, color: Colors.grey.shade500),
                       const SizedBox(width: 4),
-                      // PostResponse의 writer 필드를 사용
                       Text(
-                        post.author, // 여기에 작성자 이름을 표시합니다.
+                        post.author,
                         style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
                       ),
                       const SizedBox(width: 12),
-                      // created at 추가 (선택 사항)
-                      // Icon(Icons.access_time, size: 16, color: Colors.grey.shade500),
-                      // const SizedBox(width: 4),
-                      // Text(
-                      //   post.createdAt, // PostResponse에 createdAt 필드가 있으므로 사용 가능
-                      //   style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                      // ),
-                      // const SizedBox(width: 12),
+                      // ★ 주소 한줄 추가!
+                      if (post.addressCity.isNotEmpty ||
+                          post.addressDistrict.isNotEmpty ||
+                          post.addressDong.isNotEmpty)
+                        Row(
+                          children: [
+                            Icon(Icons.place, size: 16, color: Colors.pink.shade200),
+                            const SizedBox(width: 2),
+                            Text(
+                              "${post.addressCity} ${post.addressDistrict} ${post.addressDong}".trim(),
+                              style: TextStyle(color: Colors.pink.shade300, fontSize: 12, fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(width: 12),
+                          ],
+                        ),
                       Icon(Icons.comment, size: 16, color: Colors.grey.shade500),
                       const SizedBox(width: 4),
-                      // Text('${post.commentCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // 댓글 수!
+                      Text('${post.commentCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                       const SizedBox(width: 12),
                       Icon(Icons.thumb_up, size: 16, color: Colors.grey.shade500),
                       const SizedBox(width: 4),
-                      // Text('${post.likeCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)), // 좋아요 연동!
+                      Text('${post.likeCount}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                     ],
                   ),
                 ],
@@ -274,12 +280,10 @@ class PostList extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          // 오류 발생 시 디버깅을 위해 상세 에러 메시지를 출력합니다.
           print('PostList FutureBuilder Error: ${snapshot.error}');
           return Center(child: Text('게시글을 불러오는데 실패했습니다: ${snapshot.error}'));
         } else if (snapshot.hasData) {
           final posts = snapshot.data!;
-          print(posts);
           if (posts.isEmpty) {
             return const Center(
               child: Padding(
@@ -323,7 +327,7 @@ class CreatePostFab extends StatelessWidget {
         final bool? postCreated = await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => CreatePostPage(mode: PostEditMode.create),
+            builder: (context) => CreatePostPage(isEdit: false),
           ),
         );
 
