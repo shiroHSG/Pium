@@ -9,6 +9,7 @@ import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.repository.share.ShareLikeRepository;
 import com.buddy.pium.repository.share.ShareRepository;
 import com.buddy.pium.service.FileUploadService;
+import com.buddy.pium.util.AddressParser;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -46,14 +47,24 @@ public class ShareService {
     public ShareResponseDto get(Long shareId) {
         Share share = validateShare(shareId);
         int likeCount = shareLikeRepository.countByShare(share).intValue();
-        return ShareResponseDto.from(share, likeCount);
+        Member author = share.getMember();
+        String[] addressTokens = AddressParser.parse(author.getAddress());
+        return ShareResponseDto.from(
+                share, likeCount,
+                addressTokens[0], addressTokens[1], addressTokens[2]
+        );
     }
 
     public List<ShareResponseDto> getAll() {
         return shareRepository.findAll().stream()
                 .map(share -> {
                     int likeCount = shareLikeRepository.countByShare(share).intValue();
-                    return ShareResponseDto.from(share, likeCount);
+                    Member author = share.getMember();
+                    String[] addressTokens = AddressParser.parse(author.getAddress());
+                    return ShareResponseDto.from(
+                            share, likeCount,
+                            addressTokens[0], addressTokens[1], addressTokens[2]
+                    );
                 })
                 .toList();
     }
@@ -62,7 +73,12 @@ public class ShareService {
         return shareRepository.findByCategory(category).stream()
                 .map(share -> {
                     int likeCount = shareLikeRepository.countByShare(share).intValue();
-                    return ShareResponseDto.from(share, likeCount);
+                    Member author = share.getMember();
+                    String[] addressTokens = AddressParser.parse(author.getAddress());
+                    return ShareResponseDto.from(
+                            share, likeCount,
+                            addressTokens[0], addressTokens[1], addressTokens[2]
+                    );
                 })
                 .toList();
     }

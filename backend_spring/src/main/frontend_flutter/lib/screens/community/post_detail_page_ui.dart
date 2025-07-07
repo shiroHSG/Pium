@@ -70,7 +70,7 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
           child: Icon(Icons.person, size: 32, color: Colors.grey[400]),
         ),
         const SizedBox(width: 12),
-        // 닉네임, 조회수, 날짜
+        // 닉네임, 주소, 조회수, 날짜
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,8 +84,27 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
                   color: AppTheme.textPurple,
                 ),
               ),
+              // ★ 주소 한 줄 추가!
+              if (widget.post.addressCity.isNotEmpty ||
+                  widget.post.addressDistrict.isNotEmpty ||
+                  widget.post.addressDong.isNotEmpty)
+                Row(
+                  children: [
+                    Icon(Icons.place, size: 15, color: Colors.pink.shade200),
+                    const SizedBox(width: 2),
+                    Text(
+                      "${widget.post.addressCity} ${widget.post.addressDistrict} ${widget.post.addressDong}".trim(),
+                      style: TextStyle(
+                        fontFamily: 'Jua',
+                        fontSize: 13,
+                        color: Colors.pink.shade400,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               const SizedBox(height: 2),
-              // ★ 조회수 및 작성일 표시 (아래처럼 추가!)
               Row(
                 children: [
                   Text(
@@ -101,8 +120,6 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
             ],
           ),
         ),
-
-
         // 하트 & 좋아요 수
         IconButton(
           icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border, color: Colors.pink),
