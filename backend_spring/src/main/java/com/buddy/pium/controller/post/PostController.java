@@ -28,6 +28,16 @@ public class PostController {
 
     private final PostService postService;
 
+    // 인기 게시글 3개 반환
+    @GetMapping("/popular")
+    public ResponseEntity<List<PostResponseDto>> getPopularPosts(
+            @RequestParam(defaultValue = "3") int size,
+            @CurrentMember Member member
+    ) {
+        return ResponseEntity.ok(postService.getPopularPosts(size, member.getId()));
+    }
+
+
     // 게시글 등록 (이미지 포함)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createPost(

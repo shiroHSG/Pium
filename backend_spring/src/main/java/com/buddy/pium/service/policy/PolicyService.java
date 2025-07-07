@@ -52,4 +52,13 @@ public class PolicyService {
             default -> Sort.by(Sort.Direction.DESC, "createdAt");
         };
     }
+
+    public PolicyResponseDto getMostPopularPolicy() {
+        Pageable pageable = PageRequest.of(0, 1);
+        List<Policy> policies = policyRepository.findTopPopularPolicies(pageable);
+        if (policies.isEmpty()) {
+            throw new RuntimeException("인기 정책이 없습니다.");
+        }
+        return PolicyResponseDto.fromEntity(policies.get(0));
+    }
 }

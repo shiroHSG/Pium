@@ -40,4 +40,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE p.member.address LIKE %:keyword%")
     List<Post> findByMemberAddress(@Param("keyword") String keyword);
 
+    @Query("""
+    SELECT p FROM Post p
+    LEFT JOIN p.likes l
+    GROUP BY p
+    ORDER BY COUNT(l) DESC, p.createdAt DESC
+""")
+    List<Post> findPopularPosts(Pageable pageable);
+
 }

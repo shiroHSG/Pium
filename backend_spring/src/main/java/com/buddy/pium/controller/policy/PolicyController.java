@@ -38,4 +38,8 @@ public class PolicyController {
         return policyService.searchPolicies(keyword, page, size);
     }
 
+    @GetMapping("/popular")
+    public PolicyResponseDto getMostPopularPolicy() {
+        return policyService.getMostPopularPolicy();
+    }
 }
