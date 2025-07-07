@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.PageRequest;
 
 import java.io.File;
 import java.util.List;
@@ -24,6 +25,15 @@ public class PostService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
     private final FileUploadService fileUploadService;
+
+    // PostService.java
+    public List<PostResponseDto> getPopularPosts(int size, Long memberId) {
+        Pageable pageable = PageRequest.of(0, size);
+        List<Post> posts = postRepository.findPopularPosts(pageable);
+        return posts.stream()
+                .map(post -> PostResponseDto.from(post, memberId))
+                .toList();
+    }
 
     // 게시글 등록
     public void create(PostRequestDto dto, Member member, MultipartFile image) {
