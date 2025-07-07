@@ -34,12 +34,13 @@ class _PeopleSearchPageState extends State<PeopleSearchPage> {
   void _handleMessageButton(int receiverId) async {
     try {
       final chatRoom = await createOrGetDirectChatRoom(receiverId);
+      final fullDetail = await fetchChatRoomDetail(chatRoom.chatRoomId);
 
       if (!mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ChatRoomPage(chatRoomId: chatRoom.chatRoomId),
+          builder: (_) => ChatRoomPage(chatRoom: fullDetail),
         ),
       );
     } catch (e) {

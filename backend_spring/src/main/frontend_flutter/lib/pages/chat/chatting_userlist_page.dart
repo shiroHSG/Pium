@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../models/chat/chat_service.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/protected_image.dart';
@@ -24,131 +27,173 @@ class ChattingUserlistPage extends StatefulWidget {
 }
 
 class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
-  bool isEditing = false;
   late String currentRoomName;
   final TextEditingController _roomNameController = TextEditingController();
   String? selectedUser;
-
   List<Map<String, dynamic>> _participants = [];
-
   int? myMemberId;
   bool isAdmin = false;
+  bool isGroupChatRoom = false;
+  File? _selectedImageFile;
+
+  // ✅ 추가: 이미지/이름 분기용
+  String? groupImageUrl;
+  String? otherImageUrl;
+  String? otherNickname;
 
   @override
   void initState() {
     super.initState();
     currentRoomName = widget.roomName;
     _roomNameController.text = currentRoomName;
-    _loadParticipants();  // 멤버 불러오기
+    _loadParticipants();
+    _checkChatRoomTypeAndInfo();
   }
 
-  // 채팅방 멤버 불러오기
+  void _checkChatRoomTypeAndInfo() async {
+    try {
+      final detail = await fetchChatRoomDetail(widget.chatRoomId);
+      setState(() {
+        isGroupChatRoom = detail.type == 'GROUP';
+        groupImageUrl = detail.imageUrl;
+        otherImageUrl = detail.otherProfileImageUrl;
+        otherNickname = detail.otherNickname;
+      });
+    } catch (e) {
+      debugPrint('❌ 채팅방 정보 조회 실패: $e');
+    }
+  }
+
   void _loadParticipants() async {
     try {
       final members = await fetchChatRoomMembers(widget.chatRoomId);
-
       final prefs = await SharedPreferences.getInstance();
-      myMemberId = prefs.getInt('memberId'); // 토큰에서 파싱해서 저장
-
-      // 각 멤버에 대한 로그 출력
-      for (var p in members) {
-        print('👀 체크 중: id=${p['memberId']}, isAdmin=${p['isAdmin']} (${p['isAdmin'].runtimeType})');
-      }
-
+      myMemberId = prefs.getInt('memberId');
       setState(() {
         _participants = members;
-
-        isAdmin = _participants.any((p) {
-          final idMatch = p['memberId'] == myMemberId;
-          final isAdminValue = p['admin'].toString(); // 문자열 비교
-          return idMatch && (isAdminValue == '1' || isAdminValue.toLowerCase() == 'true');
-        });
-
-        print('🔥 최종 isAdmin: $isAdmin'); // 확인용 로그
+        isAdmin = _participants.any((p) =>
+        p['memberId'] == myMemberId &&
+            (p['admin'].toString() == '1' || p['admin'].toString().toLowerCase() == 'true'));
       });
     } catch (e) {
       debugPrint('❌ 멤버 불러오기 실패: $e');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('채팅방 멤버를 불러오는 데 실패했습니다.')),
+    }
+  }
+
+  void _pickImageFromGallery() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() => _selectedImageFile = File(picked.path));
+      try {
+        await updateGroupChatRoom(
+          chatRoomId: widget.chatRoomId,
+          chatRoomName: currentRoomName,
+          imageFile: _selectedImageFile,
         );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('이미지가 수정되었습니다.')),
+        );
+      } catch (e) {
+        debugPrint('❌ 이미지 수정 실패: $e');
       }
     }
+  }
+
+  void _showEditNameDialog() {
+    final tempController = TextEditingController(text: currentRoomName);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('채팅방 이름 수정'),
+        content: TextField(controller: tempController),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
+          TextButton(
+            onPressed: () async {
+              final newName = tempController.text;
+              await updateGroupChatRoom(
+                chatRoomId: widget.chatRoomId,
+                chatRoomName: newName,
+                imageFile: _selectedImageFile,
+              );
+              setState(() => currentRoomName = newName);
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('채팅방 이름이 수정되었습니다.')),
+              );
+            },
+            child: const Text('저장'),
+          )
+        ],
+      ),
+    );
   }
 
   void _copyInviteLink() async {
     try {
       final inviteData = await fetchInviteLink(widget.chatRoomId);
       final inviteLink = inviteData['inviteLink'] ?? '';
-
       if (inviteLink.isNotEmpty) {
         Clipboard.setData(ClipboardData(text: inviteLink));
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('초대 링크가 복사되었습니다.')),
-          );
-        }
-      } else {
-        throw Exception('초대 링크가 비어 있습니다.');
-      }
-    } catch (e) {
-      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('초대 링크 복사 실패: $e')),
+          const SnackBar(content: Text('초대 링크가 복사되었습니다.')),
         );
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('초대 링크 복사 실패: $e')),
+      );
     }
   }
 
-  // 채팅방 나가기
+  void _showBanDialog(int memberId, String nickname) {
+    showDialog(
+      context: context,
+      builder: (_) => ConfirmDialog(
+        content: '$nickname 님을 추방하시겠습니까?',
+        confirmText: '추방',
+        cancelText: '취소',
+        onConfirm: () => _banMember(memberId),
+      ),
+    );
+  }
+
+  void _banMember(int memberId) async {
+    try {
+      await banChatRoomMember(
+        chatRoomId: widget.chatRoomId,
+        memberId: memberId,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('사용자를 추방했습니다.')),
+      );
+      _loadParticipants(); // 리스트 새로고침
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('추방 실패: $e')),
+      );
+    }
+  }
+
   void _leaveChatRoom() async {
     try {
-      await leaveChatRoom(widget.chatRoomId); // 서버에 나가기 요청
+      await leaveChatRoom(widget.chatRoomId);
       if (!context.mounted) return;
-
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const MyHomePage()), // 홈화면 또는 채팅 리스트
-            (route) => false,
+        MaterialPageRoute(builder: (_) => const MyHomePage()),
+            (_) => false,
       );
     } catch (e) {
       debugPrint('❌ 채팅방 나가기 실패: $e');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('채팅방 나가기에 실패했습니다.')),
-        );
-      }
     }
   }
 
-  // 채팅방 삭제하기
-  void _deleteChatRoom(int chatRoomId) async {
-    try {
-      await deleteGroupChatRoom(chatRoomId); // 삭제 요청
-      debugPrint('채팅방 삭제 완료');
-
-      if (!context.mounted) return; // context가 살아있는지 체크
-
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const MyHomePage()),
-            (route) => false,
-      );
-    } catch (e) {
-      debugPrint('❌ 채팅방 삭제 실패: $e');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('채팅방 삭제에 실패했습니다.')),
-        );
-      }
-    }
-  }
-
-  // 일반 사용자 채팅방 나가기 모달창
   void _showSimpleLeaveDialog() {
     showDialog(
       context: context,
-      builder: (context) => ConfirmDialog(
+      builder: (_) => ConfirmDialog(
         content: '채팅방을 나가시겠습니까?',
         confirmText: '예',
         cancelText: '아니오',
@@ -157,212 +202,56 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
     );
   }
 
-  // 방장 채팅방 나가기
-  void _showLeaveConfirmDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => ConfirmDialog(
-        content: '채팅방을 삭제 하시겠습니까?\n방장을 위임하시겠습니까?',
-        confirmText: '삭제',
-        cancelText: '방장 위임',
-        onConfirm: () => _deleteChatRoom(widget.chatRoomId),
-        onCancel: _showDelegationSelectDialog,
-      ),
-    );
-  }
-
-  // 방장 위임
-  void _showDelegationSelectDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) => Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    '누구에게 위임하시겠습니까?',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ..._participants.map((p) {
-                    final nickname = p['nickname'] ?? '알 수 없음';
-                    final memberId = p['memberId'].toString(); // 선택된 사용자 ID
-                    return RadioListTile<String>(
-                      title: Text(nickname),
-                      value: memberId,
-                      groupValue: selectedUser,
-                      onChanged: (value) => setState(() => selectedUser = value),
-                      activeColor: AppTheme.primaryPurple,
-                    );
-                  }).toList(),
-
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: selectedUser == null
-                        ? null
-                        : () async {
-                      Navigator.pop(context); // 위임 팝업 닫기
-
-                      try {
-                        // 문자열 selectedUser → 정수로 변환
-                        final newAdminId = int.parse(selectedUser!);
-                        await delegateAdmin(widget.chatRoomId, newAdminId);
-
-                        _showDelegationCompleteDialog(
-                          _participants.firstWhere((p) => p['memberId'].toString() == selectedUser)['nickname'],
-                        );
-                      } catch (e) {
-                        debugPrint('❌ 방장 위임 실패: $e');
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('방장 위임에 실패했습니다.')),
-                          );
-                        }
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryPurple,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('위임하기'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // 방장위임 후 채팅방 나가기
-  void _showDelegationCompleteDialog(String nickname) {
-    showDialog(
-      context: context,
-      builder: (context) => ConfirmDialog(
-        content: '방장이 위임되었습니다.\n채팅방을 나가시겠습니까?',
-        confirmText: '예',
-        cancelText: '아니오',
-        onConfirm: _leaveChatRoom,
-      ),
-    );
-  }
-
-// ✅ 방장일 때 멤버 추방 다이얼로그
-  void _showBanConfirmDialog(Map<String, dynamic> participant) {
-    showDialog(
-      context: context,
-      builder: (context) => ConfirmDialog(
-        content: '${participant['nickname']}님을 추방하시겠습니까?',
-        confirmText: '추방',
-        cancelText: '취소',
-        onConfirm: () => _banUser(participant),
-      ),
-    );
-  }
-
-// ✅ 추방 처리 함수
-  void _banUser(Map<String, dynamic> participant) async {
-    final int memberId = participant['memberId'];
-    try {
-      await banChatRoomMember(
-        chatRoomId: widget.chatRoomId,
-        memberId: memberId,
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${participant['nickname']}님을 추방했습니다.')),
-      );
-      _loadParticipants(); // 멤버 리스트 새로고침
-    } catch (e) {
-      debugPrint('❌ 추방 실패: \$e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('사용자 추방에 실패했습니다.')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryPurple,
-        elevation: 0,
-        centerTitle: false,
-        title: const Text('', style: TextStyle(color: Colors.white)),
-      ),
+      appBar: AppBar(backgroundColor: AppTheme.primaryPurple),
       body: Column(
         children: [
-          const SizedBox(height: 70),
-          const CircleAvatar(radius: 35, backgroundColor: Colors.grey),
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  isEditing
-                      ? SizedBox(
-                    width: 150,
-                    child: TextField(
-                      controller: _roomNameController,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.textPurple,
-                      ),
-                      decoration: const InputDecoration(
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 4),
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  )
-                      : Text(
-                    currentRoomName,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPurple,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        if (isEditing) {
-                          currentRoomName = _roomNameController.text;
-                        }
-                        isEditing = !isEditing;
-                      });
-                    },
-                    icon: Icon(
-                      isEditing ? Icons.check : Icons.edit,
-                      size: 20,
-                      color: AppTheme.textPurple,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
+          const SizedBox(height: 30),
+          Center(
+            child: GestureDetector(
+              onTap: isAdmin && isGroupChatRoom ? _pickImageFromGallery : null,
+              child: _selectedImageFile != null
+                  ? CircleAvatar(
+                radius: 40,
+                backgroundImage: FileImage(_selectedImageFile!),
+              )
+                  : isGroupChatRoom && groupImageUrl != null && groupImageUrl!.isNotEmpty
+                  ? CircleAvatar(
+                radius: 40,
+                backgroundImage: NetworkImage(groupImageUrl!),
+              )
+                  : !isGroupChatRoom && otherImageUrl != null && otherImageUrl!.isNotEmpty
+                  ? CircleAvatar(
+                radius: 40,
+                backgroundImage: NetworkImage(otherImageUrl!),
+              )
+                  : const CircleAvatar(
+                radius: 40,
+                backgroundColor: Colors.grey,
+                child: Icon(Icons.group, color: Colors.white, size: 30),
               ),
             ),
           ),
-          const SizedBox(height: 50),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                isGroupChatRoom ? currentRoomName : (otherNickname ?? currentRoomName),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 6),
+              if (isAdmin && isGroupChatRoom)
+                IconButton(
+                  icon: const Icon(Icons.edit, size: 20),
+                  onPressed: _showEditNameDialog,
+                )
+            ],
+          ),
+          const SizedBox(height: 30),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
             padding: const EdgeInsets.all(16),
@@ -372,23 +261,15 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
             ),
             child: Column(
               children: [
-                const Padding(
-                  padding: EdgeInsets.only(top: 10.0, left: 12.0),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '대화 상대',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.textPurple,
-                      ),
-                    ),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 12.0),
+                    child: Text('대화 상대', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 const SizedBox(height: 30),
                 GridView.builder(
-                  padding: const EdgeInsets.only(left: 12.0, bottom: 15.0),
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: _participants.length,
@@ -398,33 +279,43 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 8,
                   ),
-                  itemBuilder: (context, index) {
-                    final participant = _participants[index];
-                    final imagePath = participant['profileImageUrl'];
-                    final fullImageUrl = (imagePath != null && imagePath.isNotEmpty)
-                        ? 'http://10.0.2.2:8080${imagePath.startsWith('/') ? imagePath : '/$imagePath'}?t=${DateTime.now().millisecondsSinceEpoch}'
-                        : null;
+                    itemBuilder: (_, index) {
+                      final p = _participants[index];
+                      final img = p['profileImageUrl'];
+                      final memberId = p['memberId'];
+                      final nickname = p['nickname'] ?? '알 수 없음';
 
-                    return Row(
-                      children: [
-                        fullImageUrl != null
-                            ? ProtectedImage(imageUrl: fullImageUrl)
-                            : const CircleAvatar(
-                          radius: 12,
-                          backgroundColor: AppTheme.primaryPurple,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          participant['nickname'] ?? '알 수 없음',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: AppTheme.textPurple,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+                      final url = img != null && img.isNotEmpty
+                          ? 'http://10.0.2.2:8080$img?t=${DateTime.now().millisecondsSinceEpoch}'
+                          : null;
 
+                      final isCurrentUser = memberId == myMemberId;
+
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          url != null
+                              ? ProtectedImage(imageUrl: url)
+                              : const CircleAvatar(radius: 12, backgroundColor: AppTheme.primaryPurple),
+                          const SizedBox(width: 8),
+                          Text(nickname),
+                          const SizedBox(width: 10),
+                          if (isGroupChatRoom && isAdmin && !isCurrentUser)
+                            TextButton(
+                              onPressed: () => _showBanDialog(memberId, nickname),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: const Text(
+                                '추방',
+                                style: TextStyle(color: Colors.red, fontSize: 13),
+                              ),
+                            ),
+                        ],
+                      );
+                    }
                 ),
                 const SizedBox(height: 20),
                 Row(
@@ -432,30 +323,17 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
                   children: [
                     ElevatedButton(
                       onPressed: _copyInviteLink,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryPurple,
-                        foregroundColor: Colors.white,
-                      ),
+                      style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryPurple),
                       child: const Text('초대링크 복사'),
                     ),
                     const SizedBox(width: 15),
                     ElevatedButton(
-                      onPressed: () {
-                        print('🔴 현재 isAdmin 값: $isAdmin');
-                        if (isAdmin) {
-                          _showLeaveConfirmDialog(); // 방장만 삭제/위임 가능
-                        } else {
-                          _showSimpleLeaveDialog(); // 일반 멤버는 단순 나가기만
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                      ),
+                      onPressed: _showSimpleLeaveDialog,
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                       child: const Text('채팅방 나가기'),
-                    ),
+                    )
                   ],
-                ),
+                )
               ],
             ),
           ),

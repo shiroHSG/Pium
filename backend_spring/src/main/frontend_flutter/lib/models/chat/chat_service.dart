@@ -508,3 +508,22 @@ Future<void> banChatRoomMember({
     throw Exception('사용자 추방 실패: ${response.statusCode}');
   }
 }
+
+Future<ChatRoom> fetchChatRoomDetail(int chatRoomId) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('accessToken');
+  if (token == null) throw Exception('토큰이 없습니다.');
+
+  final response = await http.get(
+    Uri.parse('$_baseUrl/api/chatroom/$chatRoomId'),
+    headers: {'Authorization': 'Bearer $token'},
+  );
+
+  if (response.statusCode == 200) {
+    final json = jsonDecode(utf8.decode(response.bodyBytes));
+    return ChatRoom.fromJson(json);
+  } else {
+    throw Exception('채팅방 상세 정보 불러오기 실패: ${response.statusCode}');
+  }
+}
+
