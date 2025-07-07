@@ -20,7 +20,11 @@ Widget SharingDetailPageUI(
       bool canEdit = false,
       VoidCallback? onEdit,
       VoidCallback? onDelete,
-    }) {
+    }
+    ) {
+  final imageUrl = item.imageUrl;
+  final hasImage = imageUrl != null && imageUrl.isNotEmpty;
+
   return Scaffold(
     appBar: AppBar(
       backgroundColor: AppTheme.primaryPurple,
@@ -49,33 +53,21 @@ Widget SharingDetailPageUI(
                 style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const Divider(height: 30, thickness: 1, color: Colors.grey),
-              SizedBox(
-                width: double.infinity,
-                height: 250,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: item.imageUrl != null
-                      ? ProtectedImage(
-                    imageUrl: item.imageUrl!.startsWith('http')
-                        ? item.imageUrl!
-                        : 'http://10.0.2.2:8080${item.imageUrl!}',
-                  )
-                      : Container(
-                    color: AppTheme.lightPink,
-                    child: const Center(
-                      child: Text(
-                        '제품 이미지',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+              if (hasImage)
+                SizedBox(
+                  width: double.infinity,
+                  height: 250,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: imageUrl!.startsWith('http')
+                        ? ProtectedImage(imageUrl: imageUrl)
+                        : ProtectedImage(imageUrl: 'http://10.0.2.2:8080$imageUrl'),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
+              if (hasImage)
+                const SizedBox(height: 20),
+              if (!hasImage)
+                const SizedBox(height: 0), // 이미지 없으면 여백X, 필요하면 지워도 무방
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -104,7 +96,9 @@ Widget SharingDetailPageUI(
                             style: const TextStyle(fontSize: 14, color: Colors.grey),
                           ),
                           // ✅ 주소 정보 표시 (추가)
-                          if (item.addressCity.isNotEmpty || item.addressDistrict.isNotEmpty || item.addressDong.isNotEmpty)
+                          if (item.addressCity.isNotEmpty ||
+                              item.addressDistrict.isNotEmpty ||
+                              item.addressDong.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(top: 2.0),
                               child: Text(

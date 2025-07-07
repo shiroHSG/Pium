@@ -21,10 +21,11 @@ public class WebConfig implements WebMvcConfigurer {
         resolvers.add(currentMemberArgumentResolver);
     }
 
-    // @Override
-    // public void addResourceHandlers(ResourceHandlerRegistry registry) {
-    //     registry.addResourceHandler("/uploads/**")
-    //             .addResourceLocations("file:///C:/Users/TJ/tdchoi/Pium/backend_spring/uploads/");
+//     @Override
+//     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+//         registry.addResourceHandler("/uploads/**")
+//                 .addResourceLocations("file:///C:/Users/TJ/Hwan/Pium/backend_spring/uploads/");
+//     }
 
     // 정적 리소스 매핑 추가
     @Override

@@ -17,7 +17,7 @@ spring:
     throw-exception-if-no-handler-found: true
   web:
     resources:
-      add-mappings: false
+      add-mappings: true
 
 logging:
   level:
@@ -27,7 +27,7 @@ logging:
 
 # backend_spring/src/main/resources/application.yml
 jwt:
-  secret: ThisJwtSecretKeyIsDefinitelyOver32BytesLongAndSecure!
+  secret: ${JWT_SECRET}
 
 # 강제로 UTF-8 인코딩
 http:
