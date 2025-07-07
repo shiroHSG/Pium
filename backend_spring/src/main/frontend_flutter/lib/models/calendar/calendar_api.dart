@@ -20,13 +20,13 @@ class CalendarApi {
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
-      return Schedule.fromJson(data); // 서버 응답으로부터 id가 포함된 Schedule 생성
+      return Schedule.fromJson(data);
     } else {
       throw Exception('일정 추가 실패: ${response.body}');
     }
   }
 
-  // 일정 전체 조회
+  // 일정 전체 조회 (본인 + Mate 포함)
   static Future<List<Schedule>> fetchSchedules() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
@@ -56,7 +56,7 @@ class CalendarApi {
     }
 
     final response = await http.patch(
-      Uri.parse('http://10.0.2.2:8080/api/calendar/${schedule.id}'),  // schedule 객체 전체를 전달
+      Uri.parse('http://10.0.2.2:8080/api/calendar/${schedule.id}'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',

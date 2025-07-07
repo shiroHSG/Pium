@@ -40,7 +40,6 @@ class _CalendarPageState extends State<CalendarPage> {
         grouped.putIfAbsent(key, () => []).add(s);
       }
 
-      // ✅ 각 날짜별 리스트를 시간순으로 정렬
       grouped.forEach((key, list) {
         list.sort((a, b) => a.startTime.compareTo(b.startTime));
       });
@@ -49,9 +48,10 @@ class _CalendarPageState extends State<CalendarPage> {
         _schedules = grouped;
       });
     } catch (e) {
-      print('일정 불러오기 실패: $e');
+      print('Mate 일정 포함 일정 불러오기 실패: $e');
     }
   }
+
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     if (!isSameDay(_selectedDay, selectedDay)) {
