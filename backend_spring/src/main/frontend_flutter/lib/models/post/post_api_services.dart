@@ -11,6 +11,31 @@ class PostApiService {
   static const String baseUrl = 'http://10.0.2.2:8080/api/posts'; // API 전용
   static const String baseImageUrl = 'http://10.0.2.2:8080';       // 이미지 전용
 
+  // ⭐️ 인기 게시글 3개 호출 (추가!)
+  static Future<List<PostResponse>> fetchPopularPosts({int size = 3}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    final uri = Uri.parse('$baseUrl/popular?size=$size');
+
+    if (token == null) throw Exception('로그인 토큰이 없습니다. 로그인 해주세요.');
+
+    final response = await http.get(
+      uri,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseBody = utf8.decode(response.bodyBytes);
+      List<dynamic> body = jsonDecode(responseBody);
+      return body.map((e) => PostResponse.fromJson(e)).toList();
+    } else {
+      throw Exception('인기 게시글 로드 실패: ${response.statusCode} ${response.body}');
+    }
+  }
+
   // 게시글 목록 조회
   static Future<List<PostResponse>> fetchPosts(
       String? category, {

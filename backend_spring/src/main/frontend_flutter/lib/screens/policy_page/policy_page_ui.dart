@@ -203,7 +203,7 @@ class _PolicyPageUIState extends State<PolicyPageUI> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => PolicyDetailPage(policy: policy),
+                    builder: (_) => PolicyDetailPage(policyId: policy.id),
                   ),
                 );
               },

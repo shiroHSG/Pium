@@ -4,6 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/baby_profile.dart';
 import 'package:frontend_flutter/models/calendar/schedule.dart';
+import 'package:frontend_flutter/models/post/post_api_services.dart';
+import 'package:frontend_flutter/models/post/post_response.dart';
+import 'package:frontend_flutter/models/policy/policy_service.dart';
+import 'package:frontend_flutter/models/policy/PolicyResponse.dart';
 
 class BabyProfileHeader extends StatelessWidget {
   final BabyProfile babyProfile;
@@ -30,7 +34,6 @@ class BabyProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // 등록된 아이 없음일 경우 → 정중앙 문구 UI 반환
     if (babyProfile.name == '등록된 아이 없음') {
       return GestureDetector(
         onTap: onEditPressed,
@@ -70,7 +73,6 @@ class BabyProfileHeader extends StatelessWidget {
       );
     }
 
-    // 아이 정보가 있는 경우 기존 구성 유지
     return GestureDetector(
       onTap: onEditPressed,
       child: Container(
@@ -158,7 +160,7 @@ class BabyProfileHeader extends StatelessWidget {
 }
 
 class TodayScheduleCard extends StatefulWidget {
-  final List<Schedule> todaySchedules; // 전체 일정
+  final List<Schedule> todaySchedules;
   final VoidCallback onCalendarTap;
 
   const TodayScheduleCard({
@@ -192,7 +194,7 @@ class _TodayScheduleCardState extends State<TodayScheduleCard> {
         schedule.startTime.month == currentDate.month &&
         schedule.startTime.day == currentDate.day
     ).toList()
-      ..sort((a, b) => a.startTime.compareTo(b.startTime)); // 시간순 정렬
+      ..sort((a, b) => a.startTime.compareTo(b.startTime));
   }
 
   @override
@@ -211,7 +213,6 @@ class _TodayScheduleCardState extends State<TodayScheduleCard> {
             ),
             child: Row(
               children: [
-                // 왼쪽 화살표
                 SizedBox(
                   width: 40, height: 60,
                   child: InkWell(
@@ -270,7 +271,6 @@ class _TodayScheduleCardState extends State<TodayScheduleCard> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                // 오른쪽 화살표
                 SizedBox(
                   width: 40, height: 60,
                   child: InkWell(
@@ -290,21 +290,60 @@ class _TodayScheduleCardState extends State<TodayScheduleCard> {
   }
 }
 
-class PopularPostsSection extends StatelessWidget {
+class PopularPostsSection extends StatefulWidget {
   const PopularPostsSection({Key? key}) : super(key: key);
+
+  @override
+  State<PopularPostsSection> createState() => _PopularPostsSectionState();
+}
+
+class _PopularPostsSectionState extends State<PopularPostsSection> {
+  late Future<List<dynamic>> _popularItemsFuture;
+  final PageController _pageController = PageController(viewportFraction: 0.95);
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _popularItemsFuture = _fetchPopularItems();
+  }
+
+  Future<List<dynamic>> _fetchPopularItems() async {
+    final posts = await PostApiService.fetchPopularPosts(size: 3);
+    final policy = await PolicyService.fetchPopularPolicy();
+    return [...posts, policy];
+  }
+
+  void _nextPage(int itemCount) {
+    setState(() {
+      _currentPage = (_currentPage + 1) % itemCount;
+      _pageController.animateToPage(
+        _currentPage,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.ease,
+      );
+    });
+  }
+
+  void _onCardTap(dynamic item) {
+    if (item is PostResponse) {
+      Navigator.pushNamed(context, '/postDetail', arguments: item.id);
+    } else if (item is PolicyResponse) {
+      Navigator.pushNamed(context, '/policyDetail', arguments: item.id);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
+
     return Column(
       children: [
         const SizedBox(height: 40),
         Row(
           children: [
             const SizedBox(width: 16),
-            const Expanded(
-              child: Divider(color: AppTheme.textPurple, thickness: 1),
-            ),
+            const Expanded(child: Divider(color: AppTheme.textPurple, thickness: 1)),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
               child: Text(
@@ -312,37 +351,170 @@ class PopularPostsSection extends StatelessWidget {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
-            const Expanded(
-              child: Divider(color: AppTheme.textPurple, thickness: 1),
-            ),
+            const Expanded(child: Divider(color: AppTheme.textPurple, thickness: 1)),
             const SizedBox(width: 16),
           ],
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Container(
-            width: screenWidth - (16.0 * 2),
-            height: 140,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                const Expanded(
-                  child: Center(child: Text('인기 게시글 내용 들어갈 자리')),
+        FutureBuilder<List<dynamic>>(
+          future: _popularItemsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox(
+                height: 140,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            } else if (snapshot.hasError) {
+              return SizedBox(
+                height: 140,
+                child: Center(child: Text('인기 게시글/정책을 불러오는 데 실패했습니다')),
+              );
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return SizedBox(
+                height: 140,
+                child: Center(child: Text('인기 게시글/정책이 없습니다.')),
+              );
+            } else {
+              final items = snapshot.data!;
+              return SizedBox(
+                height: 140,
+                child: Stack(
+                  alignment: Alignment.centerRight,
+                  children: [
+                    PageView.builder(
+                      controller: _pageController,
+                      itemCount: items.length,
+                      onPageChanged: (index) => setState(() => _currentPage = index),
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        if (item is PostResponse) {
+                          return _buildPostCard(item);
+                        } else if (item is PolicyResponse) {
+                          return _buildPolicyCard(item);
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                    Positioned(
+                      right: 8,
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_forward_ios, color: AppTheme.textPurple),
+                        onPressed: () => _nextPage(items.length),
+                      ),
+                    ),
+                  ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: Icon(Icons.arrow_forward_ios, color: AppTheme.textPurple),
-                ),
-              ],
-            ),
-          ),
+              );
+            }
+          },
         ),
         const SizedBox(height: 30),
       ],
     );
   }
-}
 
+  Widget _buildPostCard(PostResponse post) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      color: Colors.white,
+      child: InkWell(
+        onTap: () => _onCardTap(post),
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      post.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      post.content,
+                      style: const TextStyle(fontSize: 13, color: Colors.black54),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Icon(Icons.favorite, color: Colors.pink, size: 18),
+                        const SizedBox(width: 2),
+                        Text('${post.likeCount}'),
+                        const SizedBox(width: 12),
+                        Icon(Icons.comment, color: Colors.grey, size: 16),
+                        const SizedBox(width: 2),
+                        Text('${post.commentCount}'),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 18, color: AppTheme.textPurple),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPolicyCard(PolicyResponse policy) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      color: Colors.white,
+      child: InkWell(
+        onTap: () => _onCardTap(policy),
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      policy.title ?? '',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      policy.content ?? '',
+                      style: const TextStyle(fontSize: 13, color: Colors.black54),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Icon(Icons.visibility, color: Colors.blueGrey, size: 18),
+                        const SizedBox(width: 2),
+                        Text('${policy.viewCount ?? 0}'),
+                        const SizedBox(width: 12),
+                        Icon(Icons.info, color: Colors.blueGrey, size: 16),
+                        const SizedBox(width: 2),
+                        Text('정책'),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 18, color: AppTheme.textPurple),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

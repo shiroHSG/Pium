@@ -4,6 +4,8 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/pages/auth/login.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:frontend_flutter/pages/home/home_page.dart';
+import 'package:frontend_flutter/pages/community/post_detail_page.dart';
+import 'package:frontend_flutter/pages/policy_page/policy_detail_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();  // 플러터와 프레임워크 연결
@@ -29,11 +31,18 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-
       home: const SplashScreen(),
       routes: {
         '/home': (context) => const MyHomePage(),
         '/login': (context) => Login(),
+        '/postDetail': (context) {
+          final postId = ModalRoute.of(context)!.settings.arguments as int;
+          return PostDetailPage(postId: postId);
+        },
+        '/policyDetail': (context) {
+          final policyId = ModalRoute.of(context)!.settings.arguments as int;
+          return PolicyDetailPage(policyId: policyId);
+        },
       },
     );
   }
