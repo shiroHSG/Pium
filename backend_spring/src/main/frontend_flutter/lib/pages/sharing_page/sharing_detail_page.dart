@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
 import 'package:frontend_flutter/screens/sharing_page/sharing_detail_page_ui.dart';
 import 'package:frontend_flutter/pages/sharing_page/write_sharing_page.dart';
-import '../../models/share/sharing_api_service.dart';
+import 'package:frontend_flutter/models/sharing_page/sharing_api_service.dart';
 
 class SharingDetailPage extends StatefulWidget {
   final SharingItem item;

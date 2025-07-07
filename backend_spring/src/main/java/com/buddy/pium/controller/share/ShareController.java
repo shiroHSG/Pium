@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Map;
@@ -89,5 +91,14 @@ public class ShareController {
     public ResponseEntity<?> delete(@PathVariable Long id, @CurrentMember Member member) {
         shareService.delete(id, member);
         return ResponseEntity.ok(Map.of("message", "나눔 글을 삭제했습니다."));
+    }
+
+    // 🔎 통합 검색 엔드포인트
+    @GetMapping("/search")
+    public ResponseEntity<List<ShareResponseDto>> searchShares(
+            @RequestParam("keyword") String keyword
+    ) {
+        List<ShareResponseDto> results = shareService.searchShares(keyword);
+        return ResponseEntity.ok(results);
     }
 }

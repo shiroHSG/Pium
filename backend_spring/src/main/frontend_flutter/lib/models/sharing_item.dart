@@ -1,8 +1,10 @@
+const String baseUrl = 'http://10.0.2.2:8080';
+
 class SharingItem {
   final int id;
   final String name;
   final String content;
-  final String? imageUrl;
+  final String? imageUrl;  // 원본 서버에서 오는 이미지 경로(상대/절대 가능)
   final String authorId;
   final int authorMemberId;
   final int views;
@@ -34,6 +36,13 @@ class SharingItem {
     required this.addressDistrict,
     required this.addressDong,
   });
+
+  /// 실제 이미지 표시용 "http://..."가 붙은 전체 url
+  String get fullImageUrl {
+    if (imageUrl == null || imageUrl!.isEmpty) return '';
+    if (imageUrl!.startsWith('http')) return imageUrl!;
+    return '$baseUrl$imageUrl'; // 상대경로면 BASE_URL 붙여줌
+  }
 
   factory SharingItem.fromJson(Map<String, dynamic> json) {
     final createdAtRaw = json['createdAt'];

@@ -106,6 +106,7 @@ public class PostService {
                 case "title" -> posts = postRepository.findByTitleContaining(keyword);
                 case "content" -> posts = postRepository.findByContentContaining(keyword);
                 case "author" -> posts = postRepository.findByMemberNickname(keyword);
+                case "address" -> posts = postRepository.findByMemberAddress(keyword);
                 case "title_content" -> posts = postRepository.searchByTitleOrContent(keyword);
                 default -> throw new IllegalArgumentException("유효하지 않은 검색 타입입니다.");
             }

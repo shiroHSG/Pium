@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.stream.Collectors;
 
 import java.util.List;
 
@@ -129,5 +130,27 @@ public class ShareService {
     public Share validateShare(Long shareId) {
         return shareRepository.findById(shareId)
                 .orElseThrow(() -> new ResourceNotFoundException("글이 없습니다."));
+    }
+
+    // 🔎 통합 검색 기능
+    public List<ShareResponseDto> searchShares(String keyword) {
+        // null/공백 방어
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return getAll(); // 또는 빈 배열 반환 new ArrayList<>()
+        }
+
+        List<Share> shares = shareRepository.searchByKeyword(keyword.trim());
+
+        return shares.stream()
+                .map(share -> {
+                    int likeCount = shareLikeRepository.countByShare(share).intValue();
+                    Member author = share.getMember();
+                    String[] addressTokens = AddressParser.parse(author.getAddress());
+                    return ShareResponseDto.from(
+                            share, likeCount,
+                            addressTokens[0], addressTokens[1], addressTokens[2]
+                    );
+                })
+                .collect(Collectors.toList());
     }
 }
