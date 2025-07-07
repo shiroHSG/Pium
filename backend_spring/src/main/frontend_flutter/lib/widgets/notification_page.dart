@@ -168,7 +168,8 @@ class _NotificationPageState extends State<NotificationPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => PostDetailPage(post: response),
+                                builder: (context) => PostDetailPage(postId: response.id),
+                                // PostDetailPage : final int postId;
                               ),
                             );
                           }

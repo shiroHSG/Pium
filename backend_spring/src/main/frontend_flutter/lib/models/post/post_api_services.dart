@@ -1,13 +1,15 @@
 import 'dart:convert';
-import 'package:frontend_flutter/models/post/post_request.dart';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'post_request.dart';
 import 'post_response.dart';
-import 'package:frontend_flutter/models/post/post_comment.dart';
-import 'dart:io';
+import 'post_comment.dart';
 
 class PostApiService {
-  static const String baseUrl = 'http://10.0.2.2:8080/api/posts';
+  static const String baseUrl = 'http://10.0.2.2:8080/api/posts'; // API 전용
+  static const String baseImageUrl = 'http://10.0.2.2:8080';       // 이미지 전용
 
   // 게시글 목록 조회
   static Future<List<PostResponse>> fetchPosts(
@@ -24,7 +26,6 @@ class PostApiService {
 
     Uri uri;
 
-    // 1) 검색 조건이 있으면 → /search로!
     if (type != null && type.isNotEmpty && keyword != null && keyword.isNotEmpty) {
       uri = Uri.parse('$baseUrl/search').replace(
         queryParameters: {
@@ -33,7 +34,6 @@ class PostApiService {
         },
       );
     } else {
-      // 2) 아니면 목록 조회 (카테고리/정렬)
       final Map<String, String> queryParameters = {};
       if (category != null && category.isNotEmpty) {
         queryParameters['category'] = category;
@@ -66,8 +66,7 @@ class PostApiService {
     }
   }
 
-
-  // 게시글 등록
+  // 게시글 등록 (멀티파트)
   static Future<void> createPostMultipart({
     required String title,
     required String content,
@@ -81,7 +80,6 @@ class PostApiService {
     final request = http.MultipartRequest('POST', url);
     request.headers['Authorization'] = 'Bearer $token';
 
-    // postData(json) 필드로 보내기
     final postData = jsonEncode({
       'title': title,
       'content': content,
@@ -89,7 +87,6 @@ class PostApiService {
     });
     request.fields['postData'] = postData;
 
-    // 파일이 있으면 첨부
     if (imageFile != null) {
       request.files.add(
         await http.MultipartFile.fromPath('image', imageFile.path),
@@ -105,103 +102,6 @@ class PostApiService {
       print('게시글 등록 실패: ${response.statusCode} ${response.body}');
       throw Exception('게시글 작성 실패');
     }
-  }
-
-  // 좋아요 토글 함수
-  static Future<bool> toggleLike(int postId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
-    final url = '$baseUrl/$postId/like';
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      // 서버에서 isLiked, likeCount 등을 내려주면 여기서 반환값을 파싱해서 전달할 수도 있음
-      return true;
-    } else {
-      print('좋아요 실패: ${response.statusCode} ${response.body}');
-      return false;
-    }
-  }
-
-  // 게시글 상세 재조회 함수 (isLiked, likeCount 갱신 목적)
-  static Future<PostResponse> fetchPostDetail(int postId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
-    final url = '$baseUrl/$postId';
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final jsonMap = json.decode(response.body);
-      return PostResponse.fromJson(jsonMap);
-    } else {
-      throw Exception('게시글 상세 조회 실패');
-    }
-  }
-
-  // 댓글 등록
-  static Future<bool> addComment(int postId, String content) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
-    final url = '$baseUrl/$postId/comments';
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'content': content}),
-    );
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return true;
-    } else {
-      print('댓글 등록 실패: ${response.statusCode} ${response.body}');
-      return false;
-    }
-  }
-
-  // 댓글 목록 조회
-  static Future<List<Comment>> fetchComments(int postId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
-    final url = '$baseUrl/$postId/comments';
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> list = json.decode(response.body);
-      return list.map((json) => Comment.fromJson(json)).toList();
-    } else {
-      throw Exception('댓글 목록 조회 실패');
-    }
-  }
-
-  // 게시글 삭제
-  static Future<bool> deletePost(int postId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
-    final url = '$baseUrl/$postId';
-    final response = await http.delete(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-    return response.statusCode == 200 || response.statusCode == 204;
   }
 
   // 게시글 수정
@@ -240,6 +140,98 @@ class PostApiService {
     } else {
       print('게시글 수정 실패: ${response.statusCode} ${response.body}');
       throw Exception('게시글 수정 실패');
+    }
+  }
+
+  // 게시글 삭제
+  static Future<bool> deletePost(int postId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    final url = '$baseUrl/$postId';
+    final response = await http.delete(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    return response.statusCode == 200 || response.statusCode == 204;
+  }
+
+  // 게시글 상세 조회
+  static Future<PostResponse> fetchPostDetail(int postId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    final url = '$baseUrl/$postId';
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      final decodedBody = utf8.decode(response.bodyBytes); // 디코딩 적용
+      final jsonMap = json.decode(decodedBody); // 디코딩된 body 사용
+      return PostResponse.fromJson(jsonMap);
+    } else {
+      throw Exception('게시글 상세 조회 실패');
+    }
+  }
+
+  // 좋아요 토글
+  static Future<bool> toggleLike(int postId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    final url = '$baseUrl/$postId/like';
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      print('좋아요 실패: ${response.statusCode} ${response.body}');
+      return false;
+    }
+  }
+
+  // 댓글 등록
+  static Future<bool> addComment(int postId, String content) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    final url = '$baseUrl/$postId/comments';
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'content': content}),
+    );
+    return response.statusCode == 200 || response.statusCode == 201;
+  }
+
+  // 댓글 목록 조회
+  static Future<List<Comment>> fetchComments(int postId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    final url = '$baseUrl/$postId/comments';
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> list = json.decode(response.body);
+      return list.map((json) => Comment.fromJson(json)).toList();
+    } else {
+      throw Exception('댓글 목록 조회 실패');
     }
   }
 }

@@ -31,29 +31,40 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
 
     @Query("""
-    SELECT COUNT(m)
-    FROM Message m
-    WHERE m.chatRoom.id = :chatRoomId
-      AND m.id > (
-          SELECT COALESCE(crm.lastReadMessageId, 0)
-          FROM ChatRoomMember crm
-          WHERE crm.chatRoom.id = :chatRoomId
-            AND crm.member.id = :memberId
-      )
-""")
+                SELECT COUNT(m)
+                FROM Message m
+                WHERE m.chatRoom.id = :chatRoomId
+                  AND m.id > (
+                      SELECT COALESCE(crm.lastReadMessageId, 0)
+                      FROM ChatRoomMember crm
+                      WHERE crm.chatRoom.id = :chatRoomId
+                        AND crm.member.id = :memberId
+                  )
+            """)
     int countUnreadMessagesForMember(@Param("chatRoomId") Long chatRoomId,
                                      @Param("memberId") Long memberId);
 
     @Query("""
-    SELECT COUNT(m)
-    FROM Message m
-    WHERE m.chatRoom = :chatRoom
-      AND m.id > :lastReadMessageId
-      AND m.sender <> :member
-""")
+                SELECT COUNT(m)
+                FROM Message m
+                WHERE m.chatRoom = :chatRoom
+                  AND m.id > :lastReadMessageId
+                  AND m.sender <> :member
+            """)
     int countUnreadMessagesAfterMessageId(@Param("chatRoom") ChatRoom chatRoom,
                                           @Param("lastReadMessageId") Long lastReadMessageId,
                                           @Param("member") Member member);
 
     int countByChatRoomAndSenderNot(ChatRoom chatRoom, Member member);
+
+
+    @Query("SELECT COUNT(m) FROM Message m " +
+            "WHERE m.chatRoom.id = :chatRoomId " +
+            "AND m.sentAt > :joinedAt " +
+            "AND (:lastReadMessageId IS NULL OR m.id > :lastReadMessageId)")
+    int countUnreadMessagesAfterJoinedAtAndLastRead(
+            @Param("chatRoomId") Long chatRoomId,
+            @Param("joinedAt") LocalDateTime joinedAt,
+            @Param("lastReadMessageId") Long lastReadMessageId
+    );
 }

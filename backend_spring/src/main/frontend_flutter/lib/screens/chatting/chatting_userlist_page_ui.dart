@@ -11,6 +11,8 @@ class ChattingUserlistPageUI extends StatelessWidget {
   final VoidCallback onCopyInviteLink;
   final VoidCallback onLeaveChatRoom;
   final VoidCallback? onLeaveWithDelegation;
+  final bool isAdmin;
+  final VoidCallback? onBanPressed;
 
   const ChattingUserlistPageUI({
     super.key,
@@ -22,6 +24,8 @@ class ChattingUserlistPageUI extends StatelessWidget {
     required this.onCopyInviteLink,
     required this.onLeaveChatRoom,
     this.onLeaveWithDelegation,
+    required this.isAdmin,
+    this.onBanPressed,
   });
 
   @override
@@ -151,27 +155,55 @@ class ChattingUserlistPageUI extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ElevatedButton(
-                      onPressed: onCopyInviteLink,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryPurple,
-                        foregroundColor: Colors.white,
+                    // 초대링크 복사 버튼
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: onCopyInviteLink,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          minimumSize: Size.zero, // 최소 크기 해제
+                          backgroundColor: AppTheme.primaryPurple,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('초대링크 복사', style: TextStyle(fontSize: 12)),
                       ),
-                      child: const Text('초대링크 복사'),
                     ),
-                    const SizedBox(width: 15),
-                    ElevatedButton(
-                      onPressed: onLeaveChatRoom,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
+                    const SizedBox(width: 8),
+
+                    // 추방 버튼 (조건부 렌더링)
+                    if (isAdmin && onBanPressed != null)
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: onBanPressed,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            minimumSize: Size.zero,
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('추방하기', style: TextStyle(fontSize: 12)),
+                        ),
                       ),
-                      child: const Text('채팅방 나가기'),
+                    if (isAdmin && onBanPressed != null) const SizedBox(width: 8),
+
+                    // 나가기 버튼
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: onLeaveChatRoom,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          minimumSize: Size.zero,
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('채팅방 나가기', style: TextStyle(fontSize: 12)),
+                      ),
                     ),
                   ],
-                ),
+                )
+
               ],
             ),
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
+import '../../widgets/notification_page.dart';
 import '../../widgets/protected_image.dart';
 
 class SharingAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -18,7 +19,12 @@ class SharingAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         IconButton(
           icon: const Icon(Icons.notifications_none, color: Colors.white),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => NotificationPage()),
+            );
+          },
         ),
       ],
     );
@@ -105,7 +111,7 @@ class _SharingListItemState extends State<SharingListItem> {
   Widget build(BuildContext context) {
     // ⭐️ 여기 반드시 fullImageUrl
     final imageUrl = widget.item.fullImageUrl;
-    final hasImage = imageUrl.isNotEmpty;
+    final hasImage = imageUrl != null && imageUrl.isNotEmpty;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -118,23 +124,17 @@ class _SharingListItemState extends State<SharingListItem> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 이미지 영역
-              SizedBox(
-                width: 80,
-                height: 80,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: hasImage
-                      ? ProtectedImage(imageUrl: imageUrl)
-                      : Container(
-                    color: const Color(0xFFf9d9e7),
-                    child: const Center(
-                      child: Text('이미지 없음', style: TextStyle(color: Colors.grey)),
-                    ),
+              if (hasImage) ...[
+                SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: ProtectedImage(imageUrl: imageUrl),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
+                const SizedBox(width: 12),
+              ],
               // 글 영역
               Expanded(
                 child: Column(

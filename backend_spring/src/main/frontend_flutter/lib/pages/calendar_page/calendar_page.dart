@@ -4,6 +4,8 @@ import 'package:frontend_flutter/models/calendar/schedule.dart';
 import 'package:frontend_flutter/models/calendar/calendar_api.dart';
 import 'package:frontend_flutter/screens/calendar/calendar_page_ui.dart';
 
+import '../../widgets/notification_page.dart';
+
 class CalendarPage extends StatefulWidget {
   const CalendarPage({Key? key}) : super(key: key);
 
@@ -153,7 +155,12 @@ class _CalendarPageState extends State<CalendarPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.white),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationPage()),
+              );
+            },
           ),
         ],
       ),
