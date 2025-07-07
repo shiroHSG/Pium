@@ -54,6 +54,13 @@ public class ChatRoomController {
         return ResponseEntity.ok(chatRooms);
     }
 
+    @GetMapping("/{chatRoomId}")
+    public ResponseEntity<ChatRoomResponseDto> getChatRoomDetail(@PathVariable Long chatRoomId,
+                                                                 @CurrentMember Member member) {
+        ChatRoomResponseDto dto = chatRoomService.getChatRoomDetail(chatRoomId, member);
+        return ResponseEntity.ok(dto);
+    }
+
     // 채팅방 수정
     @PatchMapping(value = "{chatRoomId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateGroupChatRoom(
