@@ -9,8 +9,7 @@ import 'package:frontend_flutter/models/post/post_api_services.dart';
 
 class PostDetailPage extends StatefulWidget {
   final int postId;
-
-  const PostDetailPage({Key? key, required this.postId}) : super(key: key);
+  const PostDetailPage({required this.postId, Key? key}) : super(key: key);
 
   @override
   State<PostDetailPage> createState() => _PostDetailPageState();
@@ -81,7 +80,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
               PostDetailImage(imageUrl: post!.imageUrl),
               const SizedBox(height: 24),
 
-              FutureBuilder<Map<String, dynamic>?>( // 수정/삭제 버튼
+              FutureBuilder<Map<String, dynamic>?>(
                 future: AuthService().fetchMemberInfo(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) return const SizedBox.shrink();

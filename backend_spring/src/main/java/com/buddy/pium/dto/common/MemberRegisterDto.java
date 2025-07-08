@@ -1,6 +1,7 @@
 package com.buddy.pium.dto.common;
 
 import com.buddy.pium.entity.common.Enum;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.time.LocalDate;
