@@ -1,6 +1,7 @@
 package com.buddy.pium.repository.common;
 
 import com.buddy.pium.entity.common.Member;
+
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
 
