@@ -42,4 +42,4 @@ out/
 /src/main/resources/application-local.yml
 
 # .gitignore
-../../Fastruck/src/.env
+.env
