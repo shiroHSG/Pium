@@ -5,6 +5,7 @@ import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.service.FileUploadService;
+import com.buddy.pium.service.S3UploadService;
 import com.buddy.pium.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
@@ -29,6 +30,7 @@ public class MemberService {
     private final JwtUtil jwtUtil;
 
     private final FileUploadService fileUploadService;
+    private final S3UploadService s3UploadService;
 
     // 회원 생성
     public void signUp(MemberRequestDto dto, MultipartFile image) {
@@ -39,9 +41,13 @@ public class MemberService {
         if(memberRepository.existsByNickname(dto.getNickname())) {
             throw new IllegalArgumentException("이미 사용중인 닉네임입니다.");
         }
+        System.out.println("imageService signUp : "+image);
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
-            imageUrl = fileUploadService.upload(image, "members"); // 파일 저장 후 URL 리턴
+            System.out.println("s3 imageurl1 : " + imageUrl);
+//            imageUrl = fileUploadService.upload(image, "members");
+            imageUrl = s3UploadService.upload(image, "members"); // 파일 저장 후 URL 리턴
+            System.out.println("s3 imageurl2 : " + imageUrl);
         }
 
         Member member = Member.builder()
