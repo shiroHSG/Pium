@@ -128,7 +128,7 @@ class _BabyProfileEditPageState extends State<BabyProfileEditPage> {
     final imageProvider = _selectedImage != null
         ? FileImage(_selectedImage!)
         : (widget.babyProfile.profileImageUrl != null
-        ? NetworkImage('http://10.0.2.2:8080${widget.babyProfile.profileImageUrl!}')
+        ? NetworkImage('${widget.babyProfile.profileImageUrl!}')
         : const AssetImage('assets/default_baby.png') as ImageProvider);
 
     return Scaffold(

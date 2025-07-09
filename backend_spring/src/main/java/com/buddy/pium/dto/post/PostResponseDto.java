@@ -1,5 +1,6 @@
 package com.buddy.pium.dto.post;
 
+import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.Post;
 import lombok.*;
 
@@ -22,15 +23,16 @@ public class PostResponseDto {
     private Integer likeCount;
     private Integer commentCount;
     private Boolean isLiked;
+    private String profileImageUrl;
 
     // ✅ 주소 필드 추가
     private String addressCity;
     private String addressDistrict;
     private String addressDong;
 
-    public static PostResponseDto from(Post post, Long currentUserId) {
+    public static PostResponseDto from(Post post, Member currentUser) {
         boolean liked = post.getLikes().stream()
-                .anyMatch(like -> like.getMember().getId().equals(currentUserId));
+                .anyMatch(like -> like.getMember().equals(currentUser));
 
         // Member에서 주소 파싱
         String address = post.getMember().getAddress();
@@ -51,6 +53,7 @@ public class PostResponseDto {
                 .likeCount(post.getLikes().size())
                 .commentCount(post.getPostComments().size())
                 .isLiked(liked)
+                .profileImageUrl(currentUser.getProfileImageUrl())
                 // ✅ 주소 파싱 값 세팅
                 .addressCity(city)
                 .addressDistrict(district)

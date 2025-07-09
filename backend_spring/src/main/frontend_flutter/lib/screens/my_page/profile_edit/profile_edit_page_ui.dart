@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import '../../../widgets/protected_image.dart';
+import '../../../widgets/s3_image.dart';
 
 class ProfileEditPageUI extends StatelessWidget {
   final TextEditingController emailController;
@@ -259,8 +260,8 @@ class _ProfileEditHeader extends StatelessWidget {
             child: ClipOval(
               child: selectedImage != null
                   ? Image.file(selectedImage!, fit: BoxFit.cover)
-                  : (profileImageUrl != null && profileImageUrl!.startsWith('http'))
-                  ? ProtectedImage(imageUrl: profileImageUrl!, fit: BoxFit.cover)
+                  : (profileImageUrl != null && profileImageUrl!.isNotEmpty)
+                  ? S3Image(imageUrl: profileImageUrl!, fit: BoxFit.cover)
                   : const Icon(Icons.camera_alt, color: AppTheme.primaryPurple, size: 50),
             ),
           ),

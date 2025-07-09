@@ -8,8 +8,7 @@ import 'post_response.dart';
 import 'post_comment.dart';
 
 class PostApiService {
-  static const String baseUrl = 'http://10.0.2.2:8080/api/posts'; // API 전용
-  static const String baseImageUrl = 'http://10.0.2.2:8080';       // 이미지 전용
+  static const String baseUrl = 'http://10.0.2.2:8080/api/posts'; // API 전용   // 이미지 전용
 
   // ⭐️ 인기 게시글 3개 호출 (추가!)
   static Future<List<PostResponse>> fetchPopularPosts({int size = 3}) async {

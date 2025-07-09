@@ -285,8 +285,9 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
                       final memberId = p['memberId'];
                       final nickname = p['nickname'] ?? '알 수 없음';
 
-                      final url = img != null && img.isNotEmpty
-                          ? 'http://10.0.2.2:8080$img?t=${DateTime.now().millisecondsSinceEpoch}'
+                      final url = (img != null && img.isNotEmpty)
+                          ? (img.startsWith('http') ? img : 'http://10.0.2.2:8080${img.startsWith('/') ? img : '/$img'}')
+                          + '?t=${DateTime.now().millisecondsSinceEpoch}'
                           : null;
 
                       final isCurrentUser = memberId == myMemberId;

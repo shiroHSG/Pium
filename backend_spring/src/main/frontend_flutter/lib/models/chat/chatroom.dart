@@ -32,13 +32,6 @@ class ChatRoom {
     required this.unreadCount,
   });
 
-  /// ✅ 공용 이미지 URL 생성기
-  static String? _resolveImageUrl(String? path) {
-    if (path == null || path.isEmpty) return null;
-    return 'http://10.0.2.2:8080${path.startsWith('/') ? path : '/$path'}'
-        '?t=${DateTime.now().millisecondsSinceEpoch}';
-  }
-
   /// ✅ 날짜 파싱 (String 또는 List[int])
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
@@ -59,11 +52,11 @@ class ChatRoom {
       chatRoomId: json['chatRoomId'],
       type: json['type'],
       otherNickname: json['otherNickname'],
-      otherProfileImageUrl: _resolveImageUrl(json['otherProfileImageUrl']),
+      otherProfileImageUrl: json['otherProfileImageUrl'],
       sharePostId: json['sharePostId'],
       sharePostTitle: json['sharePostTitle'],
       chatRoomName: json['chatRoomName'],
-      imageUrl: _resolveImageUrl(json['imageUrl']),
+      imageUrl: json['imageUrl'],
       lastMessage: json['lastMessage'] ?? '',
       lastSentAt: _parseDateTime(json['lastSentAt']),
       unreadCount: json['unreadCount'] ?? 0,

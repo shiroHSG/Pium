@@ -65,7 +65,7 @@ public class PostController {
             @PathVariable Long postId,
             @CurrentMember Member member
     ) {
-        return ResponseEntity.ok(postService.get(postId, member.getId()));
+        return ResponseEntity.ok(postService.get(postId, member));
     }
 
     // 게시글 전체/카테고리별 조회
@@ -74,7 +74,7 @@ public class PostController {
             @RequestParam(required = false) String category,
             @CurrentMember Member member
     ) {
-        return ResponseEntity.ok(postService.getAll(category, member.getId()));
+        return ResponseEntity.ok(postService.getAll(category, member));
     }
 
     // 게시글 수정 (이미지 포함, PATCH 방식 권장)
@@ -117,6 +117,6 @@ public class PostController {
             @RequestParam String keyword,
             @CurrentMember Member member
     ) {
-        return ResponseEntity.ok(postService.search(type, keyword, member.getId()));
+        return ResponseEntity.ok(postService.search(type, keyword, member));
     }
 }

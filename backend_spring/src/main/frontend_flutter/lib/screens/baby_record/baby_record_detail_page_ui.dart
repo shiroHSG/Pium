@@ -49,9 +49,7 @@ class BabyRecordDetailTitleAndImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // ✅ Android 에뮬레이터용 완전한 이미지 URL 생성
-    final fullImageUrl = (imageUrl != null && imageUrl!.isNotEmpty)
-        ? 'http://10.0.2.2:8080${imageUrl!.startsWith('/') ? imageUrl : '/${imageUrl!}'}'
-        : null;
+    final fullImageUrl = (imageUrl != null && imageUrl!.isNotEmpty) ? imageUrl : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

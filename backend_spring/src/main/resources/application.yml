@@ -28,6 +28,20 @@ logging:
 # backend_spring/src/main/resources/application.yml
 jwt:
   secret: ${JWT_SECRET}
+#jwt:
+#  secret: "thisIsMySuperLongSecretKeyForJWTToken987654321!"
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${ACCESS_KEY}
+      secret-key: ${SECRET_KEY}
+    s3:
+      bucket-name: ${BUCKET_NAME}
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
 
 # 강제로 UTF-8 인코딩
 http:

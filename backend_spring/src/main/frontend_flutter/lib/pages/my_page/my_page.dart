@@ -24,7 +24,7 @@ class _MyPageState extends State<MyPage> {
     if (data != null && mounted) {
       final imagePath = data['profileImageUrl'];
       final fullImageUrl = (imagePath != null && imagePath.isNotEmpty)
-          ? 'http://10.0.2.2:8080${imagePath.startsWith('/') ? imagePath : '/$imagePath'}?t=${DateTime.now().millisecondsSinceEpoch}'
+          ? imagePath
           : null;
 
       setState(() {

@@ -6,6 +6,7 @@ import 'package:frontend_flutter/pages/my_page/profile_edit/profile_edit_page.da
 import 'package:frontend_flutter/pages/my_page/setting_page/setting_page.dart';
 
 import '../../widgets/protected_image.dart';
+import '../../widgets/s3_image.dart';
 
 class MyPageUI extends StatelessWidget {
   final String nickname;
@@ -64,7 +65,7 @@ class _MyPageHeader extends StatelessWidget {
               child: SizedBox(
                 width: 120,
                 height: 120,
-                child: ProtectedImage(
+                child: S3Image(
                   imageUrl: profileImageUrl!,
                   fit: BoxFit.cover,
                 ),

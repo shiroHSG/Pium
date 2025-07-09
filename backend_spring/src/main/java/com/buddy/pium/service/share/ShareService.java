@@ -8,7 +8,7 @@ import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.repository.share.ShareLikeRepository;
 import com.buddy.pium.repository.share.ShareRepository;
-import com.buddy.pium.service.FileUploadService;
+import com.buddy.pium.service.S3UploadService;
 import com.buddy.pium.util.AddressParser;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +26,13 @@ public class ShareService {
     private final ShareRepository shareRepository;
     private final MemberRepository memberRepository;
     private final ShareLikeRepository shareLikeRepository;
-    private final FileUploadService fileUploadService;
+    private final S3UploadService s3UploadService;
 
     @Transactional
     public void create(ShareRequestDto dto, Member member, MultipartFile image) {
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
-            imageUrl = fileUploadService.upload(image, "shares");
+            imageUrl = s3UploadService.upload(image, "shares");
         }
         Share share = Share.builder()
                 .title(dto.getTitle())
@@ -101,9 +101,9 @@ public class ShareService {
 
         if (image != null && !image.isEmpty()) {
             if (share.getImageUrl() != null) {
-                fileUploadService.delete(share.getImageUrl());
+                s3UploadService.delete(share.getImageUrl());
             }
-            String imageUrl = fileUploadService.upload(image, "shares");
+            String imageUrl = s3UploadService.upload(image, "shares");
             share.setImageUrl(imageUrl);
         }
 
@@ -117,7 +117,7 @@ public class ShareService {
     public void delete(Long shareId, Member member) {
         Share share = validateShareOwner(shareId, member);
         if (share.getImageUrl() != null) {
-            fileUploadService.delete(share.getImageUrl());
+            s3UploadService.delete(share.getImageUrl());
         }
         shareRepository.delete(share);
     }

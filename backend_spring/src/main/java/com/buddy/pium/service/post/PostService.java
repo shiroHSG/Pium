@@ -6,16 +6,14 @@ import com.buddy.pium.entity.post.Post;
 import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.repository.post.PostRepository;
-import com.buddy.pium.service.FileUploadService;
+import com.buddy.pium.service.S3UploadService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.PageRequest;
 
-import java.io.File;
 import java.util.List;
 
 @Service
@@ -24,14 +22,16 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
-    private final FileUploadService fileUploadService;
+    private final S3UploadService s3UploadService;
 
     // PostService.java
     public List<PostResponseDto> getPopularPosts(int size, Long memberId) {
         Pageable pageable = PageRequest.of(0, size);
         List<Post> posts = postRepository.findPopularPosts(pageable);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
         return posts.stream()
-                .map(post -> PostResponseDto.from(post, memberId))
+                .map(post -> PostResponseDto.from(post, member))
                 .toList();
     }
 
@@ -39,7 +39,7 @@ public class PostService {
     public void create(PostRequestDto dto, Member member, MultipartFile image) {
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
-            imageUrl = fileUploadService.upload(image, "posts");
+            imageUrl = s3UploadService.upload(image, "posts");
         }
 
         Post post = Post.builder()
@@ -55,17 +55,17 @@ public class PostService {
     }
 
     // 게시글 단건 조회(+조회수 증가)
-    public PostResponseDto get(Long postId, Long memberId) {
+    public PostResponseDto get(Long postId, Member member) {
         Post post = validatePost(postId);
 
         post.setViewCount(post.getViewCount() == null ? 1 : post.getViewCount() + 1);
         postRepository.save(post);
 
-        return PostResponseDto.from(post, memberId);
+        return PostResponseDto.from(post, member);
     }
 
     // 전체/카테고리별 리스트
-    public List<PostResponseDto> getAll(String category, Long memberId) {
+    public List<PostResponseDto> getAll(String category, Member member) {
         List<Post> posts;
         if (category == null || category.isBlank()) {
             posts = postRepository.findAll();
@@ -73,7 +73,7 @@ public class PostService {
             posts = postRepository.findByCategory(category);
         }
         return posts.stream()
-                .map(post -> PostResponseDto.from(post, memberId))
+                .map(post -> PostResponseDto.from(post, member))
                 .toList();
     }
 
@@ -83,9 +83,9 @@ public class PostService {
 
         if (image != null && !image.isEmpty()) {
             if (post.getImageUrl() != null) {
-                fileUploadService.delete(post.getImageUrl());
+                s3UploadService.delete(post.getImageUrl());
             }
-            String imageUrl = fileUploadService.upload(image, "posts");
+            String imageUrl = s3UploadService.upload(image, "posts");
             post.setImageUrl(imageUrl);
         }
 
@@ -100,13 +100,13 @@ public class PostService {
     public void delete(Long postId, Member member) {
         Post post = validatePostOwner(postId, member);
         if (post.getImageUrl() != null) {
-            fileUploadService.delete(post.getImageUrl());
+            s3UploadService.delete(post.getImageUrl());
         }
         postRepository.delete(post);
     }
 
     // 검색 (예시: 제목, 내용, 작성자)
-    public List<PostResponseDto> search(String type, String keyword, Long memberId) {
+    public List<PostResponseDto> search(String type, String keyword, Member member) {
         List<Post> posts;
 
         if (type == null || keyword == null || keyword.isBlank()) {
@@ -121,7 +121,7 @@ public class PostService {
                 default -> throw new IllegalArgumentException("유효하지 않은 검색 타입입니다.");
             }
         }
-        return posts.stream().map(post -> PostResponseDto.from(post, memberId)).toList();
+        return posts.stream().map(post -> PostResponseDto.from(post, member)).toList();
     }
 
     // ========== 유틸 ==========

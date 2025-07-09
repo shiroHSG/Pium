@@ -5,8 +5,7 @@ import com.buddy.pium.entity.common.Child;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.ChildRepository;
-import com.buddy.pium.repository.common.MemberRepository;
-import com.buddy.pium.service.FileUploadService;
+import com.buddy.pium.service.S3UploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -21,12 +20,12 @@ import java.util.stream.Collectors;
 public class ChildService {
 
     private final ChildRepository childRepository;
-    private final FileUploadService fileUploadService;
+    private final S3UploadService s3UploadService;
 
     public void addChild(ChildRequestDto dto, Member member, MultipartFile image) {
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
-            imageUrl = fileUploadService.upload(image, "children"); // 파일 저장 후 URL 리턴
+            imageUrl = s3UploadService.upload(image, "children"); // 파일 저장 후 URL 리턴
         }
 
         Child child = Child.builder()
@@ -46,7 +45,7 @@ public class ChildService {
     public void deleteChild(Long childId, Member member) {
         Child child = validateChild(childId, member);
         if (child.getProfileImgUrl() != null) {
-            fileUploadService.delete(child.getProfileImgUrl());
+            s3UploadService.delete(child.getProfileImgUrl());
         }
         childRepository.delete(child);
     }
@@ -57,9 +56,9 @@ public class ChildService {
 
         if (image != null && !image.isEmpty()) {
             if (child.getProfileImgUrl() != null) { // ✅ 수정
-                fileUploadService.delete(child.getProfileImgUrl());
+                s3UploadService.delete(child.getProfileImgUrl());
             }
-            String imageUrl = fileUploadService.upload(image, "children");
+            String imageUrl = s3UploadService.upload(image, "children");
             child.setProfileImgUrl(imageUrl);
         }
 //        else if (dto.getProfileImgUrl() != null && dto.getProfileImgUrl().startsWith("/uploads")) {
