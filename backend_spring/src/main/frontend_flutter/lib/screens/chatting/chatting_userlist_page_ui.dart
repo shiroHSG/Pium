@@ -130,7 +130,7 @@ class ChattingUserlistPageUI extends StatelessWidget {
                     final participant = participants[index];
                     final imagePath = participant['profileImageUrl'];
                     final fullImageUrl = (imagePath != null && imagePath.isNotEmpty)
-                        ? 'http://10.0.2.2:8080${imagePath.startsWith('/') ? imagePath : '/$imagePath'}?t=${DateTime.now().millisecondsSinceEpoch}'
+                        ? imagePath
                         : null;
 
                     return Row(

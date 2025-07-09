@@ -67,7 +67,12 @@ class _PostDetailHeaderState extends State<PostDetailHeader> {
         CircleAvatar(
           radius: 26,
           backgroundColor: Colors.grey[200],
-          child: Icon(Icons.person, size: 32, color: Colors.grey[400]),
+          backgroundImage: widget.post.profileImageUrl.isNotEmpty
+              ? NetworkImage(widget.post.profileImageUrl)
+              : null,
+          child: widget.post.profileImageUrl.isEmpty
+              ? Icon(Icons.person, size: 32, color: Colors.grey[400])
+              : null,
         ),
         const SizedBox(width: 12),
         // 닉네임, 주소, 조회수, 날짜
@@ -236,14 +241,18 @@ class PostDetailImage extends StatelessWidget {
           color: Colors.grey.shade200,
         ),
         clipBehavior: Clip.antiAlias,
-        child: ProtectedImage(
-          imageUrl: imageUrl!,
+        child: Image.network(
+          imageUrl!,
           fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const Center(child: Icon(Icons.broken_image, size: 40, color: Colors.grey));
+          },
         ),
       ),
     );
   }
 }
+
 // 전체 이미지 보이기
 class FullscreenImagePage extends StatelessWidget {
   final String imageUrl;

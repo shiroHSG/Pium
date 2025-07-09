@@ -81,8 +81,7 @@ class _EditBabyRecordPageState extends State<EditBabyRecordPage> {
     if (selectedImage != null) {
       return Image.file(selectedImage!, height: 200, fit: BoxFit.cover);
     } else if (widget.entry.imageUrl != null && widget.entry.imageUrl!.isNotEmpty) {
-      final fullUrl = 'http://10.0.2.2:8080${widget.entry.imageUrl!.startsWith('/') ? widget.entry.imageUrl : '/${widget.entry.imageUrl!}'}';
-      return Image.network(fullUrl, height: 200, fit: BoxFit.cover);
+      return Image.network(widget.entry.imageUrl!, height: 200, fit: BoxFit.cover);
     } else {
       return const Text('이미지가 없습니다.');
     }

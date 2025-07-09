@@ -25,19 +25,12 @@ class ChatMessage {
       messageId: json['messageId'],
       senderId: json['senderId'],
       senderNickname: json['senderNickname'],
-      senderProfileImageUrl: _resolveImageUrl(json['senderProfileImageUrl']),
+      senderProfileImageUrl: json['senderProfileImageUrl'],
       content: json['content'],
       sentAt: _parseDateTime(json['sentAt']),
       unreadCount: json['unreadCount'],
       isMe: json['senderId'] == currentUserId,
     );
-  }
-
-  /// ✅ 이미지 경로를 절대 URL로 보정
-  static String _resolveImageUrl(String? path) {
-    if (path == null || path.isEmpty) return '';
-    return 'http://10.0.2.2:8080${path.startsWith('/') ? path : '/$path'}'
-        '?t=${DateTime.now().millisecondsSinceEpoch}';
   }
 
   /// ✅ 날짜 파싱

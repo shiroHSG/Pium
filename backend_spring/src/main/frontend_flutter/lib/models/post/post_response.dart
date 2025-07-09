@@ -12,6 +12,7 @@ class PostResponse {
   final bool isLiked;
   final int likeCount;
   final int commentCount;
+  final String profileImageUrl;
 
   // ✅ 주소 정보 (시/군/구/동)
   final String addressCity;
@@ -30,6 +31,7 @@ class PostResponse {
     required this.isLiked,
     required this.likeCount,
     required this.commentCount,
+    required this.profileImageUrl,
     required this.addressCity,
     required this.addressDistrict,
     required this.addressDong,
@@ -48,6 +50,7 @@ class PostResponse {
       isLiked: json['isLiked'] ?? false,
       likeCount: json['likeCount'] ?? 0,
       commentCount: json['commentCount'] ?? 0,
+      profileImageUrl: json['profileImageUrl'] ?? '',
       // ✅ 주소 정보
       addressCity: json['addressCity'] ?? '',
       addressDistrict: json['addressDistrict'] ?? '',

@@ -38,7 +38,7 @@ class BabyRecordHeader extends StatelessWidget {
               color: Colors.grey,
               image: selectedChild?.profileImageUrl != null
                   ? DecorationImage(
-                image: NetworkImage('http://10.0.2.2:8080${selectedChild!.profileImageUrl}'),
+                image: NetworkImage('${selectedChild!.profileImageUrl}'),
                 fit: BoxFit.cover,
               )
                   : const DecorationImage(

@@ -289,7 +289,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     final child = _children[index];
                     final ImageProvider<Object> image =
                     (child.profileImageUrl != null && child.profileImageUrl!.isNotEmpty)
-                        ? NetworkImage('http://10.0.2.2:8080${child.profileImageUrl}')
+                        ? NetworkImage('${child.profileImageUrl}')
                         : const AssetImage('assets/default_baby.png');
                     return BabyProfileHeader(
                       babyProfile: child,

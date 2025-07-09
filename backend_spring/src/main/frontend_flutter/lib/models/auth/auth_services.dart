@@ -7,7 +7,7 @@ import '../notification/notification.dart';
 class AuthService {
   static const String baseUrl = 'http://10.0.2.2:8080'; // 하드코딩
 
-  // 이메일 닉네임 중복
+  // 회원가입
   Future<String?> signUp(
     Map<String, dynamic> memberData, {
     http.MultipartFile? imageFile,

@@ -8,7 +8,7 @@ import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.ChildRepository;
 import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.repository.diary.DiaryRepository;
-import com.buddy.pium.service.FileUploadService;
+import com.buddy.pium.service.S3UploadService;
 import com.buddy.pium.service.common.ChildService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -26,12 +26,12 @@ public class DiaryService {
     private final ChildRepository childRepository;
 
     private final ChildService childService;
-    private final FileUploadService fileUploadService;
+    private final S3UploadService s3UploadService;
 
     public void create(DiaryRequestDto dto, Member member, MultipartFile image) {
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
-            imageUrl = fileUploadService.upload(image, "diaries"); // 파일 저장 후 URL 리턴
+            imageUrl = s3UploadService.upload(image, "diaries"); // 파일 저장 후 URL 리턴
         }
 
         Child child = childService.validateChild(dto.getChildId(), member);
@@ -74,7 +74,7 @@ public class DiaryService {
         // ✅ 1. removeImage가 true이면 기존 이미지 삭제
         if (Boolean.TRUE.equals(dto.getRemoveImage())) {
             if (diary.getImageUrl() != null) {
-                fileUploadService.delete(diary.getImageUrl());
+                s3UploadService.delete(diary.getImageUrl());
                 diary.setImageUrl(null);
             }
         }
@@ -85,7 +85,7 @@ public class DiaryService {
             MultipartFile newImage = images.get(0);
 
             // 새 이미지 업로드 후 저장
-            String imageUrl = fileUploadService.upload(newImage, "diaries");
+            String imageUrl = s3UploadService.upload(newImage, "diaries");
             diary.setImageUrl(imageUrl);
         }
 
@@ -95,7 +95,7 @@ public class DiaryService {
     public void delete(Long diaryId, Member member) {
         Diary diary = validateDiaryOwner(diaryId, member);
         if (diary.getImageUrl() != null) {
-            fileUploadService.delete(diary.getImageUrl());
+            s3UploadService.delete(diary.getImageUrl());
         }
         diaryRepository.delete(diary);
     }

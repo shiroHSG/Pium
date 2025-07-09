@@ -3,6 +3,7 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/chat/chatroom.dart';
+import '../../widgets/s3_image.dart';
 
 class ChattingAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String selectedMode;  //선택모드 ->  type
@@ -103,9 +104,9 @@ class ChattingListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profileImage = chatRoom.imageUrl ??
-        chatRoom.otherProfileImageUrl ?? ''; // 없으면 공백
-
+    final rawImage = chatRoom.imageUrl ?? chatRoom.otherProfileImageUrl;
+    final profileImage = (rawImage != null && rawImage.isNotEmpty) ? rawImage : null;
+    print("$profileImage");
     final name = (chatRoom.type == 'SHARE' &&
         chatRoom.otherNickname != null &&
         chatRoom.sharePostTitle != null)
@@ -120,11 +121,9 @@ class ChattingListItem extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 25,
-              backgroundImage: profileImage.isNotEmpty
-                  ? NetworkImage(profileImage)
-                  : null,
               backgroundColor: Colors.grey[300],
-              child: profileImage.isEmpty
+              backgroundImage: profileImage != null ? NetworkImage(profileImage) : null,
+              child: profileImage == null
                   ? const Icon(Icons.person, color: Colors.grey)
                   : null,
             ),

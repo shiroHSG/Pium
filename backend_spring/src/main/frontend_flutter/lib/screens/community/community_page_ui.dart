@@ -193,13 +193,19 @@ class PostList extends StatelessWidget {
             if (post.imageUrl != null && post.imageUrl!.isNotEmpty)
               Container(
                 margin: const EdgeInsets.only(right: 12),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  margin: const EdgeInsets.only(right: 12),
-                  child: ProtectedImage(
-                    imageUrl: '${PostApiService.baseImageUrl}${post.imageUrl!}',
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    post.imageUrl!,
+                    width: 80,
+                    height: 80,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 80,
+                      height: 80,
+                      color: Colors.grey.shade300,
+                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                    ),
                   ),
                 ),
               ),

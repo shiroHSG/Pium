@@ -110,12 +110,10 @@ class _BabyCard extends StatelessWidget {
             CircleAvatar(
               radius: 40,
               backgroundColor: AppTheme.primaryPurple,
-              backgroundImage: (baby.profileImageUrl != null &&
-                  baby.profileImageUrl!.startsWith('/uploads'))
-                  ? NetworkImage('http://10.0.2.2:8080${baby.profileImageUrl!}')
+              backgroundImage: (baby.profileImageUrl != null && baby.profileImageUrl!.isNotEmpty)
+                  ? NetworkImage(baby.profileImageUrl!)
                   : null,
-              child: (baby.profileImageUrl == null ||
-                  !baby.profileImageUrl!.startsWith('/uploads'))
+              child: (baby.profileImageUrl == null || baby.profileImageUrl!.isEmpty)
                   ? const Icon(Icons.child_care, color: Colors.white, size: 40)
                   : null,
             ),

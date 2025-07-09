@@ -21,11 +21,6 @@ class MemberApi {
       final decodedBody = utf8.decode(response.bodyBytes);
       final List<dynamic> data = json.decode(decodedBody);
       return data.map((item) {
-        // ✅ 상대 경로 → 절대 URL로 변환
-        if (item['profileImageUrl'] != null &&
-            !item['profileImageUrl'].toString().startsWith('http')) {
-          item['profileImageUrl'] = 'http://10.0.2.2:8080${item['profileImageUrl']}';
-        }
         return Member.fromJson(item);
       }).toList();
     } else {

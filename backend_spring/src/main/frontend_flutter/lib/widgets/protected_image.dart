@@ -3,8 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:typed_data';
 
-import '../models/post/post_api_services.dart';
-
 class ProtectedImage extends StatefulWidget {
   final String imageUrl;
   final BoxFit fit;
@@ -58,15 +56,17 @@ class _ProtectedImageState extends State<ProtectedImage> {
       return;
     }
 
-    // ✅ 수정된 URL 처리: 이미지 전용 baseImageUrl 사용
-    final fullUrl = widget.imageUrl.startsWith('http')
-        ? widget.imageUrl
-        : '${PostApiService.baseImageUrl}${widget.imageUrl}';
+    final fullUrl = widget.imageUrl;
 
     try {
+      final uri = Uri.parse(fullUrl);
+      final isS3 = uri.host.contains('s3.') || uri.host.contains('amazonaws.com');
+
       final response = await http.get(
-        Uri.parse(fullUrl),
-        headers: {'Authorization': 'Bearer $token'},
+        uri,
+        headers: isS3
+            ? {} // ✅ S3는 헤더 없이 요청
+            : {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
