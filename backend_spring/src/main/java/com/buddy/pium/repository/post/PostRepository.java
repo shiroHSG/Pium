@@ -1,5 +1,6 @@
 package com.buddy.pium.repository.post;
 
+import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,5 +48,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     ORDER BY COUNT(l) DESC, p.createdAt DESC
 """)
     List<Post> findPopularPosts(Pageable pageable);
+
+    // 내가 쓴 글 (최신순, 페이징)
+    Page<Post> findByMemberOrderByCreatedAtDesc(Member member, Pageable pageable);
+
+    // id 리스트로 Post 찾기 (좋아요 누른 글 - 페이징 지원)
+    Page<Post> findByIdInOrderByCreatedAtDesc(List<Long> postIds, Pageable pageable);
 
 }

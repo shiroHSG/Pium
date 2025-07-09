@@ -3,6 +3,11 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 
 import '../../../widgets/notification_page.dart';
 
+import 'my_liked_posts_page.dart';
+import 'my_liked_shares_page.dart';
+import 'my_written_posts_page.dart';
+import 'my_written_shares_page.dart';
+
 class MyActivityPage extends StatelessWidget {
   const MyActivityPage({super.key});
 
@@ -80,28 +85,37 @@ class MyActivityPage extends StatelessWidget {
             // 커뮤니티 섹션
             _buildSectionTitle('커뮤니티'),
             _buildActivityButton('작성한 게시글', () {
-              print('작성한 게시글');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MyWrittenPostsPage(),
+                ),
+              );
             }),
-            _buildActivityButton('좋아요한 글', () {
-              print('좋아요한 글');
+            _buildActivityButton('좋아요 누른 글', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => MyLikedPostsPage()),
+              );
             }),
 
             // 나눔 품앗이 섹션
             _buildSectionTitle('나눔 품앗이'),
-            _buildActivityButton('나눔 좋아요 누른 글', () {
-              print('나눔 좋아요 누른 글');
+            _buildActivityButton('작성한 게시글', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => MyWrittenSharesPage(), // 작성한 나눔글 목록 페이지로 이동
+                ),
+              );
             }),
-            _buildActivityButton('품앗이 좋아요 누른 글', () {
-              print('품앗이 좋아요 누른 글');
-            }),
-            _buildActivityButton('작성한 글', () {
-              print('작성한 품앗이 글');
-            }),
-
-            // 기타
-            _buildSectionTitle('기타'),
-            _buildActivityButton('최근 본 글', () {
-              print('최근 본 글');
+            _buildActivityButton('좋아요 누른 글', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => MyLikedSharesPage(), // 좋아요 누른 나눔글 목록 페이지로 이동
+                ),
+              );
             }),
           ],
         ),

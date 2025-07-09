@@ -1,6 +1,7 @@
 package com.buddy.pium.controller.share;
 
 import com.buddy.pium.annotation.CurrentMember;
+import com.buddy.pium.dto.share.ShareListItemDto;
 import com.buddy.pium.dto.share.ShareRequestDto;
 import com.buddy.pium.dto.share.ShareResponseDto;
 import com.buddy.pium.entity.common.Member;
@@ -9,13 +10,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Map;
@@ -26,6 +25,28 @@ import java.util.Map;
 public class ShareController {
 
     private final ShareService shareService;
+
+    // 🔥 [추가] 내가 쓴 나눔글 목록 (페이징)
+    @GetMapping("/mine")
+    public ResponseEntity<Page<ShareListItemDto>> getMyShares(
+            @CurrentMember Member member,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<ShareListItemDto> result = shareService.findMyShares(member, page, size);
+        return ResponseEntity.ok(result);
+    }
+
+    // 🔥 [추가] 좋아요 누른 나눔글 목록 (페이징)
+    @GetMapping("/liked-list")
+    public ResponseEntity<Page<ShareListItemDto>> getLikedShares(
+            @CurrentMember Member member,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<ShareListItemDto> result = shareService.findLikedShares(member, page, size);
+        return ResponseEntity.ok(result);
+    }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createShare(

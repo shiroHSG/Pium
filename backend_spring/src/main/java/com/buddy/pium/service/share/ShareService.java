@@ -1,9 +1,11 @@
 package com.buddy.pium.service.share;
 
+import com.buddy.pium.dto.share.ShareListItemDto;
 import com.buddy.pium.dto.share.ShareRequestDto;
 import com.buddy.pium.dto.share.ShareResponseDto;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.share.Share;
+import com.buddy.pium.entity.share.ShareLike;
 import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.repository.share.ShareLikeRepository;
@@ -12,12 +14,15 @@ import com.buddy.pium.service.FileUploadService;
 import com.buddy.pium.util.AddressParser;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.stream.Collectors;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +32,35 @@ public class ShareService {
     private final MemberRepository memberRepository;
     private final ShareLikeRepository shareLikeRepository;
     private final FileUploadService fileUploadService;
+
+    // ========== [추가] 내가 쓴 나눔글(목록) ==========
+    public Page<ShareListItemDto> findMyShares(Member member, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Share> shares = shareRepository.findByMemberOrderByCreatedAtDesc(member, pageable);
+        return shares.map(ShareListItemDto::fromEntity);
+    }
+
+    // ========== [추가] 내가 좋아요 누른 나눔글(목록) ==========
+    public Page<ShareListItemDto> findLikedShares(Member member, int page, int size) {
+        // 1. 내가 누른 좋아요 ShareLike 엔티티 전체 추출 (최신순)
+        List<ShareLike> likes = shareLikeRepository.findByMemberOrderByIdDesc(member);
+
+        // 2. shareId 리스트만 추출 (중복/Null 체크 포함)
+        List<Long> shareIds = likes.stream()
+                .map(like -> like.getShare().getId())
+                .distinct()
+                .collect(Collectors.toList());
+
+        if (shareIds.isEmpty()) {
+            // 아무것도 없으면 빈 Page 반환
+            return Page.empty(PageRequest.of(page, size));
+        }
+
+        // 3. 해당 Share id로 페이징 + 최신순 조회
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Share> shares = shareRepository.findByIdInOrderByCreatedAtDesc(shareIds, pageable);
+        return shares.map(ShareListItemDto::fromEntity);
+    }
 
     @Transactional
     public void create(ShareRequestDto dto, Member member, MultipartFile image) {
