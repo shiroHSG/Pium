@@ -3,30 +3,61 @@ package com.buddy.pium.service.post;
 import com.buddy.pium.dto.post.*;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.entity.post.Post;
+import com.buddy.pium.entity.post.PostLike;
 import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MemberRepository;
+import com.buddy.pium.repository.post.PostLikeRepository;
 import com.buddy.pium.repository.post.PostRepository;
 import com.buddy.pium.service.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.data.domain.PageRequest;
 
-import java.io.File;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
 
     private final PostRepository postRepository;
+    private final PostLikeRepository postLikeRepository;
     private final MemberRepository memberRepository;
     private final FileUploadService fileUploadService;
 
-    // PostService.java
+    // ========== [추가] 내가 쓴 글(목록) ==========
+    public Page<PostListItemDto> findMyPosts(Member member, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Post> posts = postRepository.findByMemberOrderByCreatedAtDesc(member, pageable);
+        return posts.map(PostListItemDto::fromEntity);
+    }
+
+    // ========== [추가] 내가 좋아요 누른 글(목록) ==========
+    public Page<PostListItemDto> findLikedPosts(Member member, int page, int size) {
+        // 1. 내가 누른 좋아요 PostLike 엔티티 전체 추출 (최신순)
+        List<PostLike> likes = postLikeRepository.findByMemberOrderByIdDesc(member);
+
+        // 2. postId 리스트만 추출 (중복/Null 체크 포함)
+        List<Long> postIds = likes.stream()
+                .map(like -> like.getPost().getId())
+                .distinct()
+                .collect(Collectors.toList());
+
+        if (postIds.isEmpty()) {
+            // 아무것도 없으면 빈 Page 반환
+            return Page.empty(PageRequest.of(page, size));
+        }
+
+        // 3. 해당 Post id로 페이징 + 최신순 조회
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Post> posts = postRepository.findByIdInOrderByCreatedAtDesc(postIds, pageable);
+        return posts.map(PostListItemDto::fromEntity);
+    }
+
     public List<PostResponseDto> getPopularPosts(int size, Long memberId) {
         Pageable pageable = PageRequest.of(0, size);
         List<Post> posts = postRepository.findPopularPosts(pageable);

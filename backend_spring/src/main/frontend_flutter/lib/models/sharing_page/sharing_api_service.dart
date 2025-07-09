@@ -61,6 +61,54 @@ class SharingApiService {
     }
   }
 
+  // ⭐️ 내가 쓴 나눔글 목록 (페이징)
+  static Future<List<SharingItem>> fetchMyShares({int page = 0, int size = 20}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    if (token == null) throw Exception('로그인 정보가 없습니다.');
+
+    final uri = Uri.http(_host, '$_basePath/mine', {'page': '$page', 'size': '$size'});
+
+    final response = await http.get(
+      uri,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    print('[DEBUG] 내가 쓴 나눔글 응답: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> body = json.decode(utf8.decode(response.bodyBytes));
+      final List<dynamic> content = body['content'] ?? [];
+      return content.map((e) => SharingItem.fromJson(e)).toList();
+    } else {
+      throw Exception('내가 쓴 나눔글 목록 불러오기 실패: ${response.statusCode}');
+    }
+  }
+
+  // ⭐️ 좋아요 누른 나눔글 목록 (페이징)
+  static Future<List<SharingItem>> fetchLikedShares({int page = 0, int size = 20}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    if (token == null) throw Exception('로그인 정보가 없습니다.');
+
+    final uri = Uri.http(_host, '$_basePath/liked-list', {'page': '$page', 'size': '$size'});
+
+    final response = await http.get(
+      uri,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    print('[DEBUG] 내가 좋아요 한 글 응답: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> body = json.decode(utf8.decode(response.bodyBytes));
+      final List<dynamic> content = body['content'] ?? [];
+      return content.map((e) => SharingItem.fromJson(e)).toList();
+    } else {
+      throw Exception('좋아요 누른 나눔글 목록 불러오기 실패: ${response.statusCode}');
+    }
+  }
+
   // 나눔글 등록
   static Future<void> createShare({
     required String title,

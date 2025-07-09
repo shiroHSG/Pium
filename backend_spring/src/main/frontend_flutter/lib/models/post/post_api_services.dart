@@ -7,6 +7,45 @@ import 'post_request.dart';
 import 'post_response.dart';
 import 'post_comment.dart';
 
+// 리스트 아이템용 DTO
+class PostListItem {
+  final int id;
+  final String title;
+  final DateTime createdAt;
+  final String nickname;
+
+  PostListItem({
+    required this.id,
+    required this.title,
+    required this.createdAt,
+    required this.nickname,
+  });
+
+  factory PostListItem.fromJson(Map<String, dynamic> json) {
+    List<dynamic>? dateArr = json['createdAt'];
+    DateTime dt;
+    if (dateArr is List && dateArr.length >= 3) {
+      dt = DateTime(
+        dateArr[0] ?? 2000,
+        dateArr[1] ?? 1,
+        dateArr[2] ?? 1,
+        dateArr.length > 3 ? dateArr[3] ?? 0 : 0,
+        dateArr.length > 4 ? dateArr[4] ?? 0 : 0,
+        dateArr.length > 5 ? dateArr[5] ?? 0 : 0,
+        dateArr.length > 6 ? (dateArr[6] ?? 0) ~/ 1000000 : 0,
+      );
+    } else {
+      dt = DateTime(2000, 1, 1);
+    }
+    return PostListItem(
+      id: json['id'] ?? json['postId'],
+      title: json['title'] ?? '',
+      createdAt: dt,
+      nickname: json['nickname'] ?? '',
+    );
+  }
+}
+
 class PostApiService {
   static const String baseUrl = 'http://10.0.2.2:8080/api/posts'; // API 전용
   static const String baseImageUrl = 'http://10.0.2.2:8080';       // 이미지 전용
@@ -88,6 +127,60 @@ class PostApiService {
     } else {
       print('게시글 로드 실패: ${response.statusCode} ${response.body}');
       throw Exception('게시글 로드 실패: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  // ⭐️ 내가 쓴 게시글 목록 (페이징)
+  static Future<List<PostListItem>> fetchMyPosts({int page = 0, int size = 20}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    final uri = Uri.parse('$baseUrl/mine?page=$page&size=$size');
+
+    if (token == null) throw Exception('로그인 토큰이 없습니다. 로그인 해주세요.');
+
+    final response = await http.get(
+      uri,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    print('[DEBUG] 내가 쓴 글 목록 응답: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final decoded = utf8.decode(response.bodyBytes);
+      final Map<String, dynamic> body = jsonDecode(decoded);
+      final List<dynamic> content = body['content'] ?? [];
+      return content.map((e) => PostListItem.fromJson(e)).toList();
+    } else {
+      throw Exception('내가 쓴 글 목록 로드 실패: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  // ⭐️ 좋아요 누른 게시글 목록 (페이징)
+  static Future<List<PostListItem>> fetchLikedPosts({int page = 0, int size = 20}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    final uri = Uri.parse('$baseUrl/liked-list?page=$page&size=$size');
+
+    if (token == null) throw Exception('로그인 토큰이 없습니다. 로그인 해주세요.');
+
+    final response = await http.get(
+      uri,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final decoded = utf8.decode(response.bodyBytes);
+      final Map<String, dynamic> body = jsonDecode(decoded);
+      final List<dynamic> content = body['content'] ?? [];
+      return content.map((e) => PostListItem.fromJson(e)).toList();
+    } else {
+      throw Exception('좋아요 누른 글 목록 로드 실패: ${response.statusCode} ${response.body}');
     }
   }
 
