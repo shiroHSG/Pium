@@ -228,4 +228,20 @@ public class MemberService {
     public boolean existsByNickname(String nickname) {
         return memberRepository.existsByNickname(nickname);
     }
+
+    /**
+     * 비밀번호 변경
+     * @param member 로그인된 사용자 엔티티
+     * @param currentPassword 현재 비밀번호(평문)
+     * @param newPassword 새 비밀번호(평문)
+     */
+    public void changePassword(Member member, String currentPassword, String newPassword) {
+        // 현재 비밀번호가 일치하는지 확인
+        if (!passwordEncoder.matches(currentPassword, member.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+        // 새 비밀번호로 암호화 후 저장
+        member.setPassword(passwordEncoder.encode(newPassword));
+        memberRepository.save(member);
+    }
 }
