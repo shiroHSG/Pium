@@ -92,7 +92,6 @@ public class MemberController {
         }
     }
 
-
     /**
      * ID로 회원 조회
      */
@@ -209,6 +208,24 @@ public class MemberController {
                     .body(Map.of("message", "이미 사용 중인 닉네임입니다."));
         } else {
             return ResponseEntity.ok(Map.of("message", "사용 가능한 닉네임입니다."));
+        }
+    }
+
+    /**
+     * 비밀번호 변경
+     */
+    @PatchMapping("/change_password")
+    public ResponseEntity<?> changePassword(
+            @CurrentMember Member member,
+            @RequestBody ChangePasswordRequestDto requestDto
+    ) {
+        try {
+            memberService.changePassword(member, requestDto.getCurrentPassword(), requestDto.getNewPassword());
+            return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "비밀번호 변경 중 오류가 발생했습니다."));
         }
     }
 }
