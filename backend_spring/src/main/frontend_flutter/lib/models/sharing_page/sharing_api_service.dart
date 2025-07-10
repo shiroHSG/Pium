@@ -5,24 +5,21 @@ import 'package:frontend_flutter/models/sharing_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharingApiService {
-  static const String _host = '10.0.2.2:8080';
+  static const String _host = 'pium.store';
   static const String _basePath = '/api/shares';
 
   // 🔍 나눔글 검색 (제목/작성자/주소/카테고리)
   static Future<List<SharingItem>> searchShares(String keyword, String category) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    if (token == null) {
-      throw Exception('로그인 정보가 없습니다. 다시 로그인해 주세요.');
-    }
+    if (token == null) throw Exception('로그인 정보가 없습니다. 다시 로그인해 주세요.');
 
-    // category == '전체'면 파라미터 제외!
     final queryParams = {
       'keyword': keyword,
       if (category != '전체') 'category': category,
     };
 
-    final uri = Uri.http(_host, '$_basePath/search', queryParams);
+    final uri = Uri.https(_host, '$_basePath/search', queryParams);
 
     final response = await http.get(
       uri,
@@ -41,12 +38,9 @@ class SharingApiService {
   static Future<List<SharingItem>> fetchAllShares() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    if (token == null) {
-      throw Exception('로그인 정보가 없습니다. 다시 로그인해 주세요.');
-    }
-    print('💡 토큰: $token');
+    if (token == null) throw Exception('로그인 정보가 없습니다. 다시 로그인해 주세요.');
 
-    final uri = Uri.http(_host, _basePath);
+    final uri = Uri.https(_host, _basePath);
 
     final response = await http.get(
       uri,
@@ -72,7 +66,7 @@ class SharingApiService {
     final token = prefs.getString('accessToken');
     if (token == null) throw Exception('로그인 정보가 없습니다.');
 
-    final uri = Uri.http(_host, _basePath);
+    final uri = Uri.https(_host, _basePath);
     final request = http.MultipartRequest('POST', uri);
 
     request.headers['Authorization'] = 'Bearer $token';
@@ -102,7 +96,7 @@ class SharingApiService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
 
-    final uri = Uri.http(_host, '$_basePath/$postId/like');
+    final uri = Uri.https(_host, '$_basePath/$postId/like');
 
     final response = await http.get(
       uri,
@@ -121,7 +115,7 @@ class SharingApiService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
 
-    final uri = Uri.http(_host, '$_basePath/$postId/like');
+    final uri = Uri.https(_host, '$_basePath/$postId/like');
 
     final response = await http.post(
       uri,
@@ -139,7 +133,8 @@ class SharingApiService {
   static Future<SharingItem> fetchShareDetail(int postId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    final uri = Uri.http(_host, '$_basePath/$postId');
+
+    final uri = Uri.https(_host, '$_basePath/$postId');
 
     final response = await http.get(
       uri,
@@ -166,7 +161,7 @@ class SharingApiService {
     final token = prefs.getString('accessToken');
     if (token == null) throw Exception('로그인 정보가 없습니다.');
 
-    final uri = Uri.http(_host, '$_basePath/$id');
+    final uri = Uri.https(_host, '$_basePath/$id');
     final request = http.MultipartRequest('PATCH', uri);
 
     request.headers['Authorization'] = 'Bearer $token';
@@ -197,7 +192,7 @@ class SharingApiService {
     final token = prefs.getString('accessToken');
     if (token == null) throw Exception('로그인 정보가 없습니다.');
 
-    final uri = Uri.http(_host, '$_basePath/$id');
+    final uri = Uri.https(_host, '$_basePath/$id');
     final response = await http.delete(
       uri,
       headers: {'Authorization': 'Bearer $token'},

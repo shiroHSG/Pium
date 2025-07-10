@@ -68,7 +68,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8080/api/member'),
+        Uri.parse('https://pium.store/api/member'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -82,7 +82,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
         if (mateId != null) {
           final mateResponse = await http.get(
-            Uri.parse('http://10.0.2.2:8080/api/member/users/$mateId'),
+            Uri.parse('https://pium.store/api/member/users/$mateId'),
             headers: {
               'Authorization': 'Bearer $token',
               'Content-Type': 'application/json',
@@ -112,7 +112,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
           final imagePath = user['profileImageUrl'];
           _profileImageUrl = (imagePath != null && imagePath.isNotEmpty)
-              ? 'http://10.0.2.2:8080${imagePath.startsWith('/') ? imagePath : '/$imagePath'}'
+              ? 'https://pium.store${imagePath.startsWith('/') ? imagePath : '/$imagePath'}'
               : null;
 
           _originalNickname = user['nickname'];
@@ -133,7 +133,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken') ?? '';
 
-    final uri = Uri.parse('http://10.0.2.2:8080/api/member');
+    final uri = Uri.parse('https://pium.store/api/member');
     final request = http.MultipartRequest('PATCH', uri);
 
     final memberData = {

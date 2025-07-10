@@ -9,7 +9,7 @@ late StompClient stompClient;
 void connectStomp(String token, int myId, Function(int) onUnreadCount) {
   stompClient = StompClient(
     config: StompConfig.SockJS(
-      url: 'http://10.0.2.2:8080/ws/chat?token=$token',
+      url: 'https://pium.store/ws/chat?token=$token',
       onConnect: (StompFrame frame) {
         print('✅ WebSocket 연결됨');
 

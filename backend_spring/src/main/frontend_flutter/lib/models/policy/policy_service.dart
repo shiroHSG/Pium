@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:frontend_flutter/models/policy/PolicyResponse.dart';
 
 class PolicyService {
-  static const String baseUrl = "http://10.0.2.2:8080/api/policies";
+  static const String baseUrl = "https://pium.store/api/policies";
 
   /// 정책 리스트 조회 (정렬/페이지네이션)
   static Future<Map<String, dynamic>> fetchPolicies({

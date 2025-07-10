@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend_flutter/models/baby_profile.dart';
 
 class ChildApi {
-  static const String baseUrl = 'http://10.0.2.2:8080';
+  static const String baseUrl = 'https://pium.store';
 
   // 아이 정보 전체 조회
   static Future<List<BabyProfile>> fetchMyChildren() async {

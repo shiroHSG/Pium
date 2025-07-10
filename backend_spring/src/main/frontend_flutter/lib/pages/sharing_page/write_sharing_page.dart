@@ -56,7 +56,7 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
       if (token == null) return;
 
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8080/api/member'),
+        Uri.parse('https://pium.store/api/member'),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (response.statusCode == 200) {

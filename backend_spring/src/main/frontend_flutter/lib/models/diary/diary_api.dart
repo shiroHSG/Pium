@@ -5,7 +5,7 @@ import 'package:frontend_flutter/models/baby_record_entry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DiaryApi {
-  static const String baseUrl = 'http://10.0.2.2:8080'; // 실제 서버 주소
+  static const String baseUrl = 'https://pium.store'; // 실제 서버 주소
 
   // ✅ 육아 일지 리스트 조회 (childId 기준)
   static Future<List<BabyRecordEntry>> fetchDiariesByChildId(int childId) async {

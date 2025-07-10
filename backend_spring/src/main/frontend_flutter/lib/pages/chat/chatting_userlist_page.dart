@@ -286,7 +286,7 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
                       final nickname = p['nickname'] ?? '알 수 없음';
 
                       final url = (img != null && img.isNotEmpty)
-                          ? (img.startsWith('http') ? img : 'http://10.0.2.2:8080${img.startsWith('/') ? img : '/$img'}')
+                          ? (img.startsWith('http') ? img : 'https://pium.store${img.startsWith('/') ? img : '/$img'}')
                           + '?t=${DateTime.now().millisecondsSinceEpoch}'
                           : null;
 

@@ -8,7 +8,7 @@ import 'chatroom.dart';
 import 'chatroom_member.dart';
 import 'message.dart';
 
-const _baseUrl = 'http://10.0.2.2:8080'; // 또는 네트워크 환경에 따라 조정
+const _baseUrl = 'https://pium.store'; // 또는 네트워크 환경에 따라 조정
 
 Future<List<ChatRoom>> fetchChatRooms() async {
   final prefs = await SharedPreferences.getInstance();
@@ -249,7 +249,7 @@ Future<List<Map<String, dynamic>>> fetchChatRoomMembers(int chatRoomId) async {
   final token = prefs.getString('accessToken');
 
   final response = await http.get(
-    Uri.parse('http://10.0.2.2:8080/api/chatroom/$chatRoomId/members'),
+    Uri.parse('https://pium.store/api/chatroom/$chatRoomId/members'),
     headers: {
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
@@ -466,7 +466,7 @@ Future<List<ChatRoomMember>> fetchChatRoomMembers(int chatRoomId) async {
     throw Exception('토큰이 없습니다.');
   }
 
-  final uri = Uri.parse('http://10.0.2.2:8080/api/chatroom/$chatRoomId/members');
+  final uri = Uri.parse('https://pium.store/api/chatroom/$chatRoomId/members');
   final response = await http.get(
     uri,
     headers: {'Authorization': 'Bearer $token'},
@@ -492,7 +492,7 @@ Future<void> banChatRoomMember({
   }
 
   final uri = Uri.parse(
-      'http://10.0.2.2:8080/api/chatroom/$chatRoomId/member/$memberId/ban');
+      'https://pium.store/api/chatroom/$chatRoomId/member/$memberId/ban');
 
   final response = await http.post(
     uri,

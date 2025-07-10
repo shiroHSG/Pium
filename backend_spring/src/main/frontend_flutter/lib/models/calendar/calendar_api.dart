@@ -10,7 +10,7 @@ class CalendarApi {
     final token = prefs.getString('accessToken');
 
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:8080/api/calendar'),
+      Uri.parse('https://pium.store/api/calendar'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -32,7 +32,7 @@ class CalendarApi {
     final token = prefs.getString('accessToken');
 
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:8080/api/calendar'),
+      Uri.parse('https://pium.store/api/calendar'),
       headers: {
         'Authorization': 'Bearer $token',
       },
@@ -56,7 +56,7 @@ class CalendarApi {
     }
 
     final response = await http.patch(
-      Uri.parse('http://10.0.2.2:8080/api/calendar/${schedule.id}'),  // schedule 객체 전체를 전달
+      Uri.parse('https://pium.store/api/calendar/${schedule.id}'),  // schedule 객체 전체를 전달
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -75,7 +75,7 @@ class CalendarApi {
     final token = prefs.getString('accessToken');
 
     final response = await http.delete(
-      Uri.parse('http://10.0.2.2:8080/api/calendar/$id'),
+      Uri.parse('https://pium.store/api/calendar/$id'),
       headers: {
         'Authorization': 'Bearer $token',
       },

@@ -4,7 +4,7 @@ import 'package:frontend_flutter/models/people_search//member_entry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MemberApi {
-  static const String baseUrl = 'http://10.0.2.2:8080/api/member';
+  static const String baseUrl = 'https://pium.store/api/member';
 
   static Future<List<Member>> searchMembers(String query) async {
     final prefs = await SharedPreferences.getInstance();

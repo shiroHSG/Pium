@@ -61,7 +61,7 @@ Widget SharingDetailPageUI(
                     borderRadius: BorderRadius.circular(12),
                     child: imageUrl!.startsWith('http')
                         ? ProtectedImage(imageUrl: imageUrl)
-                        : ProtectedImage(imageUrl: 'http://10.0.2.2:8080$imageUrl'),
+                        : ProtectedImage(imageUrl: 'https://pium.store$imageUrl'),
                   ),
                 ),
               if (hasImage)

@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../notification/notification.dart';
 
 class AuthService {
-  static const String baseUrl = 'http://10.0.2.2:8080'; // 하드코딩
+  static const String baseUrl = 'https://pium.store'; // 하드코딩
 
   // 회원가입
   Future<String?> signUp(

@@ -14,11 +14,11 @@ Function(int)? onUnreadAlarmCountUpdate; // 알림 전용
 
 EventSource? _eventSource;
 
-const _baseUrl = 'http://10.0.2.2:8080';
+const _baseUrl = 'https://pium.store';
 
 Future<void> fetchUnreadNotifications(String token) async {
   try {
-    final url = Uri.parse('http://10.0.2.2:8080/api/notifications/unread');
+    final url = Uri.parse('https://pium.store/api/notifications/unread');
     final response = await http.get(
       url,
       headers: {
