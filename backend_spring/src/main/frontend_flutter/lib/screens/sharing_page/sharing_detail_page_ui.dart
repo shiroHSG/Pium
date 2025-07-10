@@ -239,10 +239,12 @@ Future<void> _handleChatButtonPressed(BuildContext context, SharingItem item) as
       sharePostId: item.id,
     );
 
+    final chatRoomDetail = await fetchChatRoomDetail(chatRoom.chatRoomId);
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ChatRoomPage(chatRoomId: chatRoom.chatRoomId),
+        builder: (context) => ChatRoomPage(chatRoom: chatRoomDetail),
       ),
     );
   } catch (e) {

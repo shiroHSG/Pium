@@ -6,7 +6,6 @@ class PolicyService {
   static const String baseUrl = "http://10.0.2.2:8080/api/policies";
 
   /// 정책 리스트 조회 (정렬/페이지네이션)
-  /// 반환: { content: List<PolicyResponse>, totalPages: int }
   static Future<Map<String, dynamic>> fetchPolicies({
     required int page,
     required int size,
@@ -21,10 +20,6 @@ class PolicyService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
-
-      print('[fetchPolicies] decode 결과 타입: ${data.runtimeType}');
-      print('[fetchPolicies] decode 결과: $data');
-
       if (data is Map && data.containsKey('content')) {
         List<dynamic> content = data['content'];
         int totalPages = data['totalPages'] ?? 1;
@@ -34,7 +29,6 @@ class PolicyService {
           'totalPages': totalPages,
         };
       } else if (data is List) {
-        // 리스트로 바로 온다면 totalPages 1로 처리
         return {
           'content': data.map((e) => PolicyResponse.fromJson(e)).toList(),
           'totalPages': 1,
@@ -48,7 +42,6 @@ class PolicyService {
   }
 
   /// 정책 검색 (키워드 기반, 페이징)
-  /// 반환: { content: List<PolicyResponse>, totalPages: int }
   static Future<Map<String, dynamic>> searchPolicies({
     required String keyword,
     required int page,
@@ -62,9 +55,6 @@ class PolicyService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
-      print('[searchPolicies] decode 결과 타입: ${data.runtimeType}');
-      print('[searchPolicies] decode 결과: $data');
-
       if (data is Map && data.containsKey('content')) {
         List<dynamic> content = data['content'];
         int totalPages = data['totalPages'] ?? 1;
@@ -73,7 +63,6 @@ class PolicyService {
           'totalPages': totalPages,
         };
       } else if (data is List) {
-        // 리스트로 바로 온다면 totalPages 1로 처리
         return {
           'content': data.map((e) => PolicyResponse.fromJson(e)).toList(),
           'totalPages': 1,
@@ -99,6 +88,32 @@ class PolicyService {
       return PolicyResponse.fromJson(data);
     } else {
       throw Exception('정책 상세 정보를 불러올 수 없습니다');
+    }
+  }
+
+  /// [추가] 인기 정책 1개만 가져오기 (viewCount 기준)
+  static Future<PolicyResponse> fetchPopularPolicy() async {
+    final url = Uri.parse('$baseUrl?sortBy=views&page=0&size=1');
+    final response = await http.get(url);
+
+    print('----- [fetchPopularPolicy] 응답 바디 -----');
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      if (data is Map && data.containsKey('content')) {
+        List<dynamic> content = data['content'];
+        if (content.isEmpty) {
+          throw Exception('정책 데이터가 없습니다');
+        }
+        return PolicyResponse.fromJson(content[0]);
+      } else if (data is List && data.isNotEmpty) {
+        return PolicyResponse.fromJson(data[0]);
+      } else {
+        throw Exception('정책 인기글 응답 데이터가 비어 있습니다');
+      }
+    } else {
+      throw Exception('정책 인기글을 불러올 수 없습니다');
     }
   }
 }
