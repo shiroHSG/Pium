@@ -4,7 +4,7 @@ import com.buddy.pium.dto.common.*;
 import com.buddy.pium.entity.common.Member;
 import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MemberRepository;
-import com.buddy.pium.service.S3UploadService;
+import com.buddy.pium.service.FileUploadService;
 import com.buddy.pium.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
@@ -28,7 +28,7 @@ public class MemberService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    private final S3UploadService s3UploadService;
+    private final FileUploadService fileUploadService;
 
     // 회원 생성
     public void signUp(MemberRequestDto dto, MultipartFile image) {
@@ -43,8 +43,8 @@ public class MemberService {
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
             System.out.println("s3 imageurl1 : " + imageUrl);
-//            imageUrl = s3UploadService.upload(image, "members");
-            imageUrl = s3UploadService.upload(image, "members"); // 파일 저장 후 URL 리턴
+//            imageUrl = FileUploadService.upload(image, "members");
+            imageUrl = fileUploadService.upload(image, "members"); // 파일 저장 후 URL 리턴
             System.out.println("s3 imageurl2 : " + imageUrl);
         }
 
@@ -72,9 +72,9 @@ public class MemberService {
         }
         if (image != null && !image.isEmpty()) {
             if (member.getProfileImageUrl() != null) {
-                s3UploadService.delete(member.getProfileImageUrl());
+                fileUploadService.delete(member.getProfileImageUrl());
             }
-            String imageUrl = s3UploadService.upload(image, "chatrooms");
+            String imageUrl = fileUploadService.upload(image, "chatrooms");
             member.setProfileImageUrl(imageUrl);
         }
 
@@ -108,14 +108,14 @@ public class MemberService {
     public void deleteMemberById(Long memberId) {
         Member member = validateMember(memberId);
         if (member.getProfileImageUrl() != null) {
-            s3UploadService.delete(member.getProfileImageUrl());
+            fileUploadService.delete(member.getProfileImageUrl());
         }
         memberRepository.deleteById(memberId);
     }
 
     public void deleteMember(Member member) {
         if (member.getProfileImageUrl() != null) {
-            s3UploadService.delete(member.getProfileImageUrl());
+            fileUploadService.delete(member.getProfileImageUrl());
         }
         memberRepository.delete(member);
     }

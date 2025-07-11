@@ -6,7 +6,7 @@ import com.buddy.pium.entity.post.Post;
 import com.buddy.pium.exception.ResourceNotFoundException;
 import com.buddy.pium.repository.common.MemberRepository;
 import com.buddy.pium.repository.post.PostRepository;
-import com.buddy.pium.service.S3UploadService;
+import com.buddy.pium.service.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -22,7 +22,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
-    private final S3UploadService s3UploadService;
+    private final FileUploadService fileUploadService;
 
     // PostService.java
     public List<PostResponseDto> getPopularPosts(int size, Long memberId) {
@@ -39,7 +39,7 @@ public class PostService {
     public void create(PostRequestDto dto, Member member, MultipartFile image) {
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
-            imageUrl = s3UploadService.upload(image, "posts");
+            imageUrl = fileUploadService.upload(image, "posts");
         }
 
         Post post = Post.builder()
@@ -83,9 +83,9 @@ public class PostService {
 
         if (image != null && !image.isEmpty()) {
             if (post.getImageUrl() != null) {
-                s3UploadService.delete(post.getImageUrl());
+                fileUploadService.delete(post.getImageUrl());
             }
-            String imageUrl = s3UploadService.upload(image, "posts");
+            String imageUrl = fileUploadService.upload(image, "posts");
             post.setImageUrl(imageUrl);
         }
 
@@ -100,7 +100,7 @@ public class PostService {
     public void delete(Long postId, Member member) {
         Post post = validatePostOwner(postId, member);
         if (post.getImageUrl() != null) {
-            s3UploadService.delete(post.getImageUrl());
+            fileUploadService.delete(post.getImageUrl());
         }
         postRepository.delete(post);
     }

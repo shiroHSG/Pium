@@ -1,9 +1,5 @@
 package com.buddy.pium.service.chat;
 
-// 스토리지 관련 변경 사항
-import com.buddy.pium.service.S3UploadService;
-//
-
 import com.buddy.pium.dto.chat.ChatRoomRequestDto;
 import com.buddy.pium.dto.chat.ChatRoomResponseDto;
 import com.buddy.pium.dto.chat.InviteCheckResponseDto;
@@ -22,7 +18,7 @@ import com.buddy.pium.repository.chat.ChatRoomMemberRepository;
 import com.buddy.pium.repository.chat.ChatRoomRepository;
 import com.buddy.pium.repository.chat.MessageRepository;
 import com.buddy.pium.repository.share.ShareRepository;
-
+import com.buddy.pium.service.FileUploadService;
 import com.buddy.pium.service.common.MemberService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -48,7 +44,7 @@ public class ChatRoomService {
     private final MessageRepository messageRepository;
     private final MemberService memberService;
     private final ChatRoomBanRepository chatRoomBanRepository;
-    private final S3UploadService s3UploadService;
+    private final FileUploadService fileUploadService;
 
     public ChatRoomResponseDto getOrCreateChatRoom(ChatRoomRequestDto dto, MultipartFile image, Member member) {
         Enum.ChatRoomType type = dto.getType();
@@ -98,7 +94,7 @@ public class ChatRoomService {
 
         String imageUrl = null;
         if (image != null && !image.isEmpty()) {
-            imageUrl = s3UploadService.upload(image, "chatrooms");
+            imageUrl = fileUploadService.upload(image, "chatrooms");
         }
 
         ChatRoom chatRoom = ChatRoom.builder()
@@ -193,9 +189,9 @@ public class ChatRoomService {
         }
         if (image != null && !image.isEmpty()) {
             if (chatRoom.getImageUrl() != null) {
-                s3UploadService.delete(chatRoom.getImageUrl());
+                fileUploadService.delete(chatRoom.getImageUrl());
             }
-            String imageUrl = s3UploadService.upload(image, "chatrooms");
+            String imageUrl = fileUploadService.upload(image, "chatrooms");
             chatRoom.setImageUrl(imageUrl);
         }
         chatRoomRepository.save(chatRoom);
@@ -288,7 +284,7 @@ public class ChatRoomService {
 
     private void deleteChatRooom(ChatRoom chatRoom) {
         if (chatRoom.getImageUrl() != null) {
-            s3UploadService.delete(chatRoom.getImageUrl());
+            fileUploadService.delete(chatRoom.getImageUrl());
         }
         chatRoomRepository.delete(chatRoom);
     }
