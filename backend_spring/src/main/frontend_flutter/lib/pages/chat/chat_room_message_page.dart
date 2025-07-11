@@ -7,11 +7,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/chat/chat_service.dart';
 import '../../models/webSocket/connectWebSocket.dart';
 import 'chatting_userlist_page.dart';
+import '../../models/chat/chatroom.dart'; // ChatRoom import 잊지 말기
 
 class ChatRoomPage extends StatefulWidget {
-  final int chatRoomId;
+  final ChatRoom chatRoom;
 
-  const ChatRoomPage({Key? key, required this.chatRoomId}) : super(key: key);
+  const ChatRoomPage({Key? key, required this.chatRoom}) : super(key: key);
 
   @override
   State<ChatRoomPage> createState() => _ChatRoomPageState();
@@ -22,13 +23,13 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   bool _isLoading = true;
-  int? myId; // ✅ 전역 변수로 선언
+  int? myId;
 
   @override
   void initState() {
     super.initState();
-    _loadMessages();         // 메시지만 불러오기
-    _subscribeMessages();    // WebSocket 구독 따로
+    _loadMessages();
+    _subscribeMessages();
   }
 
   Future<void> _loadMessages() async {
@@ -36,12 +37,10 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       final prefs = await SharedPreferences.getInstance();
       myId = prefs.getInt('memberId');
 
-      if (myId == null) {
-        throw Exception('로그인된 사용자 ID가 없습니다.');
-      }
+      if (myId == null) throw Exception('로그인된 사용자 ID가 없습니다.');
 
       final messages = await fetchMessages(
-        chatRoomId: widget.chatRoomId,
+        chatRoomId: widget.chatRoom.chatRoomId,
         currentUserId: myId!,
       );
 
@@ -50,7 +49,6 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
         _isLoading = false;
       });
 
-      // 스크롤
       _scrollToBottom();
     } catch (e) {
       print('❌ 메시지 불러오기 오류: $e');
@@ -59,6 +57,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       });
     }
   }
+
   void _subscribeMessages() async {
     if (myId == null) {
       final prefs = await SharedPreferences.getInstance();
@@ -69,12 +68,11 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       }
     }
 
-    subscribeChatRoomMessages(widget.chatRoomId, (data) {
+    subscribeChatRoomMessages(widget.chatRoom.chatRoomId, (data) {
       final message = ChatMessage.fromJson(data, myId!);
       setState(() {
         _messages.add(message);
       });
-      // 스크롤
       _scrollToBottom();
     });
   }
@@ -87,11 +85,10 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
 
     try {
       await sendMessageToServer(
-        chatRoomId: widget.chatRoomId,
+        chatRoomId: widget.chatRoom.chatRoomId,
         content: text,
         senderId: myId!,
       );
-
       _scrollToBottom();
     } catch (e) {
       print('❌ 메시지 전송 실패: $e');
@@ -106,12 +103,34 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     });
   }
 
+  // ✅ 추가된 부분: 채팅방 이름 반환
+  String get chatTitle {
+    final type = widget.chatRoom.type;
+    if (type == 'DIRECT' || type == 'SHARE') {
+      return widget.chatRoom.otherNickname ?? '채팅방';
+    } else if (type == 'GROUP') {
+      return widget.chatRoom.chatRoomName ?? '그룹 채팅방';
+    }
+    return '채팅방';
+  }
+
+  // ✅ 추가된 부분: 채팅방 이미지 URL 반환
+  String? get chatImageUrl {
+    final type = widget.chatRoom.type;
+    if (type == 'DIRECT' || type == 'SHARE') {
+      return widget.chatRoom.otherProfileImageUrl;
+    } else if (type == 'GROUP') {
+      return widget.chatRoom.imageUrl;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pop(context, true); // ✅ ChattingPage에게 '갱신 필요' 신호 전달
-        return false; // ✅ 기본 Pop 동작 막기
+        Navigator.pop(context, true);
+        return false;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -124,22 +143,22 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                 height: 30,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  image: (_messages.isNotEmpty && _messages.last.senderProfileImageUrl.isNotEmpty)
+                  image: (chatImageUrl != null && chatImageUrl!.isNotEmpty)
                       ? DecorationImage(
-                    image: NetworkImage(_messages.last.senderProfileImageUrl),
+                    image: NetworkImage(chatImageUrl!),
                     fit: BoxFit.cover,
                   )
                       : null,
                   color: Colors.grey[300],
                 ),
-                child: (_messages.isEmpty || _messages.last.senderProfileImageUrl.isEmpty)
+                child: (chatImageUrl == null || chatImageUrl!.isEmpty)
                     ? const Icon(Icons.person, color: Colors.grey, size: 20)
                     : null,
               ),
               const SizedBox(width: 8),
-              const Text(
-                '채팅방',
-                style: TextStyle(
+              Text(
+                chatTitle,
+                style: const TextStyle(
                   color: AppTheme.textPurple,
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
@@ -156,9 +175,9 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => ChattingUserlistPage(
-                      roomName: '채팅방',
-                      chatRoomId: widget.chatRoomId,
-                      participants: [], // 실제 참여자 리스트가 있다면 여기에 넣어줘
+                      roomName: chatTitle,
+                      chatRoomId: widget.chatRoom.chatRoomId,
+                      participants: [],
                     ),
                   ),
                 );

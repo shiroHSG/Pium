@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
+import '../../widgets/notification_page.dart';
 import '../../widgets/protected_image.dart';
 
 class SharingAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -18,13 +19,19 @@ class SharingAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         IconButton(
           icon: const Icon(Icons.notifications_none, color: Colors.white),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => NotificationPage()),
+            );
+          },
         ),
       ],
     );
   }
 }
 
+/// ⭐️ 카테고리 드롭다운 위젯
 class SharingCategoryDropdown extends StatelessWidget {
   final String selectedCategory;
   final ValueChanged<String?> onCategoryChanged;
@@ -92,19 +99,19 @@ class SharingListItem extends StatefulWidget {
 }
 
 class _SharingListItemState extends State<SharingListItem> {
-  // State에서 초기값을 props로부터 받아야 여러 아이템이 각각 상태를 가질 수 있음
   late bool _isFavorited;
 
   @override
   void initState() {
     super.initState();
-    _isFavorited = widget.item.isLiked; // 만약 isLiked가 없다면 false로 초기화
+    _isFavorited = widget.item.isLiked;
   }
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = widget.item.imageUrl;
-    final hasImage = imageUrl != null && imageUrl.trim().isNotEmpty;
+    // ⭐️ 여기 반드시 fullImageUrl
+    final imageUrl = widget.item.fullImageUrl;
+    final hasImage = imageUrl != null && imageUrl.isNotEmpty;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -117,30 +124,35 @@ class _SharingListItemState extends State<SharingListItem> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 이미지 영역
-              SizedBox(
-                width: 80,
-                height: 80,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: hasImage
-                      ? ProtectedImage(imageUrl: imageUrl!)
-                      : Container(
-                    color: const Color(0xFFf9d9e7),
-                    child: const Center(
-                      child: Text('이미지 없음', style: TextStyle(color: Colors.grey)),
-                    ),
+              if (hasImage) ...[
+                SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: ProtectedImage(imageUrl: imageUrl),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
+                const SizedBox(width: 12),
+              ],
               // 글 영역
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // 제목
                     Text(widget.item.name, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4),
+                    // ✅ 주소 표시
+                    if (widget.item.addressCity.isNotEmpty || widget.item.addressDistrict.isNotEmpty || widget.item.addressDong.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2.0),
+                        child: Text(
+                          '주소 : ${widget.item.addressCity} ${widget.item.addressDistrict} ${widget.item.addressDong}',
+                          style: const TextStyle(color: Colors.grey, fontSize: 13),
+                        ),
+                      ),
+                    // 상세/조회수/작성일 등
                     Text(widget.item.details, style: const TextStyle(color: Colors.grey), overflow: TextOverflow.ellipsis),
                   ],
                 ),
@@ -149,33 +161,22 @@ class _SharingListItemState extends State<SharingListItem> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-              Text(
-              '${widget.item.likeCount}',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-          IconButton(
-            icon: Icon(
-              _isFavorited ? Icons.favorite : Icons.favorite_border,
-              color: _isFavorited ? Colors.pink : Colors.grey.shade400,
-              size: 22,
-            ),
-            onPressed: () {
-              setState(() {
-                _isFavorited = !_isFavorited;
-              });
-              widget.onFavoriteTap();
-            },
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            tooltip: '좋아요',
-
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Icon(
+                        Icons.thumb_up_off_alt,
+                        color: Colors.grey.shade400,
+                        size: 22,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        '${widget.item.likeCount}',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   ),
@@ -188,7 +189,6 @@ class _SharingListItemState extends State<SharingListItem> {
     );
   }
 }
-
 
 class SharingActionButtons extends StatelessWidget {
   final VoidCallback onWriteTap;
@@ -207,7 +207,10 @@ class SharingActionButtons extends StatelessWidget {
         children: [
           Expanded(
             child: ElevatedButton(
-              onPressed: onWriteTap,
+              onPressed: () {
+                print('임시 테스트 버튼 클릭됨');
+                onWriteTap();
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryPurple,
                 foregroundColor: Colors.white,

@@ -2,9 +2,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
-import 'package:frontend_flutter/models/share/sharing_api_service.dart';
+import 'package:frontend_flutter/models/sharing_page/sharing_api_service.dart';
 import 'package:frontend_flutter/widgets/custom_drawer.dart';
 import 'package:frontend_flutter/screens/sharing_page/write_sharing_page_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'sharing_page.dart';
 
 class WriteSharingPostPage extends StatefulWidget {
@@ -24,21 +27,50 @@ class WriteSharingPostPage extends StatefulWidget {
 class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _detailsController = TextEditingController();
-  File? _selectedImage; // 새로 첨부한 이미지
-  bool _imageRemoved = false;    // 기존 이미지 삭제 여부
+  File? _selectedImage;
+  bool _imageRemoved = false;
 
   int _selectedIndex = 0;
   bool _isLoggedIn = true;
   String _selectedCategory = '나눔';
 
+  // ✅ 주소정보 변수
+  String address = '';
+  String get userAddressDisplay => address.isNotEmpty ? address : '주소 정보 없음';
+
   @override
   void initState() {
     super.initState();
-    // 수정 모드라면 기존 값 세팅
     if (widget.isEdit && widget.item != null) {
       _titleController.text = widget.item!.name;
       _detailsController.text = widget.item!.content;
       _selectedCategory = widget.item!.category;
+    }
+    _fetchMyAddress();
+  }
+
+  Future<void> _fetchMyAddress() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken');
+      if (token == null) return;
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8080/api/member'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        setState(() {
+          // address: "서울특별시 강남구 역삼동" 이런 형식 그대로 노출!
+          address = data['address'] ?? '';
+        });
+        print('내 주소: $address');
+      } else {
+        print('주소 불러오기 실패 (status): ${response.statusCode}');
+      }
+    } catch (e) {
+      print('내 주소 불러오기 실패: $e');
     }
   }
 
@@ -75,7 +107,7 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
     if (picked != null) {
       setState(() {
         _selectedImage = File(picked.path);
-        _imageRemoved = false; // 새 이미지 선택시 삭제상태 해제
+        _imageRemoved = false;
       });
       print('선택된 이미지 경로: ${picked.path}');
     }
@@ -132,7 +164,6 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
   }
 
   Widget _buildImagePreview() {
-    // 새로 선택된 이미지가 있으면 FileImage로 보여주기
     if (_selectedImage != null) {
       return Row(
         children: [
@@ -149,15 +180,13 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.delete, color: Colors.red),
+            icon: const Icon(Icons.delete, color: Colors.red),
             onPressed: _handleRemoveImage,
             tooltip: '이미지 삭제',
           ),
         ],
       );
-    }
-    // 수정모드+기존 이미지 있을 때 (삭제안됨)
-    else if (widget.isEdit && widget.item?.imageUrl != null && !_imageRemoved) {
+    } else if (widget.isEdit && widget.item?.imageUrl != null && !_imageRemoved) {
       return Row(
         children: [
           Container(
@@ -173,7 +202,7 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.delete, color: Colors.red),
+            icon: const Icon(Icons.delete, color: Colors.red),
             onPressed: _handleRemoveImage,
             tooltip: '이미지 삭제',
           ),
@@ -196,15 +225,15 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Row(
-              children: [
-                WriteSharingTitleInput(titleController: _titleController),
-                const SizedBox(width: 10),
-                WriteSharingCategoryDropdown(
-                  selectedCategory: _selectedCategory,
-                  onCategoryChanged: _handleCategoryChanged,
-                ),
-              ],
+            // 제목 입력 + 주소 노출
+            WriteSharingTitleInputWithAddress(
+              titleController: _titleController,
+              addressDisplay: userAddressDisplay, // "서울특별시 강남구 역삼동" 식으로 뜸
+            ),
+            const SizedBox(height: 10),
+            WriteSharingCategoryDropdown(
+              selectedCategory: _selectedCategory,
+              onCategoryChanged: _handleCategoryChanged,
             ),
             const SizedBox(height: 14),
             WriteSharingDetailsInput(detailsController: _detailsController),

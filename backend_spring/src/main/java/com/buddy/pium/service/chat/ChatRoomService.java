@@ -338,13 +338,26 @@ public class ChatRoomService {
 
         int totalUnread = 0;
         for (ChatRoomMember crm : joinedRooms) {
-            int unread = messageRepository.countUnreadMessagesForMember(
+            Long lastReadId = crm.getLastReadMessageId();
+
+            int unread = messageRepository.countUnreadMessagesAfterJoinedAtAndLastRead(
                     crm.getChatRoom().getId(),
-                    member.getId()
+                    crm.getJoinedAt(),
+                    lastReadId
             );
+
             totalUnread += unread;
         }
 
         return totalUnread;
+    }
+
+    public ChatRoomResponseDto getChatRoomDetail(Long chatRoomId, Member member) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new ResourceNotFoundException("채팅방을 찾을 수 없습니다."));
+
+        validateChatRoomMember(chatRoom, member);
+
+        return toResponseDTO(chatRoom, member);
     }
 }

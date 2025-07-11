@@ -38,12 +38,12 @@ public class PolicyService {
         return PolicyResponseDto.fromEntity(policy);
     }
 
-    public List<PolicyResponseDto> searchPolicies(String keyword) {
-        List<Policy> policies = policyRepository.searchByKeyword(keyword);
-        return policies.stream()
-                .map(PolicyResponseDto::fromEntity)
-                .collect(Collectors.toList());
+    public Page<PolicyResponseDto> searchPolicies(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Policy> result = policyRepository.searchByKeyword(keyword, pageable);
+        return result.map(PolicyResponseDto::fromEntity);
     }
+
 
     private Sort getSort(String sortBy) {
         return switch (sortBy) {
@@ -51,5 +51,14 @@ public class PolicyService {
             case "views" -> Sort.by(Sort.Direction.DESC, "viewCount");
             default -> Sort.by(Sort.Direction.DESC, "createdAt");
         };
+    }
+
+    public PolicyResponseDto getMostPopularPolicy() {
+        Pageable pageable = PageRequest.of(0, 1);
+        List<Policy> policies = policyRepository.findTopPopularPolicies(pageable);
+        if (policies.isEmpty()) {
+            throw new RuntimeException("인기 정책이 없습니다.");
+        }
+        return PolicyResponseDto.fromEntity(policies.get(0));
     }
 }

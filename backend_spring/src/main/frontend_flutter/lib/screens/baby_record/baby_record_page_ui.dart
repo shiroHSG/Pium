@@ -111,14 +111,25 @@ class BabyRecordFilterAndAdd extends StatelessWidget {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<BabyProfile>(
                 value: selectedChild,
-                onChanged: onChildChanged,
-                icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white), // 아이콘 변경
                 dropdownColor: AppTheme.primaryPurple,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'jua', // 글꼴 적용
+                ),
+                borderRadius: BorderRadius.circular(12), // 테두리 둥글게
+                onChanged: onChildChanged,
                 items: children.map((child) {
                   return DropdownMenuItem<BabyProfile>(
                     value: child,
-                    child: Text(child.name ?? '이름 없음'),
+                    child: Text(
+                      child.name ?? '이름 없음',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'jua', // 드롭다운 아이템에도 글꼴 적용
+                      ),
+                    ),
                   );
                 }).toList(),
               ),

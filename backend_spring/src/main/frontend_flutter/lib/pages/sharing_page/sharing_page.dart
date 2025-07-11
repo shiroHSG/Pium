@@ -3,8 +3,7 @@ import 'package:frontend_flutter/pages/sharing_page/sharing_detail_page.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
 import 'package:frontend_flutter/pages/sharing_page/write_sharing_page.dart';
 import 'package:frontend_flutter/screens/sharing_page/sharing_page_ui.dart';
-
-import '../../models/share/sharing_api_service.dart';
+import '../../models/sharing_page/sharing_api_service.dart';
 
 class SharingPage extends StatefulWidget {
   const SharingPage({Key? key}) : super(key: key);
@@ -14,28 +13,52 @@ class SharingPage extends StatefulWidget {
 }
 
 class _SharingPageState extends State<SharingPage> {
-  List<SharingItem> _sharingItems = []; // 빈 리스트로 초기화
+  List<SharingItem> _sharingItems = [];
   String selectedCategory = '전체';
+  String _searchKeyword = '';
+  bool _isSearching = false;
 
   List<SharingItem> get filteredItems {
-    if (selectedCategory == '전체') return _sharingItems;
-    return _sharingItems.where((item) => item.category == selectedCategory).toList();
+    // 카테고리 필터는 서버에서 이미 반영, 프론트에서는 전체 사용
+    return _sharingItems;
   }
 
   @override
   void initState() {
     super.initState();
-    _loadSharingItems(); // 페이지 시작 시 API 호출
+    _loadSharingItems();
   }
 
   Future<void> _loadSharingItems() async {
     try {
-      final items = await SharingApiService.fetchAllShares(); // API 호출
+      final items = await SharingApiService.fetchAllShares();
       setState(() {
         _sharingItems = items;
       });
     } catch (e) {
       print('나눔글 불러오기 실패: $e');
+    }
+  }
+
+  Future<void> _searchShares(String keyword, String category) async {
+    print('🔍 [DEBUG] _searchShares called with: $keyword, category: $category');
+    if (keyword.trim().isEmpty && (category == '전체')) {
+      await _loadSharingItems();
+      return;
+    }
+    setState(() => _isSearching = true);
+    try {
+      print('🔍 [DEBUG] Calling searchShares API with: $keyword / $category');
+      final items = await SharingApiService.searchShares(keyword.trim(), category);
+      print('🔍 [DEBUG] API returned ${items.length} items');
+      setState(() {
+        _sharingItems = items;
+      });
+    } catch (e) {
+      print('검색 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('검색 실패')));
+    } finally {
+      setState(() => _isSearching = false);
     }
   }
 
@@ -53,47 +76,104 @@ class _SharingPageState extends State<SharingPage> {
     );
   }
 
-  void _handleRequestShare() {
-    // TODO: 나눔 요청하기 기능 구현
-    print('나눔 요청하기 버튼 클릭');
-  }
-
   void _handleFavorite(SharingItem item) {
-    // TODO: 찜 기능 구현
     print('${item.name} 찜하기');
   }
 
-  void _handleCategoryChanged(String? newValue) {
+  void _handleCategoryChanged(String? newValue) async {
     if (newValue != null) {
       setState(() {
         selectedCategory = newValue;
       });
-      // TODO: 카테고리별 필터링이 필요하다면 여기에 API 재요청 로직도 추가 가능
-      print('선택된 카테고리: $selectedCategory');
+      // 카테고리 변경 시 바로 검색 적용 (선택: 원하면 주석 해제)
+      // await _searchShares(_searchKeyword, newValue);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    print('SharingPage build!');
     return Scaffold(
       appBar: const SharingAppBar(),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Column(
               children: [
-                const Text('함께함', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                SharingCategoryDropdown(
-                  selectedCategory: selectedCategory,
-                  onCategoryChanged: _handleCategoryChanged,
+                // 🔍 검색창 + 검색 버튼
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: '제목, 작성자, 주소로 검색',
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: _searchKeyword.isNotEmpty
+                              ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              setState(() {
+                                _searchKeyword = '';
+                                _isSearching = false;
+                              });
+                              _loadSharingItems();
+                            },
+                          )
+                              : null,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          isDense: true,
+                        ),
+                        textInputAction: TextInputAction.search,
+                        onChanged: (value) {
+                          print('🔍 [DEBUG] onChanged: $value');
+                          setState(() {
+                            _searchKeyword = value;
+                          });
+                        },
+                        onSubmitted: (value) async {
+                          print('🔍 [DEBUG] onSubmitted called with: $value');
+                          await _searchShares(value, selectedCategory);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // ⭐️ 검색 버튼
+                    IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: () async {
+                        print('🔍 [DEBUG] 검색 버튼 클릭: $_searchKeyword / $selectedCategory');
+                        await _searchShares(_searchKeyword, selectedCategory);
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('함께함', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    SharingCategoryDropdown(
+                      selectedCategory: selectedCategory,
+                      onCategoryChanged: _handleCategoryChanged,
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 8),
           Expanded(
-            child: ListView.builder(
+            child: _isSearching
+                ? const Center(child: CircularProgressIndicator())
+                : _sharingItems.isEmpty
+                ? Center(
+              child: Text(
+                _searchKeyword.isNotEmpty ? '검색 결과 없음' : '나눔글이 없습니다.',
+                style: const TextStyle(color: Colors.grey),
+              ),
+            )
+                : ListView.builder(
               itemCount: filteredItems.length,
               itemBuilder: (context, index) {
                 final item = filteredItems[index];
@@ -106,7 +186,10 @@ class _SharingPageState extends State<SharingPage> {
             ),
           ),
           SharingActionButtons(
-            onWriteTap: _navigateToWritePost,
+            onWriteTap: () {
+              print('글 작성 버튼 클릭!');
+              _navigateToWritePost();
+            },
           ),
         ],
       ),
