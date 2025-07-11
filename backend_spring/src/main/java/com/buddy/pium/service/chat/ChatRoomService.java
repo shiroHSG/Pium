@@ -1,5 +1,9 @@
 package com.buddy.pium.service.chat;
 
+// 스토리지 관련 변경 사항
+import com.buddy.pium.service.S3UploadService;
+//
+
 import com.buddy.pium.dto.chat.ChatRoomRequestDto;
 import com.buddy.pium.dto.chat.ChatRoomResponseDto;
 import com.buddy.pium.dto.chat.InviteCheckResponseDto;
@@ -18,7 +22,7 @@ import com.buddy.pium.repository.chat.ChatRoomMemberRepository;
 import com.buddy.pium.repository.chat.ChatRoomRepository;
 import com.buddy.pium.repository.chat.MessageRepository;
 import com.buddy.pium.repository.share.ShareRepository;
-import com.buddy.pium.service.S3UploadService;
+
 import com.buddy.pium.service.common.MemberService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;

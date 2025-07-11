@@ -25,7 +25,7 @@ class ChatMessage {
       messageId: json['messageId'],
       senderId: json['senderId'],
       senderNickname: json['senderNickname'],
-      senderProfileImageUrl: json['senderProfileImageUrl'],
+      senderProfileImageUrl: json['senderProfileImageUrl'] as String? ?? '',
       content: json['content'],
       sentAt: _parseDateTime(json['sentAt']),
       unreadCount: json['unreadCount'],

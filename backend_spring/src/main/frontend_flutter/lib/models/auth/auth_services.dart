@@ -79,8 +79,10 @@ class AuthService {
         await prefs.setString('refreshToken', refreshToken);
         await prefs.setInt('memberId', memberId);
 
+        print("🔔 알림 구독 시작 전");
         // 🔔 알림 구독 시작
         await subscribeToNotifications(accessToken); // <- 여기에 추가!
+        print("🔔 알림 구독 완료");
 
         print("저장된 accessToken: $accessToken");
         print("저장된 refreshToken: $refreshToken");

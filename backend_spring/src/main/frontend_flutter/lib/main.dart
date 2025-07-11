@@ -44,6 +44,13 @@ class MyApp extends StatelessWidget {
           return PolicyDetailPage(policyId: policyId);
         },
       },
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
+        return Padding(
+          padding: mediaQuery.viewPadding, // 시스템 UI(상단 노치, 하단 버튼 등) 피해줌
+          child: child!,
+        );
+      },
     );
   }
 }
