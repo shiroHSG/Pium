@@ -1,4 +1,4 @@
-const String baseUrl = 'https://pium.store';
+import '../config/env.dart';
 
 class SharingItem {
   final int id;
@@ -41,7 +41,7 @@ class SharingItem {
   String get fullImageUrl {
     if (imageUrl == null || imageUrl!.isEmpty) return '';
     if (imageUrl!.startsWith('http')) return imageUrl!;
-    return '$baseUrl$imageUrl'; // 상대경로면 BASE_URL 붙여줌
+    return '$Env.baseUrl$imageUrl'; // 상대경로면 BASE_URL 붙여줌
   }
 
   factory SharingItem.fromJson(Map<String, dynamic> json) {

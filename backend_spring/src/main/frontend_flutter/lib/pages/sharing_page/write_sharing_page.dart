@@ -8,6 +8,7 @@ import 'package:frontend_flutter/screens/sharing_page/write_sharing_page_ui.dart
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../config/env.dart';
 import 'sharing_page.dart';
 
 class WriteSharingPostPage extends StatefulWidget {
@@ -56,7 +57,7 @@ class _WriteSharingPostPageState extends State<WriteSharingPostPage> {
       if (token == null) return;
 
       final response = await http.get(
-        Uri.parse('https://pium.store/api/member'),
+        Uri.parse('${Env.baseUrl}/api/member'),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (response.statusCode == 200) {

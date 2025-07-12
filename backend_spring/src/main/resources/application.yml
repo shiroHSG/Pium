@@ -4,6 +4,7 @@ server:
 spring:
   profiles:
     active: local
+#    active: prod
 
   jpa:
     hibernate:

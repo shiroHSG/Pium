@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend_flutter/models/calendar/schedule.dart';
 
+import '../../config/env.dart';
+
 class CalendarApi {
   // 일정 등록
   static Future<Schedule> postSchedule(Schedule schedule) async {
@@ -10,7 +12,7 @@ class CalendarApi {
     final token = prefs.getString('accessToken');
 
     final response = await http.post(
-      Uri.parse('https://pium.store/api/calendar'),
+      Uri.parse('${Env.baseUrl}/api/calendar'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -32,7 +34,7 @@ class CalendarApi {
     final token = prefs.getString('accessToken');
 
     final response = await http.get(
-      Uri.parse('https://pium.store/api/calendar'),
+      Uri.parse('${Env.baseUrl}/api/calendar'),
       headers: {
         'Authorization': 'Bearer $token',
       },
@@ -56,7 +58,7 @@ class CalendarApi {
     }
 
     final response = await http.patch(
-      Uri.parse('https://pium.store/api/calendar/${schedule.id}'),  // schedule 객체 전체를 전달
+      Uri.parse('${Env.baseUrl}/api/calendar/${schedule.id}'),  // schedule 객체 전체를 전달
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -75,7 +77,7 @@ class CalendarApi {
     final token = prefs.getString('accessToken');
 
     final response = await http.delete(
-      Uri.parse('https://pium.store/api/calendar/$id'),
+      Uri.parse('${Env.baseUrl}/api/calendar/$id'),
       headers: {
         'Authorization': 'Bearer $token',
       },

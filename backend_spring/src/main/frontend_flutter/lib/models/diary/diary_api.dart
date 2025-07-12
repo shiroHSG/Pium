@@ -4,16 +4,16 @@ import 'package:http/http.dart' as http;
 import 'package:frontend_flutter/models/baby_record_entry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class DiaryApi {
-  static const String baseUrl = 'https://pium.store'; // 실제 서버 주소
+import '../../config/env.dart';
 
+class DiaryApi {
   // ✅ 육아 일지 리스트 조회 (childId 기준)
   static Future<List<BabyRecordEntry>> fetchDiariesByChildId(int childId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
     if (token == null) return [];
 
-    final uri = Uri.parse('$baseUrl/api/diaries?childId=$childId');
+    final uri = Uri.parse('${Env.baseUrl}/api/diaries?childId=$childId');
     final response = await http.get(uri, headers: {
       'Authorization': 'Bearer $token',
     });
@@ -42,7 +42,7 @@ class DiaryApi {
     if (token == null) throw Exception("Access token not found");
 
     final response = await http.get(
-      Uri.parse('$baseUrl/api/diaries/$diaryId'), // ✅ 수정된 경로
+      Uri.parse('${Env.baseUrl}/api/diaries/$diaryId'), // ✅ 수정된 경로
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -60,7 +60,7 @@ class DiaryApi {
     final token = prefs.getString('accessToken');
     if (token == null) return false;
 
-    final uri = Uri.parse('$baseUrl/api/diaries');
+    final uri = Uri.parse('${Env.baseUrl}/api/diaries');
     final request = http.MultipartRequest('POST', uri);
     request.headers['Authorization'] = 'Bearer $token';
 
@@ -103,7 +103,7 @@ class DiaryApi {
       return false;
     }
 
-    final uri = Uri.parse('$baseUrl/api/diaries/${entry.id}');
+    final uri = Uri.parse('${Env.baseUrl}/api/diaries/${entry.id}');
     final request = http.MultipartRequest('PATCH', uri);
     request.headers['Authorization'] = 'Bearer $token';
 
@@ -148,7 +148,7 @@ class DiaryApi {
       return false;
     }
 
-    final uri = Uri.parse('$baseUrl/api/diaries/$diaryId');
+    final uri = Uri.parse('${Env.baseUrl}/api/diaries/$diaryId');
     print('[DEBUG] DELETE URI: $uri'); // ✅ 경로 로그
 
     final response = await http.delete(uri, headers: {

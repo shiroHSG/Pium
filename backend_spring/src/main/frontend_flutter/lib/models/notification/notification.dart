@@ -5,6 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../../config/env.dart';
+
 /// 🔔 전역 알림 리스트
 List<Map<String, dynamic>> notificationList = [];
 
@@ -14,11 +16,9 @@ Function(int)? onUnreadAlarmCountUpdate; // 알림 전용
 
 EventSource? _eventSource;
 
-const _baseUrl = 'https://pium.store';
-
 Future<void> fetchUnreadNotifications(String token) async {
   try {
-    final url = Uri.parse('https://pium.store/api/notifications/unread');
+    final url = Uri.parse('${Env.baseUrl}/api/notifications/unread');
     final response = await http.get(
       url,
       headers: {
@@ -53,7 +53,7 @@ Future<void> fetchUnreadNotifications(String token) async {
 
 Future<void> subscribeToNotifications(String token) async {
   try {
-    final url = Uri.parse('$_baseUrl/api/notifications/subscribe');
+    final url = Uri.parse('${Env.baseUrl}/api/notifications/subscribe');
 
     _eventSource = await EventSource.connect(
       url.toString(),
@@ -104,7 +104,7 @@ Future<void> subscribeToNotifications(String token) async {
 
 // 알림 읽음 처리
 Future<void> markAllNotificationsAsRead(String token) async {
-  final url = Uri.parse('$_baseUrl/api/notifications/mark-as-read');
+  final url = Uri.parse('${Env.baseUrl}/api/notifications/mark-as-read');
 
   final response = await http.post(
     url,
@@ -127,7 +127,7 @@ Future<void> markAllNotificationsAsRead(String token) async {
 
 // 읽지 않은 알림 수 가져오기
 Future<void> fetchUnreadNotificationCount(String token, Function(int) onCountUpdate) async {
-  final url = Uri.parse('$_baseUrl/api/notifications/unread-count');
+  final url = Uri.parse('${Env.baseUrl}/api/notifications/unread-count');
 
   final response = await http.get(
     url,

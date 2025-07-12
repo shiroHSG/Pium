@@ -3,18 +3,17 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../config/env.dart';
 import 'post_request.dart';
 import 'post_response.dart';
 import 'post_comment.dart';
 
 class PostApiService {
-  static const String baseUrl = 'https://pium.store/api/posts'; // API 전용   // 이미지 전용
-
   // ⭐️ 인기 게시글 3개 호출 (추가!)
   static Future<List<PostResponse>> fetchPopularPosts({int size = 3}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    final uri = Uri.parse('$baseUrl/popular?size=$size');
+    final uri = Uri.parse('${Env.baseUrl}/api/posts/popular?size=$size');
 
     if (token == null) throw Exception('로그인 토큰이 없습니다. 로그인 해주세요.');
 
@@ -51,7 +50,7 @@ class PostApiService {
     Uri uri;
 
     if (type != null && type.isNotEmpty && keyword != null && keyword.isNotEmpty) {
-      uri = Uri.parse('$baseUrl/search').replace(
+      uri = Uri.parse('${Env.baseUrl}/api/posts/search').replace(
         queryParameters: {
           'type': type,
           'keyword': keyword,
@@ -64,7 +63,7 @@ class PostApiService {
       }
       if (sort != null) queryParameters['sort'] = sort;
 
-      uri = Uri.parse(baseUrl).replace(queryParameters: queryParameters);
+      uri = Uri.parse('${Env.baseUrl}/api/posts').replace(queryParameters: queryParameters);
     }
 
     if (token == null) {
@@ -99,7 +98,7 @@ class PostApiService {
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    final url = Uri.parse(baseUrl);
+    final url = Uri.parse('${Env.baseUrl}/api/posts');
 
     final request = http.MultipartRequest('POST', url);
     request.headers['Authorization'] = 'Bearer $token';
@@ -138,7 +137,7 @@ class PostApiService {
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    final url = Uri.parse('$baseUrl/$postId');
+    final url = Uri.parse('${Env.baseUrl}/api/posts/$postId');
 
     final request = http.MultipartRequest('PATCH', url);
     request.headers['Authorization'] = 'Bearer $token';
@@ -171,7 +170,7 @@ class PostApiService {
   static Future<bool> deletePost(int postId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    final url = '$baseUrl/$postId';
+    final url = '${Env.baseUrl}/api/posts/$postId';
     final response = await http.delete(
       Uri.parse(url),
       headers: {
@@ -186,7 +185,7 @@ class PostApiService {
   static Future<PostResponse> fetchPostDetail(int postId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    final url = '$baseUrl/$postId';
+    final url = '${Env.baseUrl}/api/posts/$postId';
     final response = await http.get(
       Uri.parse(url),
       headers: {
@@ -207,7 +206,7 @@ class PostApiService {
   static Future<bool> toggleLike(int postId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    final url = '$baseUrl/$postId/like';
+    final url = '${Env.baseUrl}/api/posts/$postId/like';
     final response = await http.post(
       Uri.parse(url),
       headers: {
@@ -227,7 +226,7 @@ class PostApiService {
   static Future<bool> addComment(int postId, String content) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    final url = '$baseUrl/$postId/comments';
+    final url = '${Env.baseUrl}/api/posts/$postId/comments';
     final response = await http.post(
       Uri.parse(url),
       headers: {
@@ -243,7 +242,7 @@ class PostApiService {
   static Future<List<Comment>> fetchComments(int postId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    final url = '$baseUrl/$postId/comments';
+    final url = '${Env.baseUrl}/api/posts/$postId/comments';
     final response = await http.get(
       Uri.parse(url),
       headers: {

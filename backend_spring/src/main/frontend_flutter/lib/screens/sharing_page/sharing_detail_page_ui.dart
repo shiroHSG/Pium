@@ -6,6 +6,7 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/sharing_item.dart';
 import 'package:frontend_flutter/widgets/protected_image.dart';
 
+import '../../config/env.dart';
 import '../../pages/chat/chat_room_message_page.dart';
 import '../../pages/chat/invite_modal.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
@@ -61,7 +62,7 @@ Widget SharingDetailPageUI(
                     borderRadius: BorderRadius.circular(12),
                     child: imageUrl!.startsWith('http')
                         ? ProtectedImage(imageUrl: imageUrl)
-                        : ProtectedImage(imageUrl: 'https://pium.store$imageUrl'),
+                        : ProtectedImage(imageUrl: '${Env.baseUrl}$imageUrl'),
                   ),
                 ),
               if (hasImage)

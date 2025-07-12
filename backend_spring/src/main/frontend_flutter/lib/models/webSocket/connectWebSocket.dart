@@ -3,13 +3,15 @@ import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
 import 'dart:convert';
 
+import '../../config/env.dart';
+
 late StompClient stompClient;
 
 
 void connectStomp(String token, int myId, Function(int) onUnreadCount) {
   stompClient = StompClient(
     config: StompConfig.SockJS(
-      url: 'https://pium.store/ws/chat?token=$token',
+      url: '${Env.baseUrl}/ws/chat?token=$token',
       onConnect: (StompFrame frame) {
         print('✅ WebSocket 연결됨');
 

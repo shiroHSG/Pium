@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:frontend_flutter/models/policy/PolicyResponse.dart';
 
+import '../../config/env.dart';
+
 class PolicyService {
-  static const String baseUrl = "https://pium.store/api/policies";
+  static const String baseUrl = "${Env.baseUrl}/api/policies";
 
   /// 정책 리스트 조회 (정렬/페이지네이션)
   static Future<Map<String, dynamic>> fetchPolicies({
@@ -11,7 +13,7 @@ class PolicyService {
     required int size,
     required String sortBy,
   }) async {
-    final url = Uri.parse('$baseUrl?page=${page - 1}&size=$size&sortBy=$sortBy');
+    final url = Uri.parse('${Env.baseUrl}?page=${page - 1}&size=$size&sortBy=$sortBy');
     final response = await http.get(url);
 
     print('----- [fetchPolicies] 응답 바디 -----');
@@ -47,7 +49,7 @@ class PolicyService {
     required int page,
     required int size,
   }) async {
-    final url = Uri.parse('$baseUrl/search?keyword=$keyword&page=${page - 1}&size=$size');
+    final url = Uri.parse('${Env.baseUrl}/search?keyword=$keyword&page=${page - 1}&size=$size');
     final response = await http.get(url);
 
     print('----- [searchPolicies] 응답 바디 -----');
@@ -77,7 +79,7 @@ class PolicyService {
 
   /// 정책 상세조회 (id 기반)
   static Future<PolicyResponse> fetchPolicyDetail(int id) async {
-    final url = Uri.parse('$baseUrl/$id');
+    final url = Uri.parse('${Env.baseUrl}/$id');
     final response = await http.get(url);
 
     print('----- [fetchPolicyDetail] 응답 바디 -----');
@@ -93,7 +95,7 @@ class PolicyService {
 
   /// [추가] 인기 정책 1개만 가져오기 (viewCount 기준)
   static Future<PolicyResponse> fetchPopularPolicy() async {
-    final url = Uri.parse('$baseUrl?sortBy=views&page=0&size=1');
+    final url = Uri.parse('${Env.baseUrl}?sortBy=views&page=0&size=1');
     final response = await http.get(url);
 
     print('----- [fetchPopularPolicy] 응답 바디 -----');

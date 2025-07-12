@@ -112,11 +112,11 @@ class ChattingMessagePageUI extends StatelessWidget {
                 Row(
                   mainAxisAlignment: message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
                   children: [
-                    if (message.isMe && message.unreadCount > 0)
-                      Text(
-                        '${message.unreadCount}',
-                        style: const TextStyle(fontSize: 10, color: Colors.grey),
-                      ),
+                    // if (message.isMe && message.unreadCount > 0)
+                    //   Text(
+                    //     '${message.unreadCount}',
+                    //     style: const TextStyle(fontSize: 10, color: Colors.grey),
+                    //   ),
                     if (message.isMe && message.unreadCount > 0)
                       const SizedBox(width: 4),
                     Text(
@@ -124,11 +124,11 @@ class ChattingMessagePageUI extends StatelessWidget {
                       style: const TextStyle(fontSize: 10, color: Colors.grey),
                     ),
                     const SizedBox(width: 4),
-                    if (!message.isMe && message.unreadCount > 0)
-                      Text(
-                        '${message.unreadCount}',
-                        style: const TextStyle(fontSize: 10, color: Colors.grey),
-                      ),
+                    // if (!message.isMe && message.unreadCount > 0)
+                    //   Text(
+                    //     '${message.unreadCount}',
+                    //     style: const TextStyle(fontSize: 10, color: Colors.grey),
+                    //   ),
                   ],
                 ),
               ],

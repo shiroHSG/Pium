@@ -7,9 +7,9 @@ import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend_flutter/models/baby_profile.dart';
 
-class ChildApi {
-  static const String baseUrl = 'https://pium.store';
+import '../../config/env.dart';
 
+class ChildApi {
   // 아이 정보 전체 조회
   static Future<List<BabyProfile>> fetchMyChildren() async {
     final prefs = await SharedPreferences.getInstance();
@@ -18,7 +18,7 @@ class ChildApi {
     if (token == null) return [];
 
     final response = await http.get(
-      Uri.parse('$baseUrl/api/child'),
+      Uri.parse('${Env.baseUrl}/api/child'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -41,7 +41,7 @@ class ChildApi {
     if (token == null) return null;
 
     final response = await http.get(
-      Uri.parse('$baseUrl/api/child/$childId'),
+      Uri.parse('${Env.baseUrl}/api/child/$childId'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -60,7 +60,7 @@ class ChildApi {
     final token = prefs.getString('accessToken');
     if (token == null) return false;
 
-    final uri = Uri.parse('$baseUrl/api/child/${updatedChild.childId}');
+    final uri = Uri.parse('${Env.baseUrl}/api/child/${updatedChild.childId}');
     final request = http.MultipartRequest('PATCH', uri);
     request.headers['Authorization'] = 'Bearer $token';
 
@@ -94,7 +94,7 @@ class ChildApi {
     if (token == null) return false;
 
     final response = await http.delete(
-      Uri.parse('$baseUrl/api/child/$childId'),
+      Uri.parse('${Env.baseUrl}/api/child/$childId'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -113,7 +113,7 @@ class ChildApi {
 
     if (token == null) return false;
 
-    final uri = Uri.parse('$baseUrl/api/child');
+    final uri = Uri.parse('${Env.baseUrl}/api/child');
     final request = http.MultipartRequest('POST', uri);
     request.headers['Authorization'] = 'Bearer $token';
 

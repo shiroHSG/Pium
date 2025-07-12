@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../../../config/env.dart';
 import '../../../screens/auth/address_search/address_search_page.dart';
 import '../../../screens/my_page/profile_edit/profile_edit_page_ui.dart';
 import '../../../models/mate/mate_api.dart';
@@ -68,7 +69,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://pium.store/api/member'),
+        Uri.parse('${Env.baseUrl}/api/member'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -82,7 +83,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
         if (mateId != null) {
           final mateResponse = await http.get(
-            Uri.parse('https://pium.store/api/member/users/$mateId'),
+            Uri.parse('${Env.baseUrl}/api/member/users/$mateId'),
             headers: {
               'Authorization': 'Bearer $token',
               'Content-Type': 'application/json',
@@ -112,7 +113,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
           final imagePath = user['profileImageUrl'];
           _profileImageUrl = (imagePath != null && imagePath.isNotEmpty)
-              ? 'https://pium.store${imagePath.startsWith('/') ? imagePath : '/$imagePath'}'
+              ? '${Env.baseUrl}${imagePath.startsWith('/') ? imagePath : '/$imagePath'}'
               : null;
 
           _originalNickname = user['nickname'];
@@ -133,7 +134,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken') ?? '';
 
-    final uri = Uri.parse('https://pium.store/api/member');
+    final uri = Uri.parse('${Env.baseUrl}/api/member');
     final request = http.MultipartRequest('PATCH', uri);
 
     final memberData = {

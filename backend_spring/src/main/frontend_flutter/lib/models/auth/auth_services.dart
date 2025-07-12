@@ -2,18 +2,17 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../config/env.dart';
 import '../notification/notification.dart';
 
 class AuthService {
-  static const String baseUrl = 'https://pium.store'; // 하드코딩
-
   // 회원가입
   Future<String?> signUp(
     Map<String, dynamic> memberData, {
     http.MultipartFile? imageFile,
   }) async {
     try {
-      final uri = Uri.parse('$baseUrl/api/member/register');
+      final uri = Uri.parse('${Env.baseUrl}/api/member/register');
       final request = http.MultipartRequest('POST', uri);
 
       // JSON 문자열로 변환해서 필드에 담기
@@ -49,7 +48,7 @@ class AuthService {
   Future<bool> login(String email, String password) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/api/member/login'),
+        Uri.parse('${Env.baseUrl}/api/member/login'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Accept': 'application/json',
@@ -111,7 +110,7 @@ class AuthService {
 
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/api/member/reissue'),
+        Uri.parse('${Env.baseUrl}/api/member/reissue'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Accept': 'application/json',
@@ -141,7 +140,7 @@ class AuthService {
     http.MultipartFile? imageFile,
   }) async {
     try {
-      final uri = Uri.parse('$baseUrl/api/member');
+      final uri = Uri.parse('${Env.baseUrl}/api/member');
       final request = http.MultipartRequest('PATCH', uri);
 
       request.fields['memberData'] = jsonEncode(memberData);
@@ -189,7 +188,7 @@ class AuthService {
       }
 
       final response = await http.post(
-        Uri.parse('$baseUrl/api/member/logout'),
+        Uri.parse('${Env.baseUrl}/api/member/logout'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Accept': 'application/json',
@@ -225,7 +224,7 @@ class AuthService {
 
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/member'),
+        Uri.parse('${Env.baseUrl}/api/member'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -258,7 +257,7 @@ class AuthService {
       }
 
       final response = await http.delete(
-        Uri.parse('$baseUrl/api/member'),
+        Uri.parse('${Env.baseUrl}/api/member'),
         headers: <String, String>{
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -285,7 +284,7 @@ class AuthService {
   // 닉네임 중복 확인
   Future<String?> checkNicknameDuplicate(String nickname) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/member/checkNickName?nickName=$nickname'));
+      final response = await http.get(Uri.parse('${Env.baseUrl}/api/member/checkNickName?nickName=$nickname'));
 
       if (response.statusCode == 200) {
         return null; // 사용 가능

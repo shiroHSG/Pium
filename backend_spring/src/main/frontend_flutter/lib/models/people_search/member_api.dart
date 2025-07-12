@@ -3,15 +3,15 @@ import 'package:http/http.dart' as http;
 import 'package:frontend_flutter/models/people_search//member_entry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class MemberApi {
-  static const String baseUrl = 'https://pium.store/api/member';
+import '../../config/env.dart';
 
+class MemberApi {
   static Future<List<Member>> searchMembers(String query) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
 
     final response = await http.get(
-      Uri.parse('$baseUrl/search?query=$query'),
+      Uri.parse('${Env.baseUrl}/api/member/search?query=$query'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',

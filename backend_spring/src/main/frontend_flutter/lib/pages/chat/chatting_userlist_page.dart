@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../config/env.dart';
 import '../../models/chat/chat_service.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/protected_image.dart';
@@ -286,7 +287,7 @@ class _ChattingUserlistPageState extends State<ChattingUserlistPage> {
                       final nickname = p['nickname'] ?? '알 수 없음';
 
                       final url = (img != null && img.isNotEmpty)
-                          ? (img.startsWith('http') ? img : 'https://pium.store${img.startsWith('/') ? img : '/$img'}')
+                          ? (img.startsWith('http') ? img : '${Env.baseUrl}${img.startsWith('/') ? img : '/$img'}')
                           + '?t=${DateTime.now().millisecondsSinceEpoch}'
                           : null;
 

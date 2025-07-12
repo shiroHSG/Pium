@@ -3,15 +3,15 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-class MateApi {
-  static const String baseUrl = 'https://pium.store';
+import '../../config/env.dart';
 
+class MateApi {
   // Mate 신청
   static Future<void> requestMate(int receiverId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
     await http.post(
-      Uri.parse('$baseUrl/api/mate/request/$receiverId'),
+      Uri.parse('${Env.baseUrl}/api/mate/request/$receiverId'),
       headers: {'Authorization': 'Bearer $token'},
     );
   }
@@ -21,7 +21,7 @@ class MateApi {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
     final response = await http.get(
-      Uri.parse('$baseUrl/api/mate/received'),
+      Uri.parse('${Env.baseUrl}/api/mate/received'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -45,7 +45,7 @@ class MateApi {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
     final response = await http.get(
-      Uri.parse('$baseUrl/api/mate/sent'),
+      Uri.parse('${Env.baseUrl}/api/mate/sent'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -70,7 +70,7 @@ class MateApi {
     final token = prefs.getString('accessToken');
     final endpoint = accepted ? '/api/mate/accept/$requestId' : '/api/mate/reject/$requestId';
     final response = await http.post(
-      Uri.parse('$baseUrl$endpoint'),
+      Uri.parse('${Env.baseUrl}$endpoint'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -84,7 +84,7 @@ class MateApi {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
     final response = await http.delete(
-      Uri.parse('$baseUrl/api/mate/cancel/$requestId'),
+      Uri.parse('${Env.baseUrl}/api/mate/cancel/$requestId'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ class MateApi {
     final token = prefs.getString('accessToken');
 
     final response = await http.post(
-      Uri.parse('$baseUrl/api/mate/disconnect'),
+      Uri.parse('${Env.baseUrl}/api/mate/disconnect'),
       headers: {'Authorization': 'Bearer $token'},
     );
 

@@ -40,6 +40,7 @@ out/
 
 ### yml 파일 ignore 처리 ###
 /src/main/resources/application-local.yml
+/src/main/resources/application-prod.yml
 
 # .gitignore
 .env
