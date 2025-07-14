@@ -346,10 +346,11 @@ class PostApiService {
       },
     );
     if (response.statusCode == 200) {
-      final List<dynamic> list = json.decode(response.body);
+      final decoded = utf8.decode(response.bodyBytes);
+      final List<dynamic> list = json.decode(decoded);
       return list.map((json) => Comment.fromJson(json)).toList();
     } else {
-      throw Exception('댓글 목록 조회 실패');
+    throw Exception('댓글 목록 조회 실패');
     }
   }
 }
