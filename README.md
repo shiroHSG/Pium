@@ -12,10 +12,12 @@
   단편화된 육아 정보, 중고거래 신뢰 문제, 부족한 정책 접근성 등 2030 부모들이 겪는 문제를 해결하기 위해  
   가족 중심 공동 관리와 안전한 지역 커뮤니티, 정책 정보 통합 서비스를 제공합니다.
 
-- **핵심 기능**:
-  - **공동관리 기능**: 아이정보, 육아일지, 일정 공유 캘린더, 메이트 기반 관리
-  - **소통 기능**: 커뮤니티, 나눔 품앗이, 실시간 채팅
-  - **정보제공 기능**: 육아 정책 정보 통합 제공
+🛠️ 개발 환경
+- **Frontend**: Flutter
+- **Backend**: Spring Boot
+- **Database**: MySQL
+- **Version Control**: Git, GitHub
+- **CI/CD**: `.jar` 빌드 후 S3 버킷 배포, Nginx Reverse Proxy
 
 ---
 ## 👥 팀원
@@ -29,16 +31,13 @@
 
 ---
 
-## 🛠️ 개발 환경
-
-- **Frontend**: Flutter
-- **Backend**: Spring Boot
-- **Database**: MySQL
-- **Version Control**: Git, GitHub
-- **CI/CD**: `.jar` 빌드 후 S3 버킷 배포, Nginx Reverse Proxy
+## 🌟 핵심 기능
+  - **공동관리 기능**: 아이정보, 육아일지, 일정 공유 캘린더, 메이트 기반 관리
+  - **소통 기능**: 커뮤니티, 나눔 품앗이, 실시간 채팅
+  - **정보제공 기능**: 육아 정책 정보 통합 제공
 
 ---
-## 🧱 프로세스 아키텍처
+## 🖥️ 프로세스 아키텍처
 <img width="701" height="310" alt="image" src="https://github.com/user-attachments/assets/e30bc9ff-658c-483d-abe0-c4d142c13e5e" />
 
 ---
@@ -54,7 +53,7 @@
 
 ---
 
-✅ 실행 방법
+## ✅ 실행 방법
 
 (추가 예정)
 
