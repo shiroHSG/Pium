@@ -1,5 +1,7 @@
 package com.buddy.pium.config;
 
+import com.buddy.pium.service.common.TokenService;
+import com.buddy.pium.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +27,8 @@ import static com.buddy.pium.config.SecurityConstants.ALLOWED_URLS;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtFilter jwtFilter;
+    private final JwtUtil jwtUtil;
+    private final TokenService tokenService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -39,9 +42,15 @@ public class SecurityConfig {
                     }
                     auth.anyRequest().authenticated();
                 })
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter(jwtUtil, tokenService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // ✅ JwtFilter Bean 수동 등록
+    @Bean
+    public JwtFilter jwtFilter(JwtUtil jwtUtil, TokenService tokenService) {
+        return new JwtFilter(jwtUtil, tokenService);
     }
 
     @Bean

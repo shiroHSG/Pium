@@ -19,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -166,13 +167,17 @@ public class MemberController {
      * 로그아웃
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@CurrentMember Member member) {
-
-        // 로그 출력용
-        System.out.println("[Controller] 로그아웃 요청 - member: " + member);
-
-        memberService.logout(member);
-        return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));
+    public ResponseEntity<Void> logout(
+            @CurrentMember Member member,
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String accessToken = authHeader.substring(7);
+            memberService.logout(member, accessToken);
+            return ResponseEntity.ok().build();
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Authorization 헤더가 잘못되었습니다.");
+        }
     }
 
     // 회원 탈퇴 추가

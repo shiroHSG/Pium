@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final TokenService tokenService; // Redis 연동
 
     private final FileUploadService fileUploadService;
 
@@ -139,6 +141,7 @@ public class MemberService {
                 // ✅ mateInfo 로그 확인
                 System.out.println("[Service] member.getId(): " + member.getId());
 
+                // ✅ 로그인 시 RefreshToken Redis에 저장
                 String accessToken = jwtUtil.generateAccessToken(member.getId());
                 String refreshToken = jwtUtil.generateRefreshToken(member.getId());
 
@@ -146,7 +149,8 @@ public class MemberService {
                 System.out.println("[Service] AccessToken: " + accessToken);
                 System.out.println("[Service] RefreshToken: " + refreshToken);
 
-                member.setRefreshToken(refreshToken);
+                tokenService.saveRefreshToken(member.getId(), refreshToken, Duration.ofDays(7)); // Redis 저장
+
                 memberRepository.save(member);
 
                 System.out.println("[Service] 로그인 성공 → 토큰 저장 완료");
@@ -190,23 +194,27 @@ public class MemberService {
         Claims claims = jwtUtil.validateTokenAndGetClaims(refreshToken);
         Long memberId = Long.parseLong(claims.getSubject());
 
-        Member member = validateMember(memberId);
-
-        if (!refreshToken.equals(member.getRefreshToken())) {
+        // Redis에서 토큰 가져와서 검증
+        String storedRefreshToken = tokenService.getRefreshToken(memberId);
+        if (!refreshToken.equals(storedRefreshToken)) {
             throw new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다.");
         }
 
-        return jwtUtil.generateAccessToken(member.getId());
+        return jwtUtil.generateAccessToken(memberId);
     }
 
     // 로그아웃
-    public void logout(Member member) {
-        // 로그 출력용
+    public void logout(Member member, String accessToken) {
         System.out.println("[Service] 로그아웃 요청 - member: " + member);
-        System.out.println("[Service] RefreshToken 제거 완료");
+        System.out.println("[Service] 전달된 AccessToken: " + accessToken);
 
-        member.setRefreshToken(null);
-        memberRepository.save(member);
+        // 1. RefreshToken 삭제 (Redis에서)
+        tokenService.deleteRefreshToken(member.getId());
+
+        // 2. AccessToken 블랙리스트 등록 (남은 유효 시간에 맞춰 설정 가능)
+        tokenService.blacklistAccessToken(accessToken, Duration.ofMinutes(15)); // 🔁 실제 만료 시간만큼 넣어도 좋음
+
+        System.out.println("[Service] Redis에서 RefreshToken 제거 및 AccessToken 블랙리스트 처리 완료");
     }
 
     public Member validateMember(Long memberId) {
