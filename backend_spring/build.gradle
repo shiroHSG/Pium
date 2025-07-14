@@ -12,6 +12,12 @@ java {
 		languageVersion = JavaLanguageVersion.of(17)
 	}
 }
+jar {
+	archiveBaseName = 'pium'
+	archiveVersion = ''
+	archiveClassifier = ''
+}
+
 
 configurations {
 	compileOnly {
