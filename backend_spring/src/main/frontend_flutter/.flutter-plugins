@@ -1,4 +1,5 @@
 # This is a generated file; do not edit or check into version control.
+<<<<<<< Updated upstream
 cloud_firestore=C:\\Users\\TJ\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\cloud_firestore-5.6.9\\
 cloud_firestore_web=C:\\Users\\TJ\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\cloud_firestore_web-4.4.9\\
 file_selector_linux=C:\\Users\\TJ\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\file_selector_linux-0.9.3+2\\
@@ -8,6 +9,11 @@ firebase_auth=C:\\Users\\TJ\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\fireba
 firebase_auth_web=C:\\Users\\TJ\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\firebase_auth_web-5.15.0\\
 firebase_core=C:\\Users\\TJ\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\firebase_core-3.14.0\\
 firebase_core_web=C:\\Users\\TJ\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\firebase_core_web-2.23.0\\
+=======
+file_selector_linux=C:\\Users\\TJ\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\file_selector_linux-0.9.3+2\\
+file_selector_macos=C:\\Users\\TJ\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\file_selector_macos-0.9.4+3\\
+file_selector_windows=C:\\Users\\TJ\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\file_selector_windows-0.9.3+4\\
+>>>>>>> Stashed changes
 flutter_plugin_android_lifecycle=C:\\Users\\TJ\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\flutter_plugin_android_lifecycle-2.0.28\\
 flutter_secure_storage=C:\\Users\\TJ\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\flutter_secure_storage-9.2.4\\
 flutter_secure_storage_linux=C:\\Users\\TJ\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\flutter_secure_storage_linux-1.2.3\\

@@ -28,6 +28,7 @@
     {
       "name": "clock",
       "rootUri": "file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/clock-1.1.2",
+<<<<<<< Updated upstream
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -46,6 +47,8 @@
     {
       "name": "cloud_firestore_web",
       "rootUri": "file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/cloud_firestore_web-4.4.9",
+=======
+>>>>>>> Stashed changes
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -118,6 +121,7 @@
     {
       "name": "file_selector_windows",
       "rootUri": "file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/file_selector_windows-0.9.3+4",
+<<<<<<< Updated upstream
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -154,6 +158,8 @@
     {
       "name": "firebase_core_web",
       "rootUri": "file:///C:/Users/TJ/AppData/Local/Pub/Cache/hosted/pub.dev/firebase_core_web-2.23.0",
+=======
+>>>>>>> Stashed changes
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -638,7 +644,11 @@
       "languageVersion": "3.7"
     }
   ],
+<<<<<<< Updated upstream
   "generated": "2025-07-11T01:44:14.560924Z",
+=======
+  "generated": "2025-07-07T03:13:45.424498Z",
+>>>>>>> Stashed changes
   "generator": "pub",
   "generatorVersion": "3.7.2",
   "flutterRoot": "file:///C:/dev/flutter",
