@@ -21,7 +21,7 @@ jobs: # 병렬로 실행되는 작업 단위, 여러 step으로 이루어짐
 
     steps:
     - name: Checkout source
-    - uses: actions/checkout@v4 # 재사용 가능한 워크플로 파일의 위치 및 버
+      uses: actions/checkout@v4 # 재사용 가능한 워크플로 파일의 위치 및 버
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
