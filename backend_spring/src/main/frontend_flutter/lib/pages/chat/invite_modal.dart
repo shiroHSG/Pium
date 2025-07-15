@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/chat/chat_service.dart';
+import '../../models/chat/chatroom.dart';
 import '../../screens/chatting/invite_modal_ui.dart';
 import 'chat_room_message_page.dart';
 
@@ -54,12 +55,15 @@ class _InviteModalState extends State<InviteModal> {
         password: password,
       );
 
+      // 채팅방 상세 정보 가져오기
+      final chatRoom = await fetchChatRoomDetail(chatRoomId);
+
       if (context.mounted) {
         Navigator.pop(context); // 모달 닫기
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ChatRoomPage(chatRoomId: chatRoomId),
+            builder: (_) => ChatRoomPage(chatRoom: chatRoom),
           ),
         );
       }

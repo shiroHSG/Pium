@@ -90,11 +90,11 @@ class _ChattingPageState extends State<ChattingPage> {
     print('선택된 모드: $_selectedMode');
   }
 
-  void _navigateToChatRoom(int chatRoomId) async {
+  void _navigateToChatRoom(ChatRoom chatRoom) async {
     final shouldRefresh = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ChatRoomPage(chatRoomId: chatRoomId),
+        builder: (context) => ChatRoomPage(chatRoom: chatRoom),
       ),
     );
 
@@ -146,7 +146,7 @@ class _ChattingPageState extends State<ChattingPage> {
           final room = filteredChatRooms[index];
           return ChattingListItem(
             chatRoom: room,
-            onTap: () => _navigateToChatRoom(room.chatRoomId),
+            onTap: () => _navigateToChatRoom(room),
           );
         },
       ),
