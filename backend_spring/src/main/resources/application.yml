@@ -36,10 +36,10 @@ jwt:
 cloud:
   aws:
     credentials:
-      access-key: ${ACCESS_KEY}
-      secret-key: ${SECRET_KEY}
+      access-key: ${S3_IMAGE_ACCESS_KEY}
+      secret-key: ${S3_IMAGE_SECRET_KEY}
     s3:
-      bucket-name: ${BUCKET_NAME}
+      bucket-name: ${S3_IMAGE_BUCKET_NAME}
     region:
       static: ap-northeast-2
     stack:
