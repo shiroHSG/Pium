@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sleep 10
+
 APP_DIR=/home/ubuntu/app/pium/zip/backend_spring/build/libs
 JAR_NAME=$(ls $APP_DIR | grep '.jar' | grep -v 'plain' | head -n 1)
 
