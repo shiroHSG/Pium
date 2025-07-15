@@ -15,7 +15,8 @@ env:
 jobs: # 병렬로 실행되는 작업 단위, 여러 step으로 이루어짐
   build:
 
-    runs-on: ubuntu-latest # 스크립트를 작동한 OS
+    # GitHub Actions가 스크립트를 작동할 가상 OS
+    runs-on: ubuntu-latest 
     permissions:
       contents: read
 
@@ -42,7 +43,10 @@ jobs: # 병렬로 실행되는 작업 단위, 여러 step으로 이루어짐
         echo "S3_IMAGE_ACCESS_KEY=${{ secrets.S3_IMAGE_ACCESS_KEY }}" >> .env
         echo "S3_IMAGE_SECRET_KEY=${{ secrets.S3_IMAGE_SECRET_KEY }}" >> .env
         echo "S3_IMAGE_BUCKET_NAME=${{ secrets.S3_IMAGE_BUCKET_NAME }}" >> .env
-      
+        echo "DATASOURCE_URL=${{ secrets.DATASOURCE_URL }}" >> .env
+        echo "DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }}" >> .env
+        echo "DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }}" >> .env
+        
     # 프로젝트 압축
     - name: Make deployment zip
       run: |
