@@ -26,12 +26,21 @@ class BabyProfile {
   });
 
   factory BabyProfile.fromJson(Map<String, dynamic> json) {
+    final birthList = json['birth'] ?? json['birthDate']; // 둘 다 대응
+    DateTime parsedBirth;
+
+    if (birthList is List && birthList.length >= 3) {
+      parsedBirth = DateTime(birthList[0], birthList[1], birthList[2]);
+    } else if (birthList is String) {
+      parsedBirth = DateTime.tryParse(birthList) ?? DateTime.now();
+    } else {
+      parsedBirth = DateTime.now();
+    }
+
     return BabyProfile(
       childId: json['childId'] ?? json['id'],
       name: json['name'] ?? '',
-      birthDate: json['birthDate'] != null
-          ? DateTime.parse(json['birthDate'])
-          : DateTime.now(),
+      birthDate: parsedBirth,
       gender: _parseGender(json['gender']),
       height: json['height'] != null
           ? double.tryParse(json['height'].toString())
@@ -41,10 +50,9 @@ class BabyProfile {
           : null,
       allergy: json['sensitiveInfo']?.toString(),
       developmentStep: json['developmentStep']?.toString(),
-      profileImageUrl: json['profileImgUrl']?.toString(), // ✅ 추가
+      profileImageUrl: json['profileImgUrl']?.toString(),
     );
   }
-
   static Gender? _parseGender(dynamic value) {
     if (value == null) return null;
     if (value == 'M' || value == '남자') return Gender.MALE;

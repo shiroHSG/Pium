@@ -61,15 +61,19 @@ class BabyRecordHeader extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  selectedChild?.birthDate != null
-                      ? DateFormat('yyyy.MM.dd').format(selectedChild!.birthDate!)
-                      : '생년월일 없음',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppTheme.textPurple,
-                  ),
-                ),
+                // ✅ 생년월일 디버깅 로그 추가 위치
+                Builder(builder: (context) {
+                  print('🧸 selectedChild.birthDate: ${selectedChild?.birthDate}');
+                  return Text(
+                    selectedChild?.birthDate != null
+                        ? DateFormat('yyyy.MM.dd').format(selectedChild!.birthDate!)
+                        : '생년월일 없음',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.textPurple,
+                    ),
+                  );
+                }),
               ],
             ),
           ),

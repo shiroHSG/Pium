@@ -5,14 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f453d1a1-b165-4943-a6d8-880e4499dbc9" name="변경" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend_spring/src/main/frontend_flutter/.dart_tool/package_config.json" beforeDir="false" afterPath="$PROJECT_DIR$/backend_spring/src/main/frontend_flutter/.dart_tool/package_config.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend_spring/src/main/frontend_flutter/.dart_tool/package_config_subset" beforeDir="false" afterPath="$PROJECT_DIR$/backend_spring/src/main/frontend_flutter/.dart_tool/package_config_subset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend_spring/src/main/frontend_flutter/.flutter-plugins" beforeDir="false" afterPath="$PROJECT_DIR$/backend_spring/src/main/frontend_flutter/.flutter-plugins" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend_spring/src/main/frontend_flutter/.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/backend_spring/src/main/frontend_flutter/.flutter-plugins-dependencies" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend_spring/src/main/frontend_flutter/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend_spring/src/main/frontend_flutter/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend_spring/src/main/frontend_flutter/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/backend_spring/src/main/frontend_flutter/windows/flutter/generated_plugin_registrant.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend_spring/src/main/frontend_flutter/windows/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/backend_spring/src/main/frontend_flutter/windows/flutter/generated_plugins.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend_spring/src/main/java/com/buddy/pium/service/diary/DiaryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend_spring/src/main/java/com/buddy/pium/service/diary/DiaryService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
