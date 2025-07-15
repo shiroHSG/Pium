@@ -2,9 +2,10 @@ server:
   port: 8080
 
 spring:
-  profiles:
-    active: prod
-#    active: prod
+  datasource:
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
 
   jpa:
     hibernate:
@@ -50,3 +51,7 @@ http:
     charset: UTF-8
     enabled: true
     force: true
+
+# 추가
+#file:
+#  upload-dir: {UPLOAD_DIR}
