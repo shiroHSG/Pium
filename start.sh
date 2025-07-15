@@ -8,4 +8,4 @@ cp /home/ubuntu/app/pium/zip/.env $APP_DIR
 
 echo "> Starting $JAR_NAME"
 cd $APP_DIR
-nohup java -jar -Dspring.profiles.active=prod $JAR_NAME > /home/ubuntu/app/pium/zip/nohup.log 2>&1 &
+nohup java -jar $JAR_NAME > /home/ubuntu/app/pium/zip/nohup.log 2>&1 &
