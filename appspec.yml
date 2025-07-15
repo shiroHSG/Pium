@@ -1,0 +1,26 @@
+version: 0.0
+os: linux
+
+files:
+  - source: /
+    destination: /home/ubuntu/app/pium/zip
+
+permissions:
+  - object: /home/ubuntu/app/pium/zip
+    pattern: "**"
+    owner: ubuntu
+    group: ubuntu
+
+hooks:
+  ApplicationStop:
+    - location: stop.sh
+      timeout: 60
+      runas: ubuntu
+    - location: chmod.sh
+      timeout: 30
+      runas: ubuntu
+
+  AfterInstall:
+    - location: start.sh
+      timeout: 60
+      runas: ubuntu
