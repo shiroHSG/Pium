@@ -3,8 +3,6 @@ name: Java CI with Gradle # Workflow 이름
 on: # Workflow를 자동으로 트리거 하기 위한 이벤트
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
 
 env:
   S3_BUCKET_NAME: pium-deploy-bucket
