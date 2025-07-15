@@ -55,8 +55,20 @@ public class DiaryService {
     }
 
     public List<DiaryResponseDto> getAllByChild(Long childId, Member member) {
-        Child child = childService.validateChild(childId, member);
+        // 현재 사용자 또는 mateInfo의 자녀인지 확인
+        Child child = childRepository.findById(childId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 자녀를 찾을 수 없습니다."));
 
+        Long childOwnerId = child.getMember().getId();
+        Long currentMemberId = member.getId();
+        Long mateMemberId = member.getMateInfo() != null ? member.getMateInfo() : null;
+
+        // 소유자 확인: 본인 또는 mate의 자녀일 경우 허용
+        if (!childOwnerId.equals(currentMemberId) && !childOwnerId.equals(mateMemberId)) {
+            throw new AccessDeniedException("해당 자녀에 대한 접근 권한이 없습니다.");
+        }
+
+        // 일지 조회
         return diaryRepository.findByChildOrderByCreatedAtDesc(child).stream()
                 .map(DiaryResponseDto::from)
                 .toList();
