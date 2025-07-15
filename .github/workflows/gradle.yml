@@ -28,12 +28,20 @@ jobs: # 병렬로 실행되는 작업 단위, 여러 step으로 이루어짐
         java-version: '17'
         distribution: 'temurin'
     
-    #  프로젝트 실행 권한 부여 및 buil
+    #  프로젝트 실행 권한 부여 및 build
     - name: Build with Gradle (without tests)
       run: |
         cd backend_spring
         chmod +x ./gradlew
         ./gradlew clean build -x test
+
+    # .env 생성
+    - name: 🧾 Create .env file
+      run: |
+        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+        echo "S3_IMAGE_ACCESS_KEY=${{ secrets.S3_IMAGE_ACCESS_KEY }}" >> .env
+        echo "S3_IMAGE_SECRET_KEY=${{ secrets.S3_IMAGE_SECRET_KEY }}" >> .env
+        echo "S3_IMAGE_BUCKET_NAME=${{ secrets.S3_IMAGE_BUCKET_NAME }}" >> .env
       
     # 프로젝트 압축
     - name: Make deployment zip
