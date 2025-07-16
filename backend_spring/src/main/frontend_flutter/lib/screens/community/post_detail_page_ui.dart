@@ -3,7 +3,10 @@ import 'package:frontend_flutter/theme/app_theme.dart';
 import 'package:frontend_flutter/models/post/post_response.dart';
 import 'package:frontend_flutter/models/post/post_comment.dart';
 import 'package:frontend_flutter/models/post/post_api_services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../flutter_linkify_custom/lib/flutter_linkify.dart';
+import '../../pages/chat/invite_modal.dart';
 import '../../widgets/fullscreen_image.dart';
 import '../../widgets/protected_image.dart';
 
@@ -198,18 +201,37 @@ class PostDetailContent extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.grey.shade200),
       ),
-      child: Text(
-        content,
+      child: Linkify(
+        text: content,
+        onOpen: (link) async {
+          final uri = Uri.tryParse(link.url);
+          if (uri != null &&
+              uri.pathSegments.length >= 3 &&
+              uri.pathSegments[1] == 'invite') {
+            final inviteCode = uri.pathSegments[2];
+            showDialog(
+              context: context,
+              builder: (_) => InviteModal(inviteCode: inviteCode),
+            );
+          } else {
+            if (await canLaunchUrl(uri!)) {
+              await launchUrl(uri);
+            }
+          }
+        },
         style: const TextStyle(
           fontFamily: 'Jua',
           fontSize: 15,
           color: Colors.black87,
         ),
+        linkStyle: const TextStyle(
+          color: Colors.blue,
+          decoration: TextDecoration.underline,
+        ),
       ),
     );
   }
 }
-
 // 5. 이미지
 class PostDetailImage extends StatelessWidget {
   final String? imageUrl;
