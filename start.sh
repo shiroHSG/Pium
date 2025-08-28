@@ -1,7 +1,7 @@
 #!/bin/bash
 
 APP_DIR=/home/ubuntu/app/pium/zip/backend_spring/build/libs
-JAR_NAME=$(ls $APP_DIR | grep '.jar' | head -n 1)
+JAR_NAME=$(ls $APP_DIR | grep '.jar' | grep -v 'plain' | head -n 1)
 
 # ✅ .env를 jar 옆으로 복사
 cp /home/ubuntu/app/pium/zip/.env $APP_DIR
