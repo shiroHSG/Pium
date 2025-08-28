@@ -26,7 +26,6 @@ public class ChatWebSocketBroadcaster {
 
     // 채팅방 내부 메세지 브로드캐스트
     public void broadcastMessage(Long chatRoomId, MessageResponseDto dto) {
-        System.out.println("broadcastMessage socket 입장");
         messagingTemplate.convertAndSend("/sub/chatroom/" + chatRoomId, dto);
     }
 
@@ -48,7 +47,6 @@ public class ChatWebSocketBroadcaster {
     // 하단바 갱신
     public void broadcastUnreadCount(Long memberId) {
         int count = chatRoomService.getTotalUnreadCount(memberRepository.findById(memberId).orElseThrow());
-        System.out.println("📡 broadcastUnreadCount 실행됨 → memberId: " + memberId + ", count: " + count);
         messagingTemplate.convertAndSend("/sub/member/" + memberId + "/unread-count", count);
     }
 }
