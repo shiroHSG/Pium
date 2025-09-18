@@ -75,7 +75,7 @@
 ---
 
 ## ✅ 실행 방법
-api 서버를 ec2에 배포 후 app은 따로 설치해야 하는데 서버는 비용 문제로 내렸습니다
+서버는 비용 문제로 내리게 되었습니다
 
 [pium.zip](https://github.com/user-attachments/files/22400477/pium.zip)
 
