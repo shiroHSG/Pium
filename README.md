@@ -43,7 +43,6 @@
 ---
 
 ## 🎨 UI/UX 화면 설계
-🔗[Figma 링크 바로가기](https://www.figma.com/proto/2jsvnMhGgNT0YYE7XnLpB7/%EB%8D%94%EC%A1%B0%EC%9D%80_3%EC%A1%B0_%EC%B6%9C%EC%82%B0%EC%9C%A8-%EC%83%81%EC%8A%B9-%EC%BB%A4%EB%AE%A4%EB%8B%88%ED%8B%B0-%ED%94%8C%EB%9E%AB%ED%8F%BC?node-id=0-1&t=Vu2tOyWg3rpr2rFM-1)
 <img width="794" height="346" alt="image" src="https://github.com/user-attachments/assets/02c6f0d8-73a1-4c1d-b86e-81d964ce5c80" />
 
 ---
