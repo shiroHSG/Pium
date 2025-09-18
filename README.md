@@ -53,18 +53,8 @@
 
 ---
 
-## ✅ 실행 방법
-
-(추가 예정)
-
----
-
 ## 📹 시연 영상
-
-(추가 예정)
-
+[![Watch the video](https://img.youtube.com/vi/WKDH92otQ6I/0.jpg)](https://www.youtube.com/watch?v=WKDH92otQ6I)
 ---
 
-## 🙌 마무리
-육아의 길, 혼자 걷지 않도록. PIU-M이 함께하겠습니다. 감사합니다! 🌸
 
